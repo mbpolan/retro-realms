@@ -34,6 +34,6 @@ class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
   }
 
   override def registerStompEndpoints(registry: StompEndpointRegistry): Unit = {
-    registry.addEndpoint("/user").withSockJS()
+    registry.addEndpoint("/topic").withSockJS()
   }
 }
