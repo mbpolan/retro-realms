@@ -55,11 +55,11 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 
                     dispatchEvent(Events.Connected);
 
-                    client.send('/api/user', {}, JSON.stringify({
+                    client.send('/api/user/register', {}, JSON.stringify({
                         name: 'Mike'
                     }));
 
-                    client.subscribe('/topic/user', function (data) {
+                    client.subscribe('/topic/user/register', function (data) {
                         sessionId = JSON.parse(data.body).sessionId;
                         dispatchEvent(Events.NewSession, {
                             id: sessionId

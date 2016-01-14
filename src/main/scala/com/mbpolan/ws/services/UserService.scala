@@ -1,7 +1,5 @@
 package com.mbpolan.ws.services
 
-import java.util.UUID
-
 import org.springframework.stereotype.Component
 
 /**
@@ -10,14 +8,11 @@ import org.springframework.stereotype.Component
 @Component
 class UserService {
 
-  var users = Map[String, User]()
+  private var users = Map[String, User]()
 
-  def add(user: User): Unit = {
-    val id = UUID.randomUUID().toString
-    users += (id -> user)
+  def add(id: String, user: User): Unit = users += (id -> user)
 
-    id
-  }
+  def remove(id: String): Unit = users -= id
 
-  def remove(id: String): Unit = users - id
+  def allSessions: List[String] = users.keys.toList
 }
