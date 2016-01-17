@@ -24,8 +24,41 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
             var stage = new PIXI.Container();
             el.find('div')[0].appendChild(renderer.view);
 
+            var onKeyUp = function () {
+                setPlayerVelocity(0, 0);
+            };
+
+            var registerKeyHandlers = function () {
+                kd.UP.down(function () {
+                    setPlayerVelocity(0, -1);
+                    setPlayerDirection('up');
+                });
+
+                kd.DOWN.down(function () {
+                    setPlayerVelocity(0, 1);
+                    setPlayerDirection('down');
+                });
+
+                kd.LEFT.down(function () {
+                    setPlayerVelocity(-1, 0);
+                    setPlayerDirection('left');
+                });
+
+                kd.RIGHT.down(function () {
+                    setPlayerVelocity(1, 0);
+                    setPlayerDirection('right');
+                });
+
+                kd.UP.up(onKeyUp);
+                kd.DOWN.up(onKeyUp);
+                kd.LEFT.up(onKeyUp);
+                kd.RIGHT.up(onKeyUp);
+            };
+
             var texturesLoaded = function () {
                 $log.info('Scene initialized');
+
+                registerKeyHandlers();
 
                 for (var x = 0; x < TILES_WIDE; x++) {
                     for (var y = 0; y < TILES_HIGH; y++) {
@@ -35,15 +68,24 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
 
                 player.pos = { x: 1, y: 1 };
                 player.dir = 'down';
-                player.sprites = createPlayerSprites();
+                player.speed = 3;
+                player.gfx = createPlayerSprites();
+                setPlayerVelocity(0, 0);
                 setPlayerDirection(player.dir);
 
                 gameLoop();
             };
 
+            var setPlayerVelocity = function (vx, vy) {
+                player.velocity = {
+                    x: vx * player.speed,
+                    y: vy * player.speed
+                };
+            };
+
             var setPlayerDirection = function (dir) {
-                player.sprites[player.dir].visible = false;
-                player.sprites[dir].visible = true;
+                player.gfx.sprites[player.dir].visible = false;
+                player.gfx.sprites[dir].visible = true;
                 player.dir = dir;
             };
 
@@ -65,15 +107,16 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
                 textures.scale.set(TILE_SCALE, TILE_SCALE);
                 stage.addChild(textures);
 
-                return sprites;
+                return {
+                    sprites: sprites,
+                    box: textures
+                };
             };
 
             var placeTile = function (id, x, y) {
                 var tile = PIXI.Sprite.fromFrame(id);
-                tile.x = x;
-                tile.y = y;
-                tile.scale.x = TILE_SCALE;
-                tile.scale.y = TILE_SCALE;
+                tile.position.set(x, y);
+                tile.scale.set(TILE_SCALE);
 
                 stage.addChild(tile);
             };
@@ -125,6 +168,11 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
 
             var gameLoop = function () {
                 requestAnimationFrame(gameLoop);
+
+                player.gfx.box.x += player.velocity.x;
+                player.gfx.box.y += player.velocity.y;
+
+                kd.tick();
 
                 renderer.render(stage);
             };
