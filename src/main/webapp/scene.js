@@ -28,28 +28,28 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
             el.find('div')[0].appendChild(renderer.view);
 
             var onKeyUp = function () {
-                setPlayerVelocity(0, 0);
+                player.setVelocity(0, 0);
             };
 
             var registerKeyHandlers = function () {
                 kd.UP.down(function () {
-                    setPlayerVelocity(0, -1);
-                    player.gfx.setAnimation('up');
+                    player.setVelocity(0, -1);
+                    player.setAnimation('up');
                 });
 
                 kd.DOWN.down(function () {
-                    setPlayerVelocity(0, 1);
-                    player.gfx.setAnimation('down');
+                    player.setVelocity(0, 1);
+                    player.setAnimation('down');
                 });
 
                 kd.LEFT.down(function () {
-                    setPlayerVelocity(-1, 0);
-                    player.gfx.setAnimation('left');
+                    player.setVelocity(-1, 0);
+                    player.setAnimation('left');
                 });
 
                 kd.RIGHT.down(function () {
-                    setPlayerVelocity(1, 0);
-                    player.gfx.setAnimation('right');
+                    player.setVelocity(1, 0);
+                    player.setAnimation('right');
                 });
 
                 kd.UP.up(onKeyUp);
@@ -69,29 +69,9 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                     }
                 }
 
-                player.pos = { x: 1, y: 1 };
-                player.dir = 'down';
-                player.speed = 3;
-                player.gfx = createPlayerSprites();
-                player.gfx.setAnimation('down');
-                setPlayerVelocity(0, 0);
+                player = Creature.cardinal(stage, 'char').setSpeed(3);
 
                 gameLoop();
-            };
-
-            var setPlayerVelocity = function (vx, vy) {
-                player.velocity = {
-                    x: vx * player.speed,
-                    y: vy * player.speed
-                };
-            };
-
-            var createPlayerSprites = function () {
-                return new Creature(stage)
-                    .addAnimation('up', ['char-up'])
-                    .addAnimation('right', ['char-right'])
-                    .addAnimation('left', ['char-left'])
-                    .addAnimation('down', ['char-down']);
             };
 
             var placeTile = function (id, x, y) {
@@ -151,6 +131,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                 requestAnimationFrame(gameLoop);
 
                 kd.tick();
+                player.tick();
 
                 renderer.render(stage);
             };
