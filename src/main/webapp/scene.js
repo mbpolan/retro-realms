@@ -29,27 +29,33 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
 
             var onKeyUp = function () {
                 player.setVelocity(0, 0);
+                player.moving = false;
+                player.resetCurrentAnimation();
             };
 
             var registerKeyHandlers = function () {
                 kd.UP.down(function () {
                     player.setVelocity(0, -1);
                     player.setAnimation('up');
+                    player.moving = true;
                 });
 
                 kd.DOWN.down(function () {
                     player.setVelocity(0, 1);
                     player.setAnimation('down');
+                    player.moving = true;
                 });
 
                 kd.LEFT.down(function () {
                     player.setVelocity(-1, 0);
                     player.setAnimation('left');
+                    player.moving = true;
                 });
 
                 kd.RIGHT.down(function () {
                     player.setVelocity(1, 0);
                     player.setAnimation('right');
+                    player.moving = true;
                 });
 
                 kd.UP.up(onKeyUp);
@@ -70,6 +76,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                 }
 
                 player = Creature.cardinal(stage, 'char', 4).setSpeed(3);
+                player.moving = false;
 
                 gameLoop();
             };
@@ -111,12 +118,15 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
 
                                 var id = data.prefix + '-' + tile.id;
 
-                                if (angular.isArray(tile.anim)) {
-                                    for (var j = 0; j < tile.anim.length; j++) {
-                                        var frame = tile.anim[j];
+                                if (angular.isObject(tile.anim)) {
+                                    var anim = tile.anim;
+
+                                    for (var j = 0; j < anim.frames.length; j++) {
+                                        var frame = anim.frames[j];
 
                                         loadTile(id + '-' + j, baseImage,
-                                            new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h));
+                                            new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h))
+                                            .animDelay = anim.delay;
                                     }
                                 }
 
@@ -138,6 +148,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                 texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
                 PIXI.Texture.addTextureToCache(texture, alias);
+                return texture;
             };
 
             var gameLoop = function () {
@@ -145,6 +156,10 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
 
                 kd.tick();
                 player.tick();
+
+                if (player.moving) {
+                    player.animate();
+                }
 
                 renderer.render(stage);
             };
