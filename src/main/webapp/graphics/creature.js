@@ -1,6 +1,6 @@
 'use strict';
 
-var module = angular.module('wsApp.graphics.creature', ['wsApp.sprite']);
+var module = angular.module('wsApp.graphics.creature', ['wsApp.graphics.sprite']);
 
 module.factory('Creature', ['Sprite', function (Sprite) {
 

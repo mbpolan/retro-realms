@@ -1,7 +1,7 @@
 'use strict';
 
 var app = angular.module('wsApp', [
-    'wsApp.scene'
+    'wsApp.graphics.scene'
 ]);
 
 app.constant('Events', {

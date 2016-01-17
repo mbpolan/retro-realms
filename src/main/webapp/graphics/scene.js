@@ -1,8 +1,8 @@
 'use strict';
 
-var module = angular.module('wsApp.scene', [
+var module = angular.module('wsApp.graphics.scene', [
     'wsApp.graphics.creature',
-    'wsApp.sprite'
+    'wsApp.graphics.sprite'
 ]);
 
 module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log, $http, Creature, Sprite) {
@@ -111,7 +111,6 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
 
                         $http.get(baseUrl + '.json').then(function (result) {
                             var data = result.data;
-                            console.log(data);
 
                             for (var i = 0; i < data.textures.length; i++) {
                                 var tile = data.textures[i];
