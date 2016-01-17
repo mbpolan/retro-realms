@@ -1,8 +1,11 @@
 'use strict';
 
-var module = angular.module('wsApp.scene', []);
+var module = angular.module('wsApp.scene', [
+    'wsApp.graphics.creature',
+    'wsApp.sprite'
+]);
 
-module.directive('scene', ['$log', '$http', function ($log, $http) {
+module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log, $http, Creature, Sprite) {
 
     var TILE_BASE_SIZE = 16;
     var TILE_SCALE = 2;
@@ -31,22 +34,22 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
             var registerKeyHandlers = function () {
                 kd.UP.down(function () {
                     setPlayerVelocity(0, -1);
-                    setPlayerDirection('up');
+                    player.gfx.setAnimation('up');
                 });
 
                 kd.DOWN.down(function () {
                     setPlayerVelocity(0, 1);
-                    setPlayerDirection('down');
+                    player.gfx.setAnimation('down');
                 });
 
                 kd.LEFT.down(function () {
                     setPlayerVelocity(-1, 0);
-                    setPlayerDirection('left');
+                    player.gfx.setAnimation('left');
                 });
 
                 kd.RIGHT.down(function () {
                     setPlayerVelocity(1, 0);
-                    setPlayerDirection('right');
+                    player.gfx.setAnimation('right');
                 });
 
                 kd.UP.up(onKeyUp);
@@ -70,8 +73,8 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
                 player.dir = 'down';
                 player.speed = 3;
                 player.gfx = createPlayerSprites();
+                player.gfx.setAnimation('down');
                 setPlayerVelocity(0, 0);
-                setPlayerDirection(player.dir);
 
                 gameLoop();
             };
@@ -83,34 +86,12 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
                 };
             };
 
-            var setPlayerDirection = function (dir) {
-                player.gfx.sprites[player.dir].visible = false;
-                player.gfx.sprites[dir].visible = true;
-                player.dir = dir;
-            };
-
             var createPlayerSprites = function () {
-                var sprites = {};
-                var textures = new PIXI.Container();
-
-                var dir = ['up', 'down', 'left', 'right'];
-                for (var i = 0; i < dir.length; i++) {
-                    var sprite = PIXI.Sprite.fromFrame('char-' + dir[i]);
-                    sprite.position.set(0, 0);
-                    sprite.visible = false;
-
-                    textures.addChild(sprite);
-                    sprites[dir[i]] = sprite;
-                }
-
-                textures.position.set(1, 1);
-                textures.scale.set(TILE_SCALE, TILE_SCALE);
-                stage.addChild(textures);
-
-                return {
-                    sprites: sprites,
-                    box: textures
-                };
+                return new Creature(stage)
+                    .addAnimation('up', ['char-up'])
+                    .addAnimation('right', ['char-right'])
+                    .addAnimation('left', ['char-left'])
+                    .addAnimation('down', ['char-down']);
             };
 
             var placeTile = function (id, x, y) {
@@ -168,9 +149,6 @@ module.directive('scene', ['$log', '$http', function ($log, $http) {
 
             var gameLoop = function () {
                 requestAnimationFrame(gameLoop);
-
-                player.gfx.box.x += player.velocity.x;
-                player.gfx.box.y += player.velocity.y;
 
                 kd.tick();
 
