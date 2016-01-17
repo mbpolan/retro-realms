@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html data-ng-app="wsApp">
 <head>
-    <title>Hello WebSocket</title>
+    <title>WebGL and WebSockets</title>
     <link rel="stylesheet" type="text/css" href="app.css">
 </head>
 <body data-ng-controller="AppCtrl as ctrl">
 <noscript>
     <h2>You need to enable JavaScript before you can use this page!</h2>
 </noscript>
-<div>
-    <h1 data-ng-cloak>{{ctrl.title}}</h1>
-    <button data-ng-disabled="ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect</button>&nbsp;
-    <button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button><br>
-    <div data-ng-cloak>{{ctrl.statusMessage}}</div>
-</div>
+<!--<div>-->
+    <!--<h1 data-ng-cloak>{{ctrl.title}}</h1>-->
+    <!--<button data-ng-disabled="ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect</button>&nbsp;-->
+    <!--<button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button><br>-->
+    <!--<div data-ng-cloak>{{ctrl.statusMessage}}</div>-->
+<!--</div>-->
+<scene></scene>
+<script src="pixi.min.js"></script>
 <script src="sockjs-0.3.4.js"></script>
 <script src="stomp.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.0-rc.0/angular.min.js"></script>
 <script src="app.js"></script>
+<script src="scene.js"></script>
 </body>
 </html>

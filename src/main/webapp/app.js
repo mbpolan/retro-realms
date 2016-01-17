@@ -1,6 +1,8 @@
 'use strict';
 
-var app = angular.module('wsApp', []);
+var app = angular.module('wsApp', [
+    'wsApp.scene'
+]);
 
 app.constant('Events', {
     Connected: 'ClientConnected',
