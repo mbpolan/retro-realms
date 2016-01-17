@@ -69,7 +69,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                     }
                 }
 
-                player = Creature.cardinal(stage, 'char').setSpeed(3);
+                player = Creature.cardinal(stage, 'char', 4).setSpeed(3);
 
                 gameLoop();
             };
@@ -109,8 +109,21 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                             for (var i = 0; i < data.textures.length; i++) {
                                 var tile = data.textures[i];
 
-                                loadTile(data.prefix + '-' + tile.id, baseImage,
-                                    new PIXI.Rectangle(tile.x, tile.y, tile.w, tile.h));
+                                var id = data.prefix + '-' + tile.id;
+
+                                if (angular.isArray(tile.anim)) {
+                                    for (var j = 0; j < tile.anim.length; j++) {
+                                        var frame = tile.anim[j];
+
+                                        loadTile(id + '-' + j, baseImage,
+                                            new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h));
+                                    }
+                                }
+
+                                else {
+                                    loadTile(id, baseImage,
+                                        new PIXI.Rectangle(tile.x, tile.y, tile.w, tile.h));
+                                }
                             }
 
                             callback();

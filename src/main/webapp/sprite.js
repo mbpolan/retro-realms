@@ -21,14 +21,20 @@ module.factory('Sprite', function () {
             this.currentAnim = name;
         },
 
-        addAnimation: function (name, textureIds) {
+        addAnimation: function (name, frameId, count) {
             var frames = new PIXI.Container();
             frames.position.set(0, 0);
             frames.visible = false;
 
-            for (var i = 0; i < textureIds.length; i++) {
-                var sprite = PIXI.Sprite.fromFrame(textureIds[i]);
+            var realCount = count || 1;
+            var isAnimated = angular.isDefined(count);
+
+            for (var i = 0; i < realCount; i++) {
+                var sprite = PIXI.Sprite.fromFrame(isAnimated ? frameId + '-' + i : frameId);
                 sprite.position.set(0, 0);
+
+                // only show the first frame in a sequence of frames
+                sprite.visible = (i === 0);
 
                 frames.addChild(sprite);
             }

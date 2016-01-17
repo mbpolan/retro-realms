@@ -29,12 +29,12 @@ module.factory('Creature', ['Sprite', function (Sprite) {
         this.root.y += this.velocity.y * this.speed;
     };
 
-    Creature.cardinal = function (parent, prefix) {
+    Creature.cardinal = function (parent, prefix, frames) {
         var creature = new Creature(parent)
-            .addAnimation('up', [prefix + '-up'])
-            .addAnimation('down', [prefix + '-down'])
-            .addAnimation('right', [prefix + '-right'])
-            .addAnimation('left', [prefix + '-left']);
+            .addAnimation('up', prefix + '-up', frames)
+            .addAnimation('down', prefix + '-down', frames)
+            .addAnimation('right', prefix + '-right', frames)
+            .addAnimation('left', prefix + '-left', frames);
 
         creature.setAnimation('down');
         return creature;
