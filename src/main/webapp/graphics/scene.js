@@ -1,17 +1,22 @@
 'use strict';
 
 var module = angular.module('wsApp.graphics.scene', [
+    'wsApp.graphics.assetManager',
     'wsApp.graphics.creature',
-    'wsApp.graphics.sprite'
+    'wsApp.graphics.sprite',
+    'wsApp.graphics.world'
 ]);
 
-module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log, $http, Creature, Sprite) {
+module.constant('Global', {
+    TileScale: 2,
+    TileSize: 16,
+    TilesWide: 25,
+    TilesHigh: 20
+});
 
-    var TILE_BASE_SIZE = 16;
-    var TILE_SCALE = 2;
-    var TILE_SIZE = TILE_BASE_SIZE * TILE_SCALE;
-    var TILES_WIDE = 25;
-    var TILES_HIGH = 20;
+module.directive('scene', [
+    '$log', '$http', 'AssetManager', 'Creature', 'Global', 'World',
+    function ($log, $http, AssetManager, Creature, Global, World) {
 
     return {
         restrict: 'E',
@@ -19,145 +24,41 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
         template: '<div></div>',
         link: function (scope, el) {
 
-            var textureMaps = ['hyrule_tileset', 'character'];
-            var fonts = ['assets/nokia.xml'];
-            var unloadedMaps = textureMaps.length;
-            var unloadedFonts = fonts.length;
             var player = {};
-
             var renderer = PIXI.autoDetectRenderer();
             var stage = new PIXI.Container();
+            var world = new World(stage, Global.TilesWide, Global.TilesHigh);
+            var assets = new AssetManager();
             el.find('div')[0].appendChild(renderer.view);
 
-            var onKeyUp = function () {
-                player.setVelocity(0, 0);
-                player.setMoving(false);
-                player.resetCurrentAnimation();
-            };
-
             var registerKeyHandlers = function () {
-                kd.UP.down(function () {
-                    player.setVelocity(0, -1);
-                    player.setAnimation('up');
-                    player.setMoving(true);
-                });
+                kd.UP.down(function () { player.moving('up'); });
+                kd.DOWN.down(function () { player.moving('down'); });
+                kd.LEFT.down(function () { player.moving('left'); });
+                kd.RIGHT.down(function () { player.moving('right'); });
 
-                kd.DOWN.down(function () {
-                    player.setVelocity(0, 1);
-                    player.setAnimation('down');
-                    player.setMoving(true);
-                });
-
-                kd.LEFT.down(function () {
-                    player.setVelocity(-1, 0);
-                    player.setAnimation('left');
-                    player.setMoving(true);
-                });
-
-                kd.RIGHT.down(function () {
-                    player.setVelocity(1, 0);
-                    player.setAnimation('right');
-                    player.setMoving(true);
-                });
-
+                var onKeyUp = function () { player.stopped(); };
                 kd.UP.up(onKeyUp);
                 kd.DOWN.up(onKeyUp);
                 kd.LEFT.up(onKeyUp);
                 kd.RIGHT.up(onKeyUp);
             };
 
-            var texturesLoaded = function () {
+            var assetsLoaded = function () {
                 $log.info('Scene initialized');
 
                 registerKeyHandlers();
 
-                for (var x = 0; x < TILES_WIDE; x++) {
-                    for (var y = 0; y < TILES_HIGH; y++) {
-                        placeTile('tile-0', x * TILE_SIZE, y * TILE_SIZE);
-                    }
-                }
+                // generate an array of 0 (grass) tile ids
+                world.define(Array
+                    .apply(null, new Array(Global.TilesWide * Global.TilesHigh))
+                    .map(function () { return 0; }));
 
-                player = Creature.cardinal(stage, 'char', 4)
+                player = Creature.cardinal(world, 'char', 4)
                     .setSpeed(4)
                     .setName('Mike');
 
                 gameLoop();
-            };
-
-            var placeTile = function (id, x, y) {
-                var tile = PIXI.Sprite.fromFrame(id);
-                tile.position.set(x, y);
-                tile.scale.set(TILE_SCALE);
-
-                stage.addChild(tile);
-            };
-
-            var loadAssets = function () {
-                PIXI.loader.add(fonts[0]).load(function () {
-                    unloadedFonts -= fonts.length;
-                    if (unloadedFonts === 0 && unloadedMaps === 0) {
-                        texturesLoaded();
-                    }
-                });
-
-                for (var i = 0; i < textureMaps.length; i++) {
-                    loadTextureMap(textureMaps[i], function () {
-                        unloadedMaps--;
-                        if (unloadedFonts === 0 && unloadedMaps === 0) {
-                            texturesLoaded();
-                        }
-                    });
-                }
-            };
-
-            var loadTextureMap = function (file, callback) {
-                var baseUrl = '/assets/' + file;
-                var image = baseUrl + '.png';
-
-                PIXI.loader
-                    .add(image)
-                    .load(function () {
-                        var baseImage = PIXI.utils.TextureCache[image];
-
-                        $http.get(baseUrl + '.json').then(function (result) {
-                            var data = result.data;
-
-                            for (var i = 0; i < data.textures.length; i++) {
-                                var tile = data.textures[i];
-
-                                var id = data.prefix + '-' + tile.id;
-
-                                if (angular.isObject(tile.anim)) {
-                                    var anim = tile.anim;
-
-                                    for (var j = 0; j < anim.frames.length; j++) {
-                                        var frame = anim.frames[j];
-
-                                        loadTile(id + '-' + j, baseImage,
-                                            new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h))
-                                            .animDelay = anim.delay;
-                                    }
-                                }
-
-                                else {
-                                    loadTile(id, baseImage,
-                                        new PIXI.Rectangle(tile.x, tile.y, tile.w, tile.h));
-                                }
-                            }
-
-                            callback();
-                        });
-                    });
-            };
-
-            var loadTile = function (alias, baseImage, rect) {
-                var texture = new PIXI.Texture(baseImage, rect);
-
-                // avoid floating point rounding errors on the GPU when scaling textures
-                texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-
-                PIXI.Texture.addTextureToCache(texture, alias);
-                return texture;
             };
 
             var gameLoop = function () {
@@ -171,7 +72,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
             };
 
             renderer.render(stage);
-            loadAssets();
+            assets.loadAssets(assetsLoaded);
         }
     }
 }]);

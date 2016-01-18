@@ -8,7 +8,6 @@ module.factory('Creature', ['Sprite', function (Sprite) {
         Sprite.call(this, parent);
 
         this.name = null;
-        this.setMoving(false);
         this.setSpeed(1);
         this.setVelocity(0, 0);
     }
@@ -17,7 +16,7 @@ module.factory('Creature', ['Sprite', function (Sprite) {
     Creature.prototype.constructor = Creature;
 
     Creature.prototype.animate = function () {
-        if (this.moving) {
+        if (this.isMoving) {
             Sprite.prototype.animate.call(this);
         }
     };
@@ -36,8 +35,38 @@ module.factory('Creature', ['Sprite', function (Sprite) {
         return this;
     };
 
-    Creature.prototype.setMoving = function (moving) {
-        this.moving = moving;
+    Creature.prototype.moving = function (dir) {
+        this.isMoving = true;
+
+        switch (dir) {
+            case 'up':
+                this.setVelocity(0, -1);
+                this.setAnimation('up');
+                break;
+            case 'down':
+                this.setVelocity(0, 1);
+                this.setAnimation('down');
+                break;
+            case 'left':
+                this.setVelocity(-1, 0);
+                this.setAnimation('left');
+                break;
+            case 'right':
+                this.setVelocity(1, 0);
+                this.setAnimation('right');
+                break;
+            default:
+                throw new Error('Unknown creature direction: "' + dir + '"');
+        }
+
+        return this;
+    };
+
+    Creature.prototype.stopped = function () {
+        this.isMoving = false;
+        this.setVelocity(0, 0);
+        this.resetCurrentAnimation();
+
         return this;
     };
 
