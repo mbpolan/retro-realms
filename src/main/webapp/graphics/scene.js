@@ -10,8 +10,8 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
     var TILE_BASE_SIZE = 16;
     var TILE_SCALE = 2;
     var TILE_SIZE = TILE_BASE_SIZE * TILE_SCALE;
-    var TILES_WIDE = 15;
-    var TILES_HIGH = 15;
+    var TILES_WIDE = 25;
+    var TILES_HIGH = 20;
 
     return {
         restrict: 'E',
@@ -20,7 +20,9 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
         link: function (scope, el) {
 
             var textureMaps = ['hyrule_tileset', 'character'];
+            var fonts = ['assets/nokia.xml'];
             var unloadedMaps = textureMaps.length;
+            var unloadedFonts = fonts.length;
             var player = {};
 
             var renderer = PIXI.autoDetectRenderer();
@@ -29,7 +31,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
 
             var onKeyUp = function () {
                 player.setVelocity(0, 0);
-                player.moving = false;
+                player.setMoving(false);
                 player.resetCurrentAnimation();
             };
 
@@ -37,25 +39,25 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                 kd.UP.down(function () {
                     player.setVelocity(0, -1);
                     player.setAnimation('up');
-                    player.moving = true;
+                    player.setMoving(true);
                 });
 
                 kd.DOWN.down(function () {
                     player.setVelocity(0, 1);
                     player.setAnimation('down');
-                    player.moving = true;
+                    player.setMoving(true);
                 });
 
                 kd.LEFT.down(function () {
                     player.setVelocity(-1, 0);
                     player.setAnimation('left');
-                    player.moving = true;
+                    player.setMoving(true);
                 });
 
                 kd.RIGHT.down(function () {
                     player.setVelocity(1, 0);
                     player.setAnimation('right');
-                    player.moving = true;
+                    player.setMoving(true);
                 });
 
                 kd.UP.up(onKeyUp);
@@ -75,8 +77,9 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
                     }
                 }
 
-                player = Creature.cardinal(stage, 'char', 4).setSpeed(3);
-                player.moving = false;
+                player = Creature.cardinal(stage, 'char', 4)
+                    .setSpeed(4)
+                    .setName('Mike');
 
                 gameLoop();
             };
@@ -90,10 +93,17 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
             };
 
             var loadAssets = function () {
+                PIXI.loader.add(fonts[0]).load(function () {
+                    unloadedFonts -= fonts.length;
+                    if (unloadedFonts === 0 && unloadedMaps === 0) {
+                        texturesLoaded();
+                    }
+                });
+
                 for (var i = 0; i < textureMaps.length; i++) {
                     loadTextureMap(textureMaps[i], function () {
                         unloadedMaps--;
-                        if (unloadedMaps === 0) {
+                        if (unloadedFonts === 0 && unloadedMaps === 0) {
                             texturesLoaded();
                         }
                     });
@@ -155,10 +165,7 @@ module.directive('scene', ['$log', '$http', 'Creature', 'Sprite', function ($log
 
                 kd.tick();
                 player.tick();
-
-                if (player.moving) {
-                    player.animate();
-                }
+                player.animate();
 
                 renderer.render(stage);
             };
