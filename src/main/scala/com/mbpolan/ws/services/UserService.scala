@@ -15,4 +15,6 @@ class UserService {
   def remove(id: String): Unit = users -= id
 
   def allSessions: List[String] = users.keys.toList
+
+  def byId(id: String): Option[User] = users.get(id)
 }

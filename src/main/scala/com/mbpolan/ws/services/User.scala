@@ -3,5 +3,8 @@ package com.mbpolan.ws.services
 /**
   * @author Mike Polan
   */
-case class User(
-    name: String)
+class User(
+    val name: String,
+    var x: Int,
+    var y: Int,
+    val speed: Int)

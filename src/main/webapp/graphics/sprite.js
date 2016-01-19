@@ -4,7 +4,7 @@ var module = angular.module('wsApp.graphics.sprite', []);
 
 module.factory('Sprite', function () {
 
-    function Sprite (parent) {
+    function Sprite(parent) {
         this.animations = {};
         this.currentAnim = null;
         this.animated = false;
@@ -14,7 +14,10 @@ module.factory('Sprite', function () {
         this.root = new PIXI.Container();
         this.root.position.set(0, 0);
         this.root.scale.set(2, 2); // FIXME
-        parent.addChild(this.root);
+
+        if (angular.isObject(parent)) {
+            parent.addChild(this.root);
+        }
     }
 
     Sprite.prototype = {
@@ -80,7 +83,11 @@ module.factory('Sprite', function () {
         },
 
         setPosition: function (x, y) {
-          this.root.position.set(x, y);
+            this.root.position.set(x, y);
+        },
+
+        getRoot: function () {
+            return this.root;
         },
 
         animate: function () {

@@ -20,7 +20,11 @@ module.directive('scene', [
 
     return {
         restrict: 'E',
-        scope: {},
+        scope: {
+            api: '=',
+            onReady: '&',
+            onPlayerMove: '&'
+        },
         template: '<div></div>',
         link: function (scope, el) {
 
@@ -32,10 +36,16 @@ module.directive('scene', [
             el.find('div')[0].appendChild(renderer.view);
 
             var registerKeyHandlers = function () {
-                kd.UP.down(function () { player.moving('up'); });
-                kd.DOWN.down(function () { player.moving('down'); });
-                kd.LEFT.down(function () { player.moving('left'); });
-                kd.RIGHT.down(function () { player.moving('right'); });
+
+                var movePlayer = function (dir) {
+                    player.moving(dir);
+                    scope.onPlayerMove({ dir: dir });
+                };
+
+                kd.UP.down(function () { movePlayer('up'); });
+                kd.DOWN.down(function () { movePlayer('down'); });
+                kd.LEFT.down(function () { movePlayer('left'); });
+                kd.RIGHT.down(function () { movePlayer('right'); });
 
                 var onKeyUp = function () { player.stopped(); };
                 kd.UP.up(onKeyUp);
@@ -48,15 +58,11 @@ module.directive('scene', [
                 $log.info('Scene initialized');
 
                 registerKeyHandlers();
-
-                // generate an array of 0 (grass) tile ids
-                world.define(Array
-                    .apply(null, new Array(Global.TilesWide * Global.TilesHigh))
-                    .map(function () { return 0; }));
-
-                player = Creature.cardinal(world, 'char', 4)
+                player = Creature.cardinal('char', 4)
                     .setSpeed(4)
                     .setName('Mike');
+
+                scope.onReady();
 
                 gameLoop();
             };
@@ -73,6 +79,17 @@ module.directive('scene', [
 
             renderer.render(stage);
             assets.loadAssets(assetsLoaded);
+
+            scope.api = {
+                setMap: function (area) {
+                    world.define(area);
+                    world.addChild(player.getRoot());
+                },
+
+                movePlayer: function (x, y) {
+                    player.moveTo(x, y);
+                }
+            }
         }
     }
 }]);

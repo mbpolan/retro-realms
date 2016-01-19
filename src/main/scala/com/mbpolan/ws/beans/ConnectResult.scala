@@ -5,4 +5,6 @@ import scala.beans.BeanProperty
 /**
   * @author Mike Polan
   */
-case class ConnectResult(@BeanProperty sessionId: String)
+case class ConnectResult(
+    @BeanProperty sessionId: String,
+    @BeanProperty area: Array[Short])

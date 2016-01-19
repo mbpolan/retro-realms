@@ -7,7 +7,8 @@ var app = angular.module('wsApp', [
 app.constant('Events', {
     Connected: 'ClientConnected',
     Disconnected: 'ClientDisconnected',
-    NewSession: 'ClientNewSession'
+    NewSession: 'ClientNewSession',
+    MovePlayer: 'ClientMovePlayer'
 });
 
 app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, Events) {
@@ -62,13 +63,24 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
                     }));
 
                     client.subscribe('/topic/user/register', function (data) {
-                        sessionId = JSON.parse(data.body).sessionId;
+                        var payload = JSON.parse(data.body);
+                        sessionId = payload.sessionId;
+
                         dispatchEvent(Events.NewSession, {
-                            id: sessionId
+                            id: sessionId,
+                            map: payload.area
                         });
+                    });
+
+                    client.subscribe('/topic/user/player', function (data) {
+                        dispatchEvent(Events.MovePlayer, JSON.parse(data.body));
                     });
                 });
             }
+        },
+
+        sendMove: function (dir) {
+            client.send('/api/user/player/move', {}, JSON.stringify({ dir: dir }));
         },
 
         disconnect: function () {
@@ -93,8 +105,9 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 app.controller('AppCtrl', ['Client', 'Events', function (Client, Events) {
 
     var self = this;
-    this.title = 'My App';
     this.statusMessage = 'Not connected to anything';
+    this.sceneReady = false;
+    this.sceneApi = {};
 
     this.onClientEvent = function (type, data) {
         switch (type) {
@@ -103,13 +116,31 @@ app.controller('AppCtrl', ['Client', 'Events', function (Client, Events) {
                 break;
             case Events.NewSession:
                 self.statusMessage = 'Opened new client session';
+                self.sceneApi.setMap(data.map);
                 break;
             case Events.Disconnected:
                 self.statusMessage = 'Not connected to anything';
                 break;
+            case Events.MovePlayer:
+                if (data.valid) {
+                    self.sceneApi.movePlayer(data.x, data.y);
+                }
+                break;
             default:
                 break;
         }
+    };
+
+    this.onPlayerMove = function (dir) {
+        Client.sendMove(dir);
+    };
+
+    this.isSceneReady = function () {
+        return this.sceneReady;
+    };
+
+    this.onSceneReady = function () {
+        self.sceneReady = true;
     };
 
     this.onConnect = function () {

@@ -40,19 +40,19 @@ module.factory('Creature', ['Sprite', function (Sprite) {
 
         switch (dir) {
             case 'up':
-                this.setVelocity(0, -1);
+                //this.setVelocity(0, -1);
                 this.setAnimation('up');
                 break;
             case 'down':
-                this.setVelocity(0, 1);
+                //this.setVelocity(0, 1);
                 this.setAnimation('down');
                 break;
             case 'left':
-                this.setVelocity(-1, 0);
+                //this.setVelocity(-1, 0);
                 this.setAnimation('left');
                 break;
             case 'right':
-                this.setVelocity(1, 0);
+                //this.setVelocity(1, 0);
                 this.setAnimation('right');
                 break;
             default:
@@ -64,7 +64,6 @@ module.factory('Creature', ['Sprite', function (Sprite) {
 
     Creature.prototype.stopped = function () {
         this.isMoving = false;
-        this.setVelocity(0, 0);
         this.resetCurrentAnimation();
 
         return this;
@@ -80,12 +79,17 @@ module.factory('Creature', ['Sprite', function (Sprite) {
         return this;
     };
 
-    Creature.prototype.tick = function () {
-        this.root.x += this.velocity.x * this.speed;
-        this.root.y += this.velocity.y * this.speed;
+    Creature.prototype.moveTo = function (x, y) {
+        this.root.x = x;
+        this.root.y = y;
     };
 
-    Creature.cardinal = function (parent, prefix, frames) {
+    Creature.prototype.tick = function () {
+        //this.root.x += this.velocity.x * this.speed;
+        //this.root.y += this.velocity.y * this.speed;
+    };
+
+    Creature.cardinal = function (prefix, frames, parent) {
         var creature = new Creature(parent)
             .addAnimation('up', prefix + '-up', frames)
             .addAnimation('down', prefix + '-down', frames)

@@ -8,13 +8,18 @@
 <noscript>
     <h2>You need to enable JavaScript before you can use this page!</h2>
 </noscript>
-<!--<div>-->
-    <!--<h1 data-ng-cloak>{{ctrl.title}}</h1>-->
-    <!--<button data-ng-disabled="ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect</button>&nbsp;-->
-    <!--<button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button><br>-->
-    <!--<div data-ng-cloak>{{ctrl.statusMessage}}</div>-->
-<!--</div>-->
-<scene></scene>
+<div>
+    <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect</button>&nbsp;
+    <button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button><br>
+    <div data-ng-cloak>{{ctrl.statusMessage}}</div>
+</div>
+
+<scene
+        on-player-move="ctrl.onPlayerMove(dir)"
+        on-ready="ctrl.onSceneReady()"
+        api="ctrl.sceneApi">
+</scene>
+
 <script src="bower_components/keydrown/keydrown.min.js"></script>
 <script src="bower_components/pixi/pixi.js"></script>
 <script src="bower_components/sockjs/sockjs-0.3.4.js"></script>
