@@ -81,13 +81,13 @@ module.directive('scene', [
             assets.loadAssets(assetsLoaded);
 
             scope.api = {
-                setMap: function (area) {
-                    world.define(area);
-                    world.addChild(player.getRoot());
+                setMap: function (data) {
+                    world.define(data);
+                    world.addEntity(player.getRoot());
                 },
 
                 movePlayer: function (x, y) {
-                    player.moveTo(x, y);
+                    player.moveTo(x * 8, y * 8);
                 }
             }
         }

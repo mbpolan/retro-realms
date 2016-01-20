@@ -50,6 +50,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 
             else {
                 client = Stomp.over(new SockJS('/topic'));
+                client.debug = null;
                 client.connect({}, function () {
                     $log.debug('Connected to websocket server');
                     scoped(function () {
@@ -68,7 +69,8 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 
                         dispatchEvent(Events.NewSession, {
                             id: sessionId,
-                            map: payload.area
+                            map: payload.area,
+                            entities: payload.entities
                         });
                     });
 
@@ -116,7 +118,7 @@ app.controller('AppCtrl', ['Client', 'Events', function (Client, Events) {
                 break;
             case Events.NewSession:
                 self.statusMessage = 'Opened new client session';
-                self.sceneApi.setMap(data.map);
+                self.sceneApi.setMap(data);
                 break;
             case Events.Disconnected:
                 self.statusMessage = 'Not connected to anything';
