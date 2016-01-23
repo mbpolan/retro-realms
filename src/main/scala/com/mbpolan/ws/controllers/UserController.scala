@@ -26,7 +26,7 @@ class UserController {
 
     ConnectResult(header.getSessionId, mapService.areaOf,
       mapService.entitiesOf.map(e =>
-        MapEntity(e.id, e.x, e.y)))
+        MapEntity(e.eType._type, e.name.orNull, e.id, e.x, e.y)))
   }
 
   @MessageMapping(Array("/user/player/move"))

@@ -2,7 +2,7 @@
 
 var module = angular.module('wsApp.graphics.world', []);
 
-module.factory('World', ['Global', function (Global) {
+module.factory('World', ['Creature', 'Global', function (Creature, Global) {
 
     function World(parent, width, height) {
         PIXI.Container.call(this);
@@ -37,7 +37,16 @@ module.factory('World', ['Global', function (Global) {
         for (var i = 0; i < world.entities.length; i++) {
             var entity = world.entities[i];
 
-            this.placeEntity('tile-' + entity.id, entity.x * tileSpan / 4, entity.y * tileSpan / 4);
+            if (entity.etype === 'Static') {
+                this.placeEntity('tile-' + entity.id, entity.x * tileSpan / 4, entity.y * tileSpan / 4);
+            }
+
+            else if (entity.etype === 'Creature') {
+                console.log(entity.name);
+                var creature = Creature.cardinal('char', 4).setName(entity.name);
+                creature.moveTo(entity.x * 8, entity.y * 8);
+                this.addEntity(creature.getRoot());
+            }
         }
     };
 

@@ -3,9 +3,11 @@ package com.mbpolan.ws.services
 /**
   * @author Mike Polan
   */
-case class Entity(
-    id: Short,
-    x: Int,
-    y: Int,
-    w: Int,
-    h: Int)
+class Entity(
+    val eType: EntityType,
+    val name: Option[String],
+    val id: Short,
+    var x: Int,
+    var y: Int,
+    val w: Int,
+    val h: Int)

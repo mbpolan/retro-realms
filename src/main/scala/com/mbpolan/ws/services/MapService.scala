@@ -32,7 +32,8 @@ class MapService {
     }
 
     bitmap = Vector.fill(TileCoords)(true)
-    entities = entities :+ Entity(id = 2, x = 16, y = 0, w = 8, h = 8)
+    entities = entities :+ new Entity(eType = EntityType.Static, name = None, id = 2, x = 16, y = 0, w = 8, h = 6)
+    entities = entities :+ new Entity(eType = EntityType.Creature, name = Some("Link"), id = 0, x = 5, y = 5, w = 4, h = 4)
 
     entities.foreach(e => {
       for (x <- e.x to e.x + e.w - 1;
