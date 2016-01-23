@@ -28,7 +28,7 @@ module.directive('scene', [
         template: '<div></div>',
         link: function (scope, el) {
 
-            var player = {};
+            var player = null;
             var renderer = PIXI.autoDetectRenderer();
             var stage = new PIXI.Container();
             var world = new World(stage, Global.TilesWide, Global.TilesHigh);
@@ -58,9 +58,9 @@ module.directive('scene', [
                 $log.info('Scene initialized');
 
                 registerKeyHandlers();
-                player = Creature.cardinal('char', 4)
-                    .setSpeed(4)
-                    .setName('Mike');
+                //player = Creature.cardinal('char', 4)
+                //    .setSpeed(4)
+                //    .setName('Mike');
 
                 scope.onReady();
 
@@ -71,8 +71,11 @@ module.directive('scene', [
                 requestAnimationFrame(gameLoop);
 
                 kd.tick();
-                player.tick();
-                player.animate();
+
+                if (player) {
+                    player.tick();
+                    player.animate();
+                }
 
                 renderer.render(stage);
             };
@@ -83,7 +86,8 @@ module.directive('scene', [
             scope.api = {
                 setMap: function (data) {
                     world.define(data);
-                    world.addEntity(player.getRoot());
+                    player = world.creatureBy(data.ref);
+                    //world.addEntity(player.getRoot());
                 },
 
                 movePlayer: function (x, y) {

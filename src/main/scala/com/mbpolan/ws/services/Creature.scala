@@ -3,11 +3,13 @@ package com.mbpolan.ws.services
 /**
   * @author Mike Polan
   */
-class User(
+class Creature(
+    var ref: Int,
+    val id: String,
     val name: String,
-    var x: Int,
-    var y: Int,
-    val speed: Int) {
+    var pos: Rect,
+    val speed: Int)
+  extends Entity {
 
   var lastMove: Long = 0L
 

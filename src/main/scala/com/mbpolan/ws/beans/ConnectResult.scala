@@ -7,5 +7,6 @@ import scala.beans.BeanProperty
   */
 case class ConnectResult(
     @BeanProperty sessionId: String,
+    @BeanProperty ref: Int,
     @BeanProperty area: Array[Short],
     @BeanProperty entities: Array[MapEntity])

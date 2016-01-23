@@ -7,6 +7,7 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
     function World(parent, width, height) {
         PIXI.Container.call(this);
 
+        this.refs = {};
         this.map = new PIXI.Container();
         this.entities = new PIXI.Container();
         this.addChild(this.map);
@@ -37,17 +38,22 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
         for (var i = 0; i < world.entities.length; i++) {
             var entity = world.entities[i];
 
-            if (entity.etype === 'Static') {
-                this.placeEntity('tile-' + entity.id, entity.x * tileSpan / 4, entity.y * tileSpan / 4);
-            }
-
-            else if (entity.etype === 'Creature') {
-                console.log(entity.name);
+            if (angular.isNumber(entity.ref)) {
                 var creature = Creature.cardinal('char', 4).setName(entity.name);
                 creature.moveTo(entity.x * 8, entity.y * 8);
                 this.addEntity(creature.getRoot());
+
+                this.refs[entity.ref] = creature;
+            }
+
+            else {
+                this.placeEntity('tile-' + entity.id, entity.x * tileSpan / 4, entity.y * tileSpan / 4);
             }
         }
+    };
+
+    World.prototype.creatureBy = function (ref) {
+        return this.refs[ref];
     };
 
     World.prototype.addEntity = function (entity) {

@@ -69,6 +69,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 
                         dispatchEvent(Events.NewSession, {
                             id: sessionId,
+                            ref: payload.ref,
                             map: payload.area,
                             entities: payload.entities
                         });

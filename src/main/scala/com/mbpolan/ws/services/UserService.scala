@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component
 @Component
 class UserService {
 
-  private var users = Map[String, User]()
+  private var users = Map[String, Int]()
 
-  def add(id: String, user: User): Unit = users += (id -> user)
+  def add(id: String, ref: Int): Unit = users += (id -> ref)
 
   def remove(id: String): Unit = users -= id
 
   def allSessions: List[String] = users.keys.toList
 
-  def byId(id: String): Option[User] = users.get(id)
+  def byId(id: String): Option[Int] = users.get(id)
 }
