@@ -32,22 +32,26 @@ class UserController {
   @MessageMapping(Array("/user/player/move"))
   @SendTo(Array("/topic/user/player"))
   def move(message: PlayerMoveRequest, header: SimpMessageHeaderAccessor): PlayerMove = {
-    userService.byId(header.getSessionId).flatMap(user => {
-      message.dir match {
-        case "up" =>
-          Some((user, user.x, user.y - 1))
-        case "down" =>
-          Some((user, user.x, user.y + 1))
-        case "left" =>
-          Some((user, user.x - 1, user.y))
-        case "right" =>
-          Some((user, user.x + 1, user.y))
-        case _ =>
-          None
-      }
-    }).flatMap(move => {
+    userService.byId(header.getSessionId)
+      .filter(_.canMove)
+      .flatMap(user => {
+        message.dir match {
+          case "up" =>
+            Some((user, user.x, user.y - 1))
+          case "down" =>
+            Some((user, user.x, user.y + 1))
+          case "left" =>
+            Some((user, user.x - 1, user.y))
+          case "right" =>
+            Some((user, user.x + 1, user.y))
+          case _ =>
+            None
+        }
+      }).flatMap(move => {
       mapService.canMoveTo(move._2, move._3, 4, 4) match {
         case true =>
+          move._1.lastMove = System.currentTimeMillis()
+
           move._1.x = move._2
           move._1.y = move._3
           Some(PlayerMove(valid = true, move._2, move._3))
