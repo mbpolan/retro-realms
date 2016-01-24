@@ -40,19 +40,15 @@ module.factory('Creature', ['Sprite', function (Sprite) {
 
         switch (dir) {
             case 'up':
-                //this.setVelocity(0, -1);
                 this.setAnimation('up');
                 break;
             case 'down':
-                //this.setVelocity(0, 1);
                 this.setAnimation('down');
                 break;
             case 'left':
-                //this.setVelocity(-1, 0);
                 this.setAnimation('left');
                 break;
             case 'right':
-                //this.setVelocity(1, 0);
                 this.setAnimation('right');
                 break;
             default:
@@ -69,6 +65,12 @@ module.factory('Creature', ['Sprite', function (Sprite) {
         return this;
     };
 
+    Creature.prototype.setDirection = function (dir) {
+        this.moving(dir);
+        this.isMoving = false;
+        return this;
+    };
+
     Creature.prototype.setVelocity = function (vx, vy) {
         this.velocity = { x: vx, y: vy };
         return this;
@@ -82,6 +84,7 @@ module.factory('Creature', ['Sprite', function (Sprite) {
     Creature.prototype.moveTo = function (x, y) {
         this.root.x = x;
         this.root.y = y;
+        return this;
     };
 
     Creature.prototype.tick = function () {

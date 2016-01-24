@@ -48,7 +48,7 @@ class MapService {
     entities = entities :+ c
     lastRef += 1
 
-    websocket.convertAndSend("/topic/map/entity/add", MapEntity(c.ref, "char", c.name, c.pos.x, c.pos.y))
+    websocket.convertAndSend("/topic/map/entity/add", MapEntity(c.ref, "char", c.name, Direction.Down.value, c.pos.x, c.pos.y))
 
     c.ref
   }
@@ -83,12 +83,15 @@ class MapService {
     }
   }
 
-  def moveDelta(ref: Int, dx: Int, dy: Int): Boolean = {
+  def moveDelta(ref: Int, dir: Direction): Boolean = {
     creatureBy(ref)
       .flatMap(e => {
-        canMoveToDelta(e, dx, dy) match {
+        canMoveToDelta(e, dir.dx, dir.dy) match {
           case true =>
-            e.pos = Rect(e.pos.x + dx, e.pos.y + dy, e.pos.w, e.pos.h)
+            e.pos = Rect(e.pos.x + dir.dx, e.pos.y + dir.dy, e.pos.w, e.pos.h)
+            e.dir = dir
+
+//            websocket.convertAndSend("/topic/map/entity/direction", )
             Some(true)
           case false => None
         }

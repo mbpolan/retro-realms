@@ -9,5 +9,6 @@ case class MapEntity(
     @BeanProperty ref: Integer,
     @BeanProperty id: String,
     @BeanProperty name: String,
+    @BeanProperty dir: String,
     @BeanProperty x: Int,
     @BeanProperty y: Int)

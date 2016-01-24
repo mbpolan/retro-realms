@@ -46,8 +46,10 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
 
     World.prototype.addEntity = function (entity) {
         if (angular.isNumber(entity.ref)) {
-            var creature = Creature.cardinal('char', 4).setName(entity.name);
-            creature.moveTo(entity.x * 8, entity.y * 8);
+            var creature = Creature.cardinal('char', 4)
+                .setName(entity.name)
+                .setDirection(entity.dir)
+                .moveTo(entity.x * 8, entity.y * 8);
             this.entities.addChild(creature.getRoot());
 
             this.refs[entity.ref] = creature;

@@ -8,6 +8,7 @@ class Creature(
     val id: String,
     val name: String,
     var pos: Rect,
+    var dir: Direction,
     val speed: Int)
   extends Entity {
 
