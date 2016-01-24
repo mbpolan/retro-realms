@@ -8,6 +8,7 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
         PIXI.Container.call(this);
 
         this.refs = {};
+        this.tileSpan = Global.TileSize * Global.TileScale;
         this.map = new PIXI.Container();
         this.entities = new PIXI.Container();
         this.addChild(this.map);
@@ -23,7 +24,6 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
     World.prototype.define = function (world) {
         this.map.removeChildren();
         this.entities.removeChildren();
-        var tileSpan = Global.TileSize * Global.TileScale;
 
         console.log(world);
 
@@ -31,24 +31,12 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
             for (var y = 0; y < this.scene.h; y++) {
                 var id = world.map[y * this.scene.w + x];
 
-                this.placeTile('tile-' + id, x * tileSpan, y * tileSpan);
+                this.placeTile('tile-' + id, x * this.tileSpan, y * this.tileSpan);
             }
         }
 
         for (var i = 0; i < world.entities.length; i++) {
-            var entity = world.entities[i];
-
-            if (angular.isNumber(entity.ref)) {
-                var creature = Creature.cardinal('char', 4).setName(entity.name);
-                creature.moveTo(entity.x * 8, entity.y * 8);
-                this.addEntity(creature.getRoot());
-
-                this.refs[entity.ref] = creature;
-            }
-
-            else {
-                this.placeEntity('tile-' + entity.id, entity.x * tileSpan / 4, entity.y * tileSpan / 4);
-            }
+            this.addEntity(world.entities[i]);
         }
     };
 
@@ -57,7 +45,30 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
     };
 
     World.prototype.addEntity = function (entity) {
-        this.entities.addChild(entity);
+        if (angular.isNumber(entity.ref)) {
+            var creature = Creature.cardinal('char', 4).setName(entity.name);
+            creature.moveTo(entity.x * 8, entity.y * 8);
+            this.entities.addChild(creature.getRoot());
+
+            this.refs[entity.ref] = creature;
+        }
+
+        else if (!angular.isNumber(entity.ref)) {
+            this.placeEntity('tile-' + entity.id, entity.x * this.tileSpan / 4, entity.y * this.tileSpan / 4);
+        }
+    };
+
+    World.prototype.removeEntityByRef = function (ref) {
+        console.log('Remove: ' + ref);
+        var entity = this.refs[ref];
+        if (entity) {
+            this.entities.removeChild(entity.getRoot());
+            this.refs[ref] = undefined;
+        }
+
+        else {
+            console.log('Unknown entity ref: ' + ref);
+        }
     };
 
     World.prototype.placeEntity = function (id, x, y) {

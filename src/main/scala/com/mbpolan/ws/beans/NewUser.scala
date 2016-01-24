@@ -8,4 +8,5 @@ import scala.beans.BeanProperty
 class NewUser {
 
   @BeanProperty var name: String = null
+  @BeanProperty var token: String = null
 }

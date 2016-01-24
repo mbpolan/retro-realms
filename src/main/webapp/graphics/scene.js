@@ -58,12 +58,7 @@ module.directive('scene', [
                 $log.info('Scene initialized');
 
                 registerKeyHandlers();
-                //player = Creature.cardinal('char', 4)
-                //    .setSpeed(4)
-                //    .setName('Mike');
-
                 scope.onReady();
-
                 gameLoop();
             };
 
@@ -85,13 +80,21 @@ module.directive('scene', [
 
             scope.api = {
                 setMap: function (data) {
+                    console.log('My ref: ' + data.ref);
                     world.define(data);
                     player = world.creatureBy(data.ref);
-                    //world.addEntity(player.getRoot());
                 },
 
                 movePlayer: function (x, y) {
                     player.moveTo(x * 8, y * 8);
+                },
+
+                addEntity: function (entity) {
+                    world.addEntity(entity);
+                },
+
+                removeEntity: function (ref) {
+                    world.removeEntityByRef(ref);
                 }
             }
         }

@@ -2,6 +2,9 @@ package com.mbpolan.ws.services
 
 import javax.annotation.PostConstruct
 
+import com.mbpolan.ws.beans.MapEntity
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 
 import scala.io.Source
@@ -11,6 +14,9 @@ import scala.io.Source
   */
 @Service
 class MapService {
+
+  @Autowired
+  private var websocket: SimpMessagingTemplate = _
 
   private val TilesHigh = 20
   private val TilesWide = 25
@@ -40,9 +46,20 @@ class MapService {
   def addCreature(c: Creature): Int = {
     c.ref = lastRef
     entities = entities :+ c
-
     lastRef += 1
+
+    websocket.convertAndSend("/topic/map/entity/add", MapEntity(c.ref, "char", c.name, c.pos.x, c.pos.y))
+
     c.ref
+  }
+
+  def removeCreature(ref: Int): Unit = {
+    entities = entities.filter {
+      case e: Creature if e.ref == ref => false
+      case _ => true
+    }
+
+    websocket.convertAndSend("/topic/map/entity/remove", ref)
   }
 
   def creatureBy(ref: Int): Option[Creature] = {

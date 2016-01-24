@@ -15,12 +15,15 @@ class WebSocketListener extends ApplicationListener[AbstractSubProtocolEvent] {
   private val Log = LogManager.getLogger(classOf[WebSocketListener])
 
   @Autowired
-  private var userService: UserService = null
+  private var userService: UserService = _
+
+  @Autowired
+  private var mapService: MapService = _
 
   override def onApplicationEvent(event: AbstractSubProtocolEvent): Unit = {
     event match {
       case e: SessionDisconnectEvent =>
-        userService.remove(e.getSessionId)
+        userService.remove(e.getSessionId).map(mapService.removeCreature)
         Log.debug(s"Disconnected: ${e.getSessionId}")
       case _ =>
     }

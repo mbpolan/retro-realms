@@ -7,5 +7,6 @@ import scala.beans.BeanProperty
   */
 case class PlayerMove(
     @BeanProperty valid: Boolean,
+    @BeanProperty ref: Integer,
     @BeanProperty x: Int,
     @BeanProperty y: Int)

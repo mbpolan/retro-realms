@@ -8,7 +8,9 @@ app.constant('Events', {
     Connected: 'ClientConnected',
     Disconnected: 'ClientDisconnected',
     NewSession: 'ClientNewSession',
-    MovePlayer: 'ClientMovePlayer'
+    MovePlayer: 'ClientMovePlayer',
+    AddEntity: 'ClientEntityAdded',
+    RemoveEntity: 'ClientEntityRemoved'
 });
 
 app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, Events) {
@@ -27,6 +29,13 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
             angular.forEach(listeners, function (listener) {
                 listener.onClientEvent(type, data);
             });
+        });
+    };
+
+    var uuid = function () {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
         });
     };
 
@@ -51,21 +60,38 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
             else {
                 client = Stomp.over(new SockJS('/topic'));
                 client.debug = null;
-                client.connect({}, function () {
-                    $log.debug('Connected to websocket server');
+                client.connect('mike', 'mike', function (data) {
+                    $log.debug(data);
                     scoped(function () {
                         connected = true;
                     });
 
                     dispatchEvent(Events.Connected);
 
+                    // ugh this is way too hackish :(
+                    var token = uuid();
                     client.send('/api/user/register', {}, JSON.stringify({
-                        name: 'Mike'
+                        name: 'Mike',
+                        token: token
                     }));
 
-                    client.subscribe('/topic/user/register', function (data) {
+                    client.subscribe('/topic/user/' + token + '/register', function (data) {
                         var payload = JSON.parse(data.body);
                         sessionId = payload.sessionId;
+
+                        client.subscribe('/topic/user/' + sessionId + '/player', function (data) {
+                            dispatchEvent(Events.MovePlayer, JSON.parse(data.body));
+                        });
+
+                        client.subscribe('/topic/map/entity/add', function (data) {
+                            var entity = JSON.parse(data.body);
+                            dispatchEvent(Events.AddEntity, entity);
+                        });
+
+                        client.subscribe('/topic/map/entity/remove', function (data) {
+                            var ref = JSON.parse(data.body);
+                            dispatchEvent(Events.RemoveEntity, ref);
+                        });
 
                         dispatchEvent(Events.NewSession, {
                             id: sessionId,
@@ -73,10 +99,6 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
                             map: payload.area,
                             entities: payload.entities
                         });
-                    });
-
-                    client.subscribe('/topic/user/player', function (data) {
-                        dispatchEvent(Events.MovePlayer, JSON.parse(data.body));
                     });
                 });
             }
@@ -128,6 +150,12 @@ app.controller('AppCtrl', ['Client', 'Events', function (Client, Events) {
                 if (data.valid) {
                     self.sceneApi.movePlayer(data.x, data.y);
                 }
+                break;
+            case Events.AddEntity:
+                self.sceneApi.addEntity(data);
+                break;
+            case Events.RemoveEntity:
+                self.sceneApi.removeEntity(data);
                 break;
             default:
                 break;

@@ -12,7 +12,12 @@ class UserService {
 
   def add(id: String, ref: Int): Unit = users += (id -> ref)
 
-  def remove(id: String): Unit = users -= id
+  def remove(id: String): Option[Int] = {
+    users.get(id).map(ref => {
+      users -= id
+      ref
+    })
+  }
 
   def allSessions: List[String] = users.keys.toList
 
