@@ -55,7 +55,7 @@ class MapService {
     * @param c The [[Creature]] to add.
     * @return The internal ID assigned to the creature.
     */
-  def addCreature(c: Creature): Int = {
+  def addCreature(c: Creature): Int = synchronized {
     c.ref = lastRef
     entities = entities :+ c
     lastRef += 1
@@ -69,7 +69,7 @@ class MapService {
     *
     * @param ref The internal ID of the creature.
     */
-  def removeCreature(ref: Int): Unit = {
+  def removeCreature(ref: Int): Unit = synchronized {
     entities = entities.filter {
       case e: Creature if e.ref == ref => false
       case _ => true
@@ -83,7 +83,7 @@ class MapService {
     * @param ref The internal ID of the creature.
     * @return The corresponding [[Creature]].
     */
-  def creatureBy(ref: Int): Option[Creature] = {
+  def creatureBy(ref: Int): Option[Creature] = synchronized {
     entities.find {
       case c: Creature => c.ref == ref
       case _ => false
@@ -97,7 +97,7 @@ class MapService {
     * @param dy The delta y movement.
     * @return true if the movement is possible, false if not.
     */
-  def canMoveToDelta(c: Creature, dx: Int, dy: Int): Boolean = {
+  def canMoveToDelta(c: Creature, dx: Int, dy: Int): Boolean = synchronized {
     val toPos = Rect(c.pos.x + dx, c.pos.y + dy, c.pos.w, c.pos.h)
 
     // check bounds to see if the creature tried to move outside the map area
@@ -118,7 +118,7 @@ class MapService {
     * @param dir The direction in which to move the creature.
     * @return true if the movement succeeded, false if not.
     */
-  def moveDelta(ref: Int, dir: Direction): Boolean = {
+  def moveDelta(ref: Int, dir: Direction): Boolean = synchronized {
     creatureBy(ref)
       .flatMap(e => {
         canMoveToDelta(e, dir.dx, dir.dy) match {
@@ -148,7 +148,9 @@ class MapService {
     *
     * @return An [[Entity]] list.
     */
-  def entitiesOf: Array[Entity] = entities.toArray
+  def entitiesOf: Array[Entity] = synchronized {
+    entities.toArray
+  }
 
   /** Sends a message to each player on the map.
     *
