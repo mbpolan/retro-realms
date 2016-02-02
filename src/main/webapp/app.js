@@ -10,7 +10,8 @@ app.constant('Events', {
     NewSession: 'ClientNewSession',
     MovePlayer: 'ClientMovePlayer',
     AddEntity: 'ClientEntityAdded',
-    RemoveEntity: 'ClientEntityRemoved'
+    RemoveEntity: 'ClientEntityRemoved',
+    DirChange: 'ClientDirChange'
 });
 
 app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, Events) {
@@ -88,6 +89,11 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
                             dispatchEvent(Events.AddEntity, entity);
                         });
 
+                        client.subscribe('/topic/map/entity/dir', function (data) {
+                            var change = JSON.parse(data.body);
+                            dispatchEvent(Events.DirChange, change);
+                        });
+
                         client.subscribe('/topic/map/entity/remove', function (data) {
                             var ref = JSON.parse(data.body);
                             dispatchEvent(Events.RemoveEntity, ref);
@@ -156,6 +162,9 @@ app.controller('AppCtrl', ['Client', 'Events', function (Client, Events) {
                 break;
             case Events.RemoveEntity:
                 self.sceneApi.removeEntity(data);
+                break;
+            case Events.DirChange:
+                self.sceneApi.creatureDirChange(data.ref, data.dir);
                 break;
             default:
                 break;

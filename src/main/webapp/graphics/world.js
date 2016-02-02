@@ -73,6 +73,13 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
         }
     };
 
+    World.prototype.changeDirection = function (ref, dir) {
+        var entity = this.refs[ref];
+        if (entity) {
+            entity.setDirection(dir);
+        }
+    };
+
     World.prototype.placeEntity = function (id, x, y) {
         this.placeObject(this.entities, id, x, y);
     };

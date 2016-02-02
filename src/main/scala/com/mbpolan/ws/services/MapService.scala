@@ -2,7 +2,7 @@ package com.mbpolan.ws.services
 
 import javax.annotation.PostConstruct
 
-import com.mbpolan.ws.beans.MapEntity
+import com.mbpolan.ws.beans.{DirChange, MapEntity}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
@@ -72,6 +72,7 @@ class MapService {
   def canMoveToDelta(c: Creature, dx: Int, dy: Int): Boolean = {
     val toPos = Rect(c.pos.x + dx, c.pos.y + dy, c.pos.w, c.pos.h)
 
+    // check bounds to see if the creature tried to move outside the map area
     if (toPos.x < 0 || toPos.y < 0 || toPos.x + c.pos.w >= CoordsWide || toPos.y + c.pos.h >= CoordsHigh)
       false
 
@@ -89,9 +90,14 @@ class MapService {
         canMoveToDelta(e, dir.dx, dir.dy) match {
           case true =>
             e.pos = Rect(e.pos.x + dir.dx, e.pos.y + dir.dy, e.pos.w, e.pos.h)
+
+            // has the creature changed the direction its facing? if so, notify nearby creatures
+            if (dir != e.dir) {
+              notifyCreatureDirectionChange(e.ref, dir)
+            }
+
             e.dir = dir
 
-//            websocket.convertAndSend("/topic/map/entity/direction", )
             Some(true)
           case false => None
         }
@@ -101,4 +107,8 @@ class MapService {
   def areaOf: Array[Short] = block.map(_.id).toArray
 
   def entitiesOf: Array[Entity] = entities.toArray
+
+  private def notifyCreatureDirectionChange(ref: Int, dir: Direction) = {
+    websocket.convertAndSend("/topic/map/entity/dir", DirChange(ref, dir.value))
+  }
 }

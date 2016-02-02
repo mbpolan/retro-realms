@@ -48,11 +48,14 @@ class UserController {
         Direction.fromValue(message.dir).map(d => (user, d))
       }).flatMap(req => {
       mapService.moveDelta(req._1.ref, req._2) match {
+
         case true =>
           req._1.lastMove = System.currentTimeMillis()
           Some(PlayerMove(valid = true, ref = req._1.ref, req._1.pos.x, req._1.pos.y))
+
         case false => None
       }
+
     }).getOrElse(PlayerMove(valid = false, ref = null, x = 0, y = 0))
 
     websocket.convertAndSend(s"/topic/user/${header.getSessionId}/player", result)
