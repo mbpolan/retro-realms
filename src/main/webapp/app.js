@@ -8,10 +8,10 @@ app.constant('Events', {
     Connected: 'ClientConnected',
     Disconnected: 'ClientDisconnected',
     NewSession: 'ClientNewSession',
-    MovePlayer: 'ClientMovePlayer',
-    AddEntity: 'ClientEntityAdded',
-    RemoveEntity: 'ClientEntityRemoved',
-    DirChange: 'ClientDirChange'
+    MovePlayer: 'MovePlayer',
+    AddEntity: 'AddEntity',
+    RemoveEntity: 'RemoveEntity',
+    DirChange: 'DirectionChange'
 });
 
 app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, Events) {
@@ -76,29 +76,20 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
                         token: token
                     }));
 
+                    // listen for the server's response to our registration request
                     client.subscribe('/topic/user/' + token + '/register', function (data) {
                         var payload = JSON.parse(data.body);
                         sessionId = payload.sessionId;
 
-                        client.subscribe('/topic/user/' + sessionId + '/player', function (data) {
-                            dispatchEvent(Events.MovePlayer, JSON.parse(data.body));
+                        // listen for events sent out to us only
+                        client.subscribe('/topic/user/' + sessionId + '/message', function (data) {
+                            var message = JSON.parse(data.body);
+                            $log.debug('Received message: ' + message.event);
+                            
+                            dispatchEvent(message.event, message);
                         });
 
-                        client.subscribe('/topic/map/entity/add', function (data) {
-                            var entity = JSON.parse(data.body);
-                            dispatchEvent(Events.AddEntity, entity);
-                        });
-
-                        client.subscribe('/topic/map/entity/dir', function (data) {
-                            var change = JSON.parse(data.body);
-                            dispatchEvent(Events.DirChange, change);
-                        });
-
-                        client.subscribe('/topic/map/entity/remove', function (data) {
-                            var ref = JSON.parse(data.body);
-                            dispatchEvent(Events.RemoveEntity, ref);
-                        });
-
+                        // inform the app that we've got a session set up
                         dispatchEvent(Events.NewSession, {
                             id: sessionId,
                             ref: payload.ref,

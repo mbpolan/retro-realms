@@ -2,18 +2,25 @@ package com.mbpolan.ws.services
 
 import javax.annotation.PostConstruct
 
-import com.mbpolan.ws.beans.{DirChange, MapEntity}
+import com.mbpolan.ws.beans.messages.{AddEntityMessage, DirChangeMessage, Message, RemoveEntityMessage}
+import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 
 import scala.io.Source
 
-/**
+/** Service that manages the world map and the entities on it.
+  *
   * @author Mike Polan
   */
 @Service
 class MapService {
+
+  private val Log = LogManager.getLogger(classOf[MapService])
+
+  @Autowired
+  private var userService: UserService = _
 
   @Autowired
   private var websocket: SimpMessagingTemplate = _
@@ -43,25 +50,39 @@ class MapService {
     println(s"Loaded map of ${block.length} tiles and ${entities.size} entities")
   }
 
+  /** Adds a new creature to the map.
+    *
+    * @param c The [[Creature]] to add.
+    * @return The internal ID assigned to the creature.
+    */
   def addCreature(c: Creature): Int = {
     c.ref = lastRef
     entities = entities :+ c
     lastRef += 1
 
-    websocket.convertAndSend("/topic/map/entity/add", MapEntity(c.ref, "char", c.name, Direction.Down.value, c.pos.x, c.pos.y))
+    notifyAll(AddEntityMessage(ref = c.ref, id = "char", name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y))
 
     c.ref
   }
 
+  /** Removes a creature from the map/
+    *
+    * @param ref The internal ID of the creature.
+    */
   def removeCreature(ref: Int): Unit = {
     entities = entities.filter {
       case e: Creature if e.ref == ref => false
       case _ => true
     }
 
-    websocket.convertAndSend("/topic/map/entity/remove", ref)
+    notifyAll(RemoveEntityMessage(ref = ref))
   }
 
+  /** Returns a [[Creature]] on the map whose internal ID matches that of the given one.
+    *
+    * @param ref The internal ID of the creature.
+    * @return The corresponding [[Creature]].
+    */
   def creatureBy(ref: Int): Option[Creature] = {
     entities.find {
       case c: Creature => c.ref == ref
@@ -69,6 +90,13 @@ class MapService {
     }.map(_.asInstanceOf[Creature])
   }
 
+  /** Determines if a creature can be moved by some positional delta.
+    *
+    * @param c The [[Creature]] to move.
+    * @param dx The delta x movement.
+    * @param dy The delta y movement.
+    * @return true if the movement is possible, false if not.
+    */
   def canMoveToDelta(c: Creature, dx: Int, dy: Int): Boolean = {
     val toPos = Rect(c.pos.x + dx, c.pos.y + dy, c.pos.w, c.pos.h)
 
@@ -84,6 +112,12 @@ class MapService {
     }
   }
 
+  /** Moves a creature on the map by some directional delta.
+    *
+    * @param ref The internal ID of the creature to move.
+    * @param dir The direction in which to move the creature.
+    * @return true if the movement succeeded, false if not.
+    */
   def moveDelta(ref: Int, dir: Direction): Boolean = {
     creatureBy(ref)
       .flatMap(e => {
@@ -93,7 +127,7 @@ class MapService {
 
             // has the creature changed the direction its facing? if so, notify nearby creatures
             if (dir != e.dir) {
-              notifyCreatureDirectionChange(e.ref, dir)
+              notifyAll(DirChangeMessage(ref = e.ref, dir = dir.value))
             }
 
             e.dir = dir
@@ -104,11 +138,28 @@ class MapService {
       }).getOrElse(false)
   }
 
+  /** Returns the sprite IDs of the map.
+    *
+    * @return A description of the map in the form of sprite ID numbers.
+    */
   def areaOf: Array[Short] = block.map(_.id).toArray
 
+  /** Returns a list of entities on the map.
+    *
+    * @return An [[Entity]] list.
+    */
   def entitiesOf: Array[Entity] = entities.toArray
 
-  private def notifyCreatureDirectionChange(ref: Int, dir: Direction) = {
-    websocket.convertAndSend("/topic/map/entity/dir", DirChange(ref, dir.value))
+  /** Sends a message to each player on the map.
+    *
+    * @param message The [[Message]] to dispatch to each client.
+    */
+  private def notifyAll(message: Message): Unit = {
+    entities
+      .filter(_.isInstanceOf[Creature])
+      .foreach(e => userService.byRef(e.asInstanceOf[Creature].ref) match {
+        case Some(r) => websocket.convertAndSend(s"/topic/user/$r/message", message)
+        case None =>
+      })
   }
 }
