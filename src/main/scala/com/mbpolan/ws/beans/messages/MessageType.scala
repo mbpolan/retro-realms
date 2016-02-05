@@ -10,4 +10,5 @@ object MessageType {
   case object RemoveEntity extends MessageType { val id = "RemoveEntity" }
   case object MovePlayer extends MessageType { val id = "MovePlayer" }
   case object DirectionChange extends MessageType { val id = "DirectionChange" }
+  case object EntityMove extends MessageType { val id = "EntityMove" }
 }

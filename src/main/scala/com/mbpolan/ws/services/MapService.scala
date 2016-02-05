@@ -2,7 +2,7 @@ package com.mbpolan.ws.services
 
 import javax.annotation.PostConstruct
 
-import com.mbpolan.ws.beans.messages.{AddEntityMessage, DirChangeMessage, Message, RemoveEntityMessage}
+import com.mbpolan.ws.beans.messages._
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -129,6 +129,8 @@ class MapService {
             if (dir != e.dir) {
               notifyAll(DirChangeMessage(ref = e.ref, dir = dir.value))
             }
+
+            notifyAll(MoveMessage(ref = ref, x = e.pos.x, y = e.pos.y))
 
             e.dir = dir
 

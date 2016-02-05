@@ -97,6 +97,10 @@ module.directive('scene', [
                     world.removeEntityByRef(ref);
                 },
 
+                moveEntity: function (ref, x, y) {
+                    world.moveEntity(ref, x * 8, y * 8);
+                },
+
                 creatureDirChange: function (ref, dir) {
                     world.changeDirection(ref, dir);
                 }
