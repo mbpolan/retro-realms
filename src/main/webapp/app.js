@@ -10,6 +10,7 @@ var app = angular.module('wsApp', [
 app.constant('Events', {
     Connected: 'ClientConnected',
     Disconnected: 'ClientDisconnected',
+    ConnectionFailed: 'ConnectionFailed',
     NewSession: 'ClientNewSession',
     MovePlayer: 'MovePlayer',
     AddEntity: 'AddEntity',
@@ -19,6 +20,10 @@ app.constant('Events', {
 });
 
 app.constant('GameConstants', {
+    ConnectResult: {
+        Valid: 'Valid',
+        NameInUse: 'NameInUse'
+    },
     MoveResult: {
         Valid: 'Valid',
         TooSoon: 'TooSoon',
@@ -29,17 +34,30 @@ app.constant('GameConstants', {
 /**
  * Factory that provides the client-side interface for communicating with the web server.
  */
-app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, Events) {
+app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function ($log, $timeout, Events, GameConstants) {
 
     var client = null;
     var connected = false;
     var sessionId = null;
     var listeners = [];
 
+    /**
+     * Runs a function in the context of the AngularJS event loop.
+     *
+     * You may modify scoped variables inside the function.
+     *
+     * @param func {function} The function to run.
+     */
     var scoped = function (func) {
         $timeout(func);
     };
 
+    /**
+     * Sends an event to all registered listeners.
+     *
+     * @param type The identifier for the event.
+     * @param data The payload for the event.
+     */
     var dispatchEvent = function (type, data) {
         scoped(function () {
             angular.forEach(listeners, function (listener) {
@@ -48,10 +66,79 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
         });
     };
 
+    /**
+     * Generates a mostly unique UUID for requesting new sessions.
+     *
+     * @returns {string} A random UUID string.
+     */
     var uuid = function () {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
+        });
+    };
+
+    /**
+     * Processes the server's response to a connection request.
+     *
+     * @param name The user name to request.
+     * @param instance The instance of the factory.
+     */
+    var processConnection = function (name, instance) {
+        scoped(function () {
+            connected = true;
+        });
+
+        // let the app know that we've established a connection
+        dispatchEvent(Events.Connected);
+
+        // ugh this is way too hackish :(
+        var token = uuid();
+        client.send('/api/user/register', {}, JSON.stringify({
+            name: name,
+            token: token
+        }));
+
+        // listen for the server's response to our registration request
+        client.subscribe('/topic/user/' + token + '/register', function (data) {
+            var payload = JSON.parse(data.body);
+
+            switch (payload.result) {
+                // the connection succeeded and we were registered
+                case GameConstants.ConnectResult.Valid:
+                    var session = payload.session;
+                    sessionId = session.sessionId;
+
+                    // listen for events sent out to us only
+                    client.subscribe('/topic/user/' + sessionId + '/message', function (data) {
+                        var message = JSON.parse(data.body);
+                        $log.debug('Received message: ' + message.event);
+
+                        dispatchEvent(message.event, message);
+                    });
+
+                    // inform the app that we've got a session set up
+                    dispatchEvent(Events.NewSession, {
+                        id: sessionId,
+                        ref: session.ref,
+                        map: session.area,
+                        entities: session.entities
+                    });
+
+                    break;
+
+                // the request was rejected by the server
+                case GameConstants.ConnectResult.NameInUse:
+                    instance.disconnect();
+
+                    dispatchEvent(Events.ConnectionFailed, {
+                        nameInUse: true
+                    });
+                    break;
+
+                default:
+                    $log.error('Unknown connection result: ' + data.result);
+            }
         });
     };
 
@@ -99,43 +186,9 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
                 client.debug = null;
 
                 // connect to the server-side websockets provider
-                client.connect('mike', 'mike', function (data) {
-                    $log.debug(data);
-                    scoped(function () {
-                        connected = true;
-                    });
-
-                    // let the app know that we've established a connection
-                    dispatchEvent(Events.Connected);
-
-                    // ugh this is way too hackish :(
-                    var token = uuid();
-                    client.send('/api/user/register', {}, JSON.stringify({
-                        name: name,
-                        token: token
-                    }));
-
-                    // listen for the server's response to our registration request
-                    client.subscribe('/topic/user/' + token + '/register', function (data) {
-                        var payload = JSON.parse(data.body);
-                        sessionId = payload.sessionId;
-
-                        // listen for events sent out to us only
-                        client.subscribe('/topic/user/' + sessionId + '/message', function (data) {
-                            var message = JSON.parse(data.body);
-                            $log.debug('Received message: ' + message.event);
-                            
-                            dispatchEvent(message.event, message);
-                        });
-
-                        // inform the app that we've got a session set up
-                        dispatchEvent(Events.NewSession, {
-                            id: sessionId,
-                            ref: payload.ref,
-                            map: payload.area,
-                            entities: payload.entities
-                        });
-                    });
+                var self = this;
+                client.connect('mike', 'mike', function () {
+                    processConnection(name, self);
                 });
             }
         },
@@ -195,6 +248,18 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function
             // we've connected to the server
             case Events.Connected:
                 self.statusMessage = 'Connected to server, waiting for session...';
+                break;
+
+            // some sort of connection failure was reported
+            case Events.ConnectionFailed:
+                if (data.nameInUse) {
+                    self.statusMessage = 'The name you chose is already in use.';
+                }
+
+                else {
+                    self.statusMessage = 'Connection failed! Please try again later.';
+                }
+
                 break;
 
             // a new player session has been negotiated

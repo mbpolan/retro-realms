@@ -1,14 +1,12 @@
 package com.mbpolan.ws.beans
 
-import com.mbpolan.ws.beans.messages.AddEntityMessage
-
-import scala.beans.BeanProperty
-
-/**
+/** Enumeration of possible results for registering new users.
+  *
   * @author Mike Polan
   */
-case class ConnectResult(
-    @BeanProperty sessionId: String,
-    @BeanProperty ref: Int,
-    @BeanProperty area: Array[Short],
-    @BeanProperty entities: Array[AddEntityMessage])
+sealed trait ConnectResult { def id: String }
+
+object ConnectResult {
+  case object Valid extends ConnectResult { val id = "Valid" }
+  case object NameInUse extends ConnectResult { val id = "NameInUse" }
+}
