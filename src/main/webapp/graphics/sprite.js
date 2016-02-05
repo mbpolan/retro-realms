@@ -2,8 +2,12 @@
 
 var module = angular.module('wsApp.graphics.sprite', []);
 
-module.factory('Sprite', function () {
+module.constant('SpriteConstants', {
+    Scale: 2
+});
 
+module.factory('Sprite', ['SpriteConstants', function (SpriteConstants) {
+    
     function Sprite(parent) {
         this.animations = {};
         this.currentAnim = null;
@@ -13,7 +17,7 @@ module.factory('Sprite', function () {
 
         this.root = new PIXI.Container();
         this.root.position.set(0, 0);
-        this.root.scale.set(2, 2); // FIXME
+        this.root.scale.set(SpriteConstants.Scale, SpriteConstants.Scale);
 
         if (angular.isObject(parent)) {
             parent.addChild(this.root);
@@ -107,4 +111,4 @@ module.factory('Sprite', function () {
     };
 
     return Sprite;
-});
+}]);

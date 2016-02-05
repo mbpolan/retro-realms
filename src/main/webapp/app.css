@@ -2,6 +2,11 @@
     display: none !important;
 }
 
+.name-field {
+    margin-right: 15px;
+    width: 150px;
+}
+
 .scene {
     border: 1px solid black;
     width: 100%;

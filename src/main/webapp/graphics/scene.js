@@ -29,6 +29,7 @@ module.directive('scene', [
         link: function (scope, el) {
 
             var player = null;
+            var lastMove = 0;
             var renderer = PIXI.autoDetectRenderer();
             var stage = new PIXI.Container();
             var world = new World(stage, Global.TilesWide, Global.TilesHigh);
@@ -38,8 +39,14 @@ module.directive('scene', [
             var registerKeyHandlers = function () {
 
                 var movePlayer = function (dir) {
-                    player.moving(dir);
-                    scope.onPlayerMove({ dir: dir });
+                    var now = new Date().getTime();
+
+                    // rate limit the player's movement before sending a server request
+                    if (now - lastMove > 25) {
+                        lastMove = now;
+                        player.moving(dir);
+                        scope.onPlayerMove({ dir: dir });
+                    }
                 };
 
                 kd.UP.down(function () { movePlayer('up'); });

@@ -9,17 +9,21 @@
     <h2>You need to enable JavaScript before you can use this page!</h2>
 </noscript>
 <div>
+    <label for="player-name">Player:</label>
+    <input id="player-name" type="text" class="name-field"
+           data-ng-disabled="ctrl.isConnected()"
+           data-ng-model="ctrl.playerName">
+
     <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect</button>&nbsp;
     <button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button><br>
     <div data-ng-cloak>{{ctrl.statusMessage}}</div>
 </div>
 
-<scene
-        on-player-move="ctrl.onPlayerMove(dir)"
-        on-ready="ctrl.onSceneReady()"
-        api="ctrl.sceneApi">
-</scene>
-<div data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
+<data-scene data-on-player-move="ctrl.onPlayerMove(dir)"
+       data-on-ready="ctrl.onSceneReady()"
+       data-api="ctrl.sceneApi">
+</data-scene>
+<div data-ng-cloak data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
 
 <script src="bower_components/keydrown/keydrown.min.js"></script>
 <script src="bower_components/pixi/pixi.js"></script>

@@ -24,7 +24,7 @@ class UserController {
     */
   @MessageMapping(Array("/user/register"))
   def register(message: NewUser, header: SimpMessageHeaderAccessor): Unit = {
-    gameService.addPlayer(header.getSessionId, message.token)
+    gameService.addPlayer(header.getSessionId, message.name, message.token)
   }
 
   /** Endpoint for users sending requests to move on the map.

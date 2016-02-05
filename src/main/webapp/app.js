@@ -85,8 +85,10 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 
         /**
          * Connects to the server and sends the client's registration request.
+         * 
+         * @param name {string} The name of the player.
          */
-        connect: function () {
+        connect: function (name) {
             if (client !== null) {
                 $log.warn('Client is already connected');
             }
@@ -109,7 +111,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
                     // ugh this is way too hackish :(
                     var token = uuid();
                     client.send('/api/user/register', {}, JSON.stringify({
-                        name: 'Mike',
+                        name: name,
                         token: token
                     }));
 
@@ -179,6 +181,7 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function
     this.statusMessage = 'Not connected to anything';
     this.gameMessage = null;
     this.sceneReady = false;
+    this.playerName = 'Mike';
     this.sceneApi = {};
 
     /**
@@ -266,7 +269,7 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function
      * Handler invoked when a connection to the server is requested.
      */
     this.onConnect = function () {
-        Client.connect();
+        Client.connect(self.playerName);
     };
 
     /**

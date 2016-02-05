@@ -35,10 +35,11 @@ class GameService {
   /** Adds a player to the game.
     *
     * @param sessionId The session ID of the player to add.
+    * @param name The name for the player.
     * @param token The registration token on which to send a response message to.
     */
-  def addPlayer(sessionId: String, token: String): Unit = {
-    val myRef = mapService.addCreature(new Creature(0, "char", "Mike", Rect(0, 0, 4, 4), Direction.Down, 4))
+  def addPlayer(sessionId: String, name: String, token: String): Unit = {
+    val myRef = mapService.addCreature(new Creature(0, "char", name, Rect(0, 0, 4, 4), Direction.Down, 4))
     userService.add(sessionId, myRef)
 
     val result = ConnectResult(sessionId, myRef, mapService.areaOf,
