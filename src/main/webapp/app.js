@@ -217,7 +217,7 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function
 
             // an existing entity has been removed from the map
             case Events.RemoveEntity:
-                self.sceneApi.removeEntity(data);
+                self.sceneApi.removeEntity(data.ref);
                 break;
             
             // an entity has moved on the map

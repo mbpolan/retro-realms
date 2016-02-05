@@ -53,6 +53,17 @@ class GameService {
     websocket.convertAndSend(s"/topic/user/$token/register", result)
   }
 
+  /** Removes an existing player from the game.
+    *
+    * @param sessionId The session ID of the player to remove.
+    */
+  def removePlayer(sessionId: String): Unit = {
+    userService.remove(sessionId) match {
+      case Some(ref) => mapService.removeCreature(ref)
+      case None =>
+    }
+  }
+
   /** Moves a player on the map in a specific direction.
     *
     * @param sessionId The session ID of the player to move.
