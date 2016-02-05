@@ -19,6 +19,7 @@
         on-ready="ctrl.onSceneReady()"
         api="ctrl.sceneApi">
 </scene>
+<div data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
 
 <script src="bower_components/keydrown/keydrown.min.js"></script>
 <script src="bower_components/pixi/pixi.js"></script>

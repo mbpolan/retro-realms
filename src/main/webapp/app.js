@@ -18,6 +18,14 @@ app.constant('Events', {
     EntityMove: 'EntityMove'
 });
 
+app.constant('GameConstants', {
+    MoveResult: {
+        Valid: 'Valid',
+        TooSoon: 'TooSoon',
+        Blocked: 'Blocked'
+    }
+});
+
 /**
  * Factory that provides the client-side interface for communicating with the web server.
  */
@@ -165,10 +173,11 @@ app.factory('Client', ['$log', '$timeout', 'Events', function ($log, $timeout, E
 /**
  * Controller that manages the overall state of the application.
  */
-app.controller('AppCtrl', ['$log', 'Client', 'Events', function ($log, Client, Events) {
+app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function ($log, Client, Events, GameConstants) {
 
     var self = this;
     this.statusMessage = 'Not connected to anything';
+    this.gameMessage = null;
     this.sceneReady = false;
     this.sceneApi = {};
 
@@ -198,9 +207,7 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', function ($log, Client, E
 
             // a player move request was processed
             case Events.MovePlayer:
-                if (data.valid) {
-                    self.sceneApi.movePlayer(data.x, data.y);
-                }
+                self.processMoveResult(data.result);
                 break;
 
             // a new entity has appeared on the map
@@ -276,6 +283,23 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', function ($log, Client, E
      */
     this.isConnected = function () {
         return Client.isConnected();
+    };
+
+    /**
+     * Processes the result of a player movement request.
+     *
+     * @param result {MoveResult} The result of the move request.
+     */
+    this.processMoveResult = function (result) {
+        switch (result) {
+            case GameConstants.MoveResult.TooSoon:
+            case GameConstants.MoveResult.Valid:
+                self.gameMessage = null;
+                break;
+            case GameConstants.MoveResult.Blocked:
+                self.gameMessage = 'You cannot move there';
+                break;
+        }
     };
 
     /**

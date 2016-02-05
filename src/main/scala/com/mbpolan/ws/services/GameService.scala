@@ -3,7 +3,7 @@ package com.mbpolan.ws.services
 import javax.annotation.PostConstruct
 
 import com.mbpolan.ws.beans.ConnectResult
-import com.mbpolan.ws.beans.messages.{AddEntityMessage, PlayerMoveMessage}
+import com.mbpolan.ws.beans.messages.{AddEntityMessage, PlayerMoveResult, PlayerMoveResultMessage}
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -67,12 +67,12 @@ class GameService {
 
           case true =>
             user.lastMove = System.currentTimeMillis()
-            Some(PlayerMoveMessage(valid = true, ref = user.ref, user.pos.x, user.pos.y))
+            Some(PlayerMoveResultMessage(result = PlayerMoveResult.Valid.id))
 
-          case false => None
+          case false => Some(PlayerMoveResultMessage(result = PlayerMoveResult.Blocked.id))
         }
 
-      }).getOrElse(PlayerMoveMessage(valid = false, ref = null, x = 0, y = 0))
+      }).getOrElse(PlayerMoveResultMessage(result = PlayerMoveResult.TooSoon.id))
 
     websocket.convertAndSend(s"/topic/user/$sessionId/message", result)
   }

@@ -130,7 +130,7 @@ class MapService {
               notifyAll(DirChangeMessage(ref = e.ref, dir = dir.value))
             }
 
-            notifyAll(MoveMessage(ref = ref, x = e.pos.x, y = e.pos.y))
+            notifyAll(EntityMoveMessage(ref = ref, x = e.pos.x, y = e.pos.y))
 
             e.dir = dir
 
