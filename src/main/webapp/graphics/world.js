@@ -113,7 +113,7 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
         var entity = this.refs[ref];
         if (entity) {
             this.entities.removeChild(entity.getRoot());
-            this.refs[ref] = undefined;
+            delete this.refs[ref];
         }
 
         else {
