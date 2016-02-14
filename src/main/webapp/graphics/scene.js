@@ -17,9 +17,7 @@ module.constant('Global', {
 /**
  * Directive that maintains the graphics context and underlying game engine.
  */
-module.directive('scene', [
-    '$log', '$http', 'AssetManager', 'Creature', 'Global', 'World',
-    function ($log, $http, AssetManager, Creature, Global, World) {
+module.directive('scene', [function () {
 
     return {
         restrict: 'E',
@@ -29,115 +27,174 @@ module.directive('scene', [
             onMotion: '&',
             onPlayerMove: '&'
         },
-        template: '<div></div>',
-        link: function (scope, el) {
-
-            var player = null;
-            var isMoving = false;
-            var lastMove = 0;
-            var renderer = PIXI.autoDetectRenderer();
-            var stage = new PIXI.Container();
-            var world = new World(stage, Global.TilesWide, Global.TilesHigh);
-            var assets = new AssetManager();
-            el.find('div')[0].appendChild(renderer.view);
-
-            var onKeyUp = function () {
-                if (isMoving) {
-                    isMoving = false;
-                    scope.onMotion({ moving: false });
-                }
-            };
-
-            var onKeyDown = function (dir) {
-                if (!isMoving) {
-                    isMoving = true;
-                    scope.onMotion({ moving: true });
-                }
-
-                var now = new Date().getTime();
-
-                // rate limit the player's movement before sending a server request
-                if (now - lastMove > 25) {
-                    lastMove = now;
-                    // player.moving(dir);
-                    scope.onPlayerMove({ dir: dir });
-                }
-            };
-
-            /**
-             * Sets up key listeners and prescribes further callbacks for each.
-             */
-            var registerKeyHandlers = function () {
-                // register listeners for when an arrow key is pressed down
-                kd.UP.down(onKeyDown.bind(null, 'up'));
-                kd.DOWN.down(onKeyDown.bind(null, 'down'));
-                kd.LEFT.down(onKeyDown.bind(null, 'left'));
-                kd.RIGHT.down(onKeyDown.bind(null, 'right'));
-
-                // register listeners for when an arrow key is released
-                kd.UP.up(onKeyUp);
-                kd.DOWN.up(onKeyUp);
-                kd.LEFT.up(onKeyUp);
-                kd.RIGHT.up(onKeyUp);
-            };
-
-            /**
-             * Callback invoked when all game assets have been loaded.
-             */
-            var assetsLoaded = function () {
-                $log.info('Scene initialized');
-
-                registerKeyHandlers();
-                scope.onReady();
-                gameLoop();
-            };
-
-            /**
-             * Executes a single iteration of the game loop.
-             */
-            var gameLoop = function () {
-                // impose a rate limit on how many frames we drawn
-                requestAnimationFrame(gameLoop);
-
-                // tick any ongoing keyboard events and world state
-                kd.tick();
-                world.tick();
-
-                // draw the next frame of animation of the scene
-                renderer.render(stage);
-            };
-            
-            renderer.render(stage);
-            assets.loadAssets(assetsLoaded);
-
-            scope.api = {
-                setMap: function (data) {
-                    console.log('My ref: ' + data.ref);
-                    world.define(data);
-                    player = world.creatureBy(data.ref);
-                },
-
-                addEntity: function (entity) {
-                    world.addEntity(entity);
-                },
-
-                removeEntity: function (ref) {
-                    world.removeEntityByRef(ref);
-                },
-
-                moveEntity: function (ref, x, y) {
-                    world.moveEntity(ref, x * 8, y * 8);
-                },
-
-                changeEntityMotion: function (ref, moving) {
-                    // console.log(ref + ' moving? ' + moving);
-                    world.setEntityMotion(ref, moving);
-                },
-
-                creatureDirChange: function (ref, dir) {
-                    world.changeDirection(ref, dir);
-                }
-            }
-        }
-    }
+        controller: 'SceneCtrl',
+        controllerAs: 'ctrl',
+        bindToController: true,
+        template: '<div></div>'
+    };
 }]);
+
+/**
+ * Controller that drives the interactions provided by the scene directive.
+ */
+module.controller('SceneCtrl', [
+    '$element', '$log', '$http', 'AssetManager', 'Creature', 'Global', 'World',
+    function ($element, $log, $http, AssetManager, Creature, Global, World) {
+
+        var self = this;
+        this.api = this.api || {};
+        this.player = null;
+        this.isMoving = false;
+        this.lastMove = 0;
+        this.stage = new PIXI.Container();
+        this.world = new World(self.stage, Global.TilesWide, Global.TilesHigh);
+        this.assets = new AssetManager();
+
+        /**
+         * Handler invoked when a keyboard key has been released.
+         */
+        this.onKeyUp = function () {
+            if (self.isMoving) {
+                self.isMoving = false;
+                self.onMotion({moving: false});
+            }
+        };
+
+        /**
+         * Handler invoked when an arrow key has been pressed.
+         *
+         * @param dir {string} The direction the player is to move (up, down, left, right).
+         */
+        this.onKeyDown = function (dir) {
+            if (!self.isMoving) {
+                self.isMoving = true;
+                self.onMotion({moving: true});
+            }
+
+            // rate limit the player's movement before sending a server request
+            var now = new Date().getTime();
+            if (now - self.lastMove > 25) {
+                self.lastMove = now;
+                self.onPlayerMove({dir: dir});
+            }
+        };
+
+        /**
+         * Handler invoked when all game assets have been loaded.
+         */
+        this.onAssetsLoaded = function () {
+            $log.info('Scene initialized');
+
+            self.registerKeyHandlers();
+            self.onReady();
+            self.gameLoop();
+        };
+
+        /**
+         * Sets up key listeners and prescribes further callbacks for each.
+         */
+        this.registerKeyHandlers = function () {
+            // register listeners for when an arrow key is pressed down
+            kd.UP.down(self.onKeyDown.bind(null, 'up'));
+            kd.DOWN.down(self.onKeyDown.bind(null, 'down'));
+            kd.LEFT.down(self.onKeyDown.bind(null, 'left'));
+            kd.RIGHT.down(self.onKeyDown.bind(null, 'right'));
+
+            // register listeners for when an arrow key is released
+            kd.UP.up(self.onKeyUp);
+            kd.DOWN.up(self.onKeyUp);
+            kd.LEFT.up(self.onKeyUp);
+            kd.RIGHT.up(self.onKeyUp);
+        };
+
+        /**
+         * Executes a single iteration of the game loop.
+         */
+        this.gameLoop = function () {
+            // impose a rate limit on how many frames we drawn
+            requestAnimationFrame(self.gameLoop);
+
+            // tick any ongoing keyboard events and world state
+            kd.tick();
+            self.world.tick();
+
+            // draw the next frame of animation of the scene
+            self.renderer.render(self.stage);
+        };
+
+        /**
+         * Initializes the directive.
+         */
+        this.init = function () {
+            // create a new graphics context and add it to the directive
+            self.renderer = PIXI.autoDetectRenderer();
+            $element.find('div')[0].appendChild(self.renderer.view);
+
+            self.renderer.render(self.stage);
+            self.assets.loadAssets(self.onAssetsLoaded);
+        };
+
+        /**
+         * Updates the scene with new map data.
+         *
+         * @param data {object} Tile and entity information for the map.
+         */
+        this.api.setMap = function (data) {
+            console.log('My ref: ' + data.ref);
+            self.world.define(data);
+            self.player = self.world.creatureBy(data.ref);
+        };
+
+        /**
+         * Adds a new entity to the map.
+         *
+         * @param entity {object} Data about the new entity.
+         */
+        this.api.addEntity = function (entity) {
+            self.world.addEntity(entity);
+        };
+
+        /**
+         * Removes an existing entity from the map.
+         *
+         * @param ref {number} The internal ID of the entity to remove.
+         */
+        this.api.removeEntity = function (ref) {
+            self.world.removeEntityByRef(ref);
+        };
+
+        /**
+         * Repositions an existing entity on the map area.
+         *
+         * @param ref {number} The internal ID of the entity.
+         * @param x {number} The new x coordinate.
+         * @param y {number} The new y coordinate.
+         */
+        this.api.moveEntity = function (ref, x, y) {
+            self.world.moveEntity(ref, x * 8, y * 8);
+        };
+
+        /**
+         * Changes the state of an entity to be in motion or standing still.
+         *
+         * @param ref {number} The internal ID of the entity.
+         * @param moving {boolean} true if the entity is now moving, false if stopped.
+         */
+        this.api.changeEntityMotion = function (ref, moving) {
+            self.world.setEntityMotion(ref, moving);
+        };
+
+        /**
+         * Changes the direction a creature is facing on the map.
+         *
+         * @param ref {number} The internal ID of the entity.
+         * @param dir {string} The direction (up, down, left, right).
+         */
+        this.api.creatureDirChange = function (ref, dir) {
+            self.world.changeDirection(ref, dir);
+        };
+
+        // initialize the directive now that we've defined all our of APIs
+        this.init();
+    }
+]);
