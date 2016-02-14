@@ -131,7 +131,6 @@ class MapService {
             }
 
             notifyAll(EntityMoveMessage(ref = ref, x = e.pos.x, y = e.pos.y))
-
             e.dir = dir
 
             Some(true)

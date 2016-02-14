@@ -16,7 +16,8 @@ app.constant('Events', {
     AddEntity: 'AddEntity',
     RemoveEntity: 'RemoveEntity',
     DirChange: 'DirectionChange',
-    EntityMove: 'EntityMove'
+    EntityMove: 'EntityMove',
+    EntityMotion: 'EntityMotion'
 });
 
 app.constant('GameConstants', {
@@ -291,6 +292,11 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function
             // an entity has moved on the map
             case Events.EntityMove:
                 self.sceneApi.moveEntity(data.ref, data.x, data.y);
+                break;
+
+            // an entity has started or stopping moving
+            case Events.EntityMotion:
+                self.sceneApi.changeEntityMotion(data.ref, data.start);
                 break;
             
             // an entity is now facing a different direction

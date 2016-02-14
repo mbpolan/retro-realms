@@ -14,6 +14,9 @@ module.constant('Global', {
     TilesHigh: 20
 });
 
+/**
+ * Directive that maintains the graphics context and underlying game engine.
+ */
 module.directive('scene', [
     '$log', '$http', 'AssetManager', 'Creature', 'Global', 'World',
     function ($log, $http, AssetManager, Creature, Global, World) {
@@ -36,31 +39,45 @@ module.directive('scene', [
             var assets = new AssetManager();
             el.find('div')[0].appendChild(renderer.view);
 
+            var movePlayer = function (dir) {
+                var now = new Date().getTime();
+
+                // rate limit the player's movement before sending a server request
+                if (now - lastMove > 25) {
+                    lastMove = now;
+                    player.moving(dir);
+                    scope.onPlayerMove({ dir: dir });
+                }
+            };
+
+            var onKeyUp = function () {
+                player.stopped();
+            };
+
+            var onKeyDown = function (dir) {
+                movePlayer(dir);
+            };
+
+            /**
+             * Sets up key listeners and prescribes further callbacks for each.
+             */
             var registerKeyHandlers = function () {
+                // register listeners for when an arrow key is pressed down
+                kd.UP.down(onKeyDown.bind(null, 'up'));
+                kd.DOWN.down(onKeyDown.bind(null, 'down'));
+                kd.LEFT.down(onKeyDown.bind(null, 'left'));
+                kd.RIGHT.down(onKeyDown.bind(null, 'right'));
 
-                var movePlayer = function (dir) {
-                    var now = new Date().getTime();
-
-                    // rate limit the player's movement before sending a server request
-                    if (now - lastMove > 25) {
-                        lastMove = now;
-                        player.moving(dir);
-                        scope.onPlayerMove({ dir: dir });
-                    }
-                };
-
-                kd.UP.down(function () { movePlayer('up'); });
-                kd.DOWN.down(function () { movePlayer('down'); });
-                kd.LEFT.down(function () { movePlayer('left'); });
-                kd.RIGHT.down(function () { movePlayer('right'); });
-
-                var onKeyUp = function () { player.stopped(); };
+                // register listeners for when an arrow key is released
                 kd.UP.up(onKeyUp);
                 kd.DOWN.up(onKeyUp);
                 kd.LEFT.up(onKeyUp);
                 kd.RIGHT.up(onKeyUp);
             };
 
+            /**
+             * Callback invoked when all game assets have been loaded.
+             */
             var assetsLoaded = function () {
                 $log.info('Scene initialized');
 
@@ -69,31 +86,28 @@ module.directive('scene', [
                 gameLoop();
             };
 
+            /**
+             * Executes a single iteration of the game loop.
+             */
             var gameLoop = function () {
+                // impose a rate limit on how many frames we drawn
                 requestAnimationFrame(gameLoop);
 
+                // tick any ongoing keyboard events and world state
                 kd.tick();
+                world.tick();
 
-                if (player) {
-                    player.tick();
-                    player.animate();
-                }
-
+                // draw the next frame of animation of the scene
                 renderer.render(stage);
             };
-
+            
             renderer.render(stage);
             assets.loadAssets(assetsLoaded);
 
             scope.api = {
                 setMap: function (data) {
-                    console.log('My ref: ' + data.ref);
                     world.define(data);
                     player = world.creatureBy(data.ref);
-                },
-
-                movePlayer: function (x, y) {
-                    player.moveTo(x * 8, y * 8);
                 },
 
                 addEntity: function (entity) {
@@ -106,6 +120,10 @@ module.directive('scene', [
 
                 moveEntity: function (ref, x, y) {
                     world.moveEntity(ref, x * 8, y * 8);
+                },
+
+                changeEntityMotion: function (ref, moving) {
+                    world.setEntityMotion(ref, moving);
                 },
 
                 creatureDirChange: function (ref, dir) {

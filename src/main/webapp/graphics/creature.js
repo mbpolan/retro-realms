@@ -56,27 +56,30 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
     /**
      * Marks the creature as in motion in a particular direction.
      *
-     * @param dir {string} The direction (up, down, left, right).
+     * @param dir {string=} Optional - the new movement direction (up, down, left, right).
      * @returns {Creature} This instance.
      */
     Creature.prototype.moving = function (dir) {
         this.isMoving = true;
 
-        switch (dir) {
-            case 'up':
-                this.setAnimation('up');
-                break;
-            case 'down':
-                this.setAnimation('down');
-                break;
-            case 'left':
-                this.setAnimation('left');
-                break;
-            case 'right':
-                this.setAnimation('right');
-                break;
-            default:
-                throw new Error('Unknown creature direction: "' + dir + '"');
+        // if a new direction was provided, change the animation set to match
+        if (dir) {
+            switch (dir) {
+                case 'up':
+                    this.setAnimation('up');
+                    break;
+                case 'down':
+                    this.setAnimation('down');
+                    break;
+                case 'left':
+                    this.setAnimation('left');
+                    break;
+                case 'right':
+                    this.setAnimation('right');
+                    break;
+                default:
+                    throw new Error('Unknown creature direction: "' + dir + '"');
+            }
         }
 
         return this;
@@ -146,8 +149,7 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
      * Computes the creature's new properties on each iteration of the game loop.
      */
     Creature.prototype.tick = function () {
-        //this.root.x += this.velocity.x * this.speed;
-        //this.root.y += this.velocity.y * this.speed;
+        this.animate();
     };
 
     /**
