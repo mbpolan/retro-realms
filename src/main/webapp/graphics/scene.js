@@ -26,12 +26,14 @@ module.directive('scene', [
         scope: {
             api: '=',
             onReady: '&',
+            onMotion: '&',
             onPlayerMove: '&'
         },
         template: '<div></div>',
         link: function (scope, el) {
 
             var player = null;
+            var isMoving = false;
             var lastMove = 0;
             var renderer = PIXI.autoDetectRenderer();
             var stage = new PIXI.Container();
@@ -39,23 +41,27 @@ module.directive('scene', [
             var assets = new AssetManager();
             el.find('div')[0].appendChild(renderer.view);
 
-            var movePlayer = function (dir) {
+            var onKeyUp = function () {
+                if (isMoving) {
+                    isMoving = false;
+                    scope.onMotion({ moving: false });
+                }
+            };
+
+            var onKeyDown = function (dir) {
+                if (!isMoving) {
+                    isMoving = true;
+                    scope.onMotion({ moving: true });
+                }
+
                 var now = new Date().getTime();
 
                 // rate limit the player's movement before sending a server request
                 if (now - lastMove > 25) {
                     lastMove = now;
-                    player.moving(dir);
+                    // player.moving(dir);
                     scope.onPlayerMove({ dir: dir });
                 }
-            };
-
-            var onKeyUp = function () {
-                player.stopped();
-            };
-
-            var onKeyDown = function (dir) {
-                movePlayer(dir);
             };
 
             /**
@@ -106,6 +112,7 @@ module.directive('scene', [
 
             scope.api = {
                 setMap: function (data) {
+                    console.log('My ref: ' + data.ref);
                     world.define(data);
                     player = world.creatureBy(data.ref);
                 },
@@ -123,6 +130,7 @@ module.directive('scene', [
                 },
 
                 changeEntityMotion: function (ref, moving) {
+                    // console.log(ref + ' moving? ' + moving);
                     world.setEntityMotion(ref, moving);
                 },
 

@@ -3,7 +3,7 @@ package com.mbpolan.ws.services
 import javax.annotation.PostConstruct
 
 import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, SessionDetails}
-import com.mbpolan.ws.beans.messages.{AddEntityMessage, PlayerMoveResult, PlayerMoveResultMessage}
+import com.mbpolan.ws.beans.messages.{AddEntityMessage, EntityMotionMessage, PlayerMoveResult, PlayerMoveResultMessage}
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -92,5 +92,17 @@ class GameService {
       }).getOrElse(PlayerMoveResultMessage(result = PlayerMoveResult.TooSoon.id))
 
     websocket.convertAndSend(s"/topic/user/$sessionId/message", result)
+  }
+
+  /** Flags that a player has started or stopping moving their character on the map.
+    *
+    * @param sessionId The session ID of the player in question.
+    * @param moving true if the player is now moving, false if they stopped moving.
+    */
+  def playerMotion(sessionId: String, moving: Boolean): Unit = synchronized {
+    userService.byId(sessionId) match {
+      case Some(ref) => mapService.creatureMotionChange(ref, moving)
+      case None =>
+    }
   }
 }

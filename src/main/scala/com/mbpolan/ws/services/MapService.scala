@@ -139,6 +139,15 @@ class MapService {
       }).getOrElse(false)
   }
 
+  /** Notifies all neighboring creatures that another creature has started or stopping moving.
+    *
+    * @param ref The internal ID of the creature's who motion is changing/
+    * @param moving true if the creature started moving, false if they stopped.
+    */
+  def creatureMotionChange(ref: Int, moving: Boolean): Unit = synchronized {
+    notifyAll(EntityMotionMessage(ref = ref, start = moving))
+  }
+
   /** Returns the sprite IDs of the map.
     *
     * @return A description of the map in the form of sprite ID numbers.

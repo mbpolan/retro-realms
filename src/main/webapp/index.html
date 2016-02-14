@@ -20,8 +20,9 @@
 </div>
 
 <data-scene data-on-player-move="ctrl.onPlayerMove(dir)"
-       data-on-ready="ctrl.onSceneReady()"
-       data-api="ctrl.sceneApi">
+            data-on-motion="ctrl.onPlayerMotion(moving)"
+            data-on-ready="ctrl.onSceneReady()"
+            data-api="ctrl.sceneApi">
 </data-scene>
 <div data-ng-cloak data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
 

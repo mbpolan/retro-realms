@@ -61,27 +61,6 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
      */
     Creature.prototype.moving = function (dir) {
         this.isMoving = true;
-
-        // if a new direction was provided, change the animation set to match
-        if (dir) {
-            switch (dir) {
-                case 'up':
-                    this.setAnimation('up');
-                    break;
-                case 'down':
-                    this.setAnimation('down');
-                    break;
-                case 'left':
-                    this.setAnimation('left');
-                    break;
-                case 'right':
-                    this.setAnimation('right');
-                    break;
-                default:
-                    throw new Error('Unknown creature direction: "' + dir + '"');
-            }
-        }
-
         return this;
     };
 
@@ -104,8 +83,24 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
      * @returns {Creature} This instance.
      */
     Creature.prototype.setDirection = function (dir) {
-        this.moving(dir);
-        this.isMoving = false;
+        var direction = dir || this.currentAnim;
+        switch (direction) {
+            case 'up':
+                this.setAnimation('up');
+                break;
+            case 'down':
+                this.setAnimation('down');
+                break;
+            case 'left':
+                this.setAnimation('left');
+                break;
+            case 'right':
+                this.setAnimation('right');
+                break;
+            default:
+                throw new Error('Unknown creature direction: "' + dir + '"');
+        }
+
         return this;
     };
 

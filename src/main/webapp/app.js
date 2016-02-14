@@ -113,7 +113,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
                     // listen for events sent out to us only
                     client.subscribe('/topic/user/' + sessionId + '/message', function (data) {
                         var message = JSON.parse(data.body);
-                        $log.debug('Received message: ' + message.event);
+                        // $log.debug('Received message: ' + message.event);
 
                         dispatchEvent(message.event, message);
                     });
@@ -201,6 +201,15 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
          */
         sendMove: function (dir) {
             client.send('/api/user/player/move', {}, JSON.stringify({ dir: dir }));
+        },
+
+        /**
+         * Sends a player motion change request to the server.
+         * 
+         * @param moving {boolean} true if the player started moving, false if stopped.
+         */
+        sendMotion: function (moving) {
+            client.send('/api/user/player/motion', {}, JSON.stringify({ moving: moving }));
         },
 
         /**
@@ -318,6 +327,15 @@ app.controller('AppCtrl', ['$log', 'Client', 'Events', 'GameConstants', function
      */
     this.onPlayerMove = function (dir) {
         Client.sendMove(dir);
+    };
+
+    /**
+     * Handler invoked when the player has either started or stopped moving.
+     * 
+     * @param moving {boolean} true if motion has started, false if stopped.
+     */
+    this.onPlayerMotion = function (moving) {
+        Client.sendMotion(moving);
     };
 
     /**
