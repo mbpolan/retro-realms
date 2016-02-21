@@ -17,31 +17,54 @@ module.directive('chatBox', [function () {
         controller: 'ChatBoxCtrl',
         controllerAs: 'ctrl',
         bindToController: true,
-        templateUrl: 'client/chatbox.html'
+        templateUrl: 'client/chatbox.html',
+        link: function (scope, el, attrs, ctrl) {
+            var textArea = el.find('textarea')[0];
+
+            ctrl.showLatestMessages = function () {
+                textArea.scrollTop = textArea.scrollHeight;
+            };
+        }
     };
 }]);
 
 /**
  * Controller that drives the chat interface.
  */
-module.controller('ChatBoxCtrl', ['$log', 'Client', function ($log, Client) {
+module.controller('ChatBoxCtrl', ['$log', '$timeout', 'Client', function ($log, $timeout, Client) {
 
     var self = this;
     this.api = this.api || {};
     this.chatHistory = '';
     this.userInput = null;
 
+    /**
+     * Handler invoked when the user wishes to send their chat message.
+     */
     this.onSend = function () {
         Client.sendChatMessage(self.userInput);
         self.userInput = null;
     };
 
+    /**
+     * Initializes the controller.
+     */
     this.init = function () {
         self.onInit && self.onInit();
     };
 
+    /**
+     * Appends a player message to the current chat history.
+     *
+     * @param name {string} The name of the player who sent the message.
+     * @param text {string} The content of the message.
+     */
     this.api.addMessage = function (name, text) {
         self.chatHistory += '\n' + name + ': ' + text;
+
+        $timeout(function () {
+            self.showLatestMessages();
+        });
     };
 
     this.init();
