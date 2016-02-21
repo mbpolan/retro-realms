@@ -4,27 +4,17 @@
     <title>WebGL and WebSockets</title>
     <link rel="stylesheet" type="text/css" href="app.css">
 </head>
-<body data-ng-controller="AppCtrl as ctrl">
+<body>
 <noscript>
     <h2>You need to enable JavaScript before you can use this page!</h2>
 </noscript>
-<div>
-    <label for="player-name">Player:</label>
-    <input id="player-name" type="text" class="name-field"
-           data-ng-disabled="ctrl.isConnected()"
-           data-ng-model="ctrl.playerName">
 
-    <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect</button>&nbsp;
-    <button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button><br>
-    <div data-ng-cloak>{{ctrl.statusMessage}}</div>
+<div class="page-container">
+    <div class="main-container">
+        <h1>WebGL and WebSockets Example</h1>
+        <data-game-client></data-game-client>
+    </div>
 </div>
-
-<data-scene data-on-player-move="ctrl.onPlayerMove(dir)"
-            data-on-motion="ctrl.onPlayerMotion(moving)"
-            data-on-ready="ctrl.onSceneReady()"
-            data-api="ctrl.sceneApi">
-</data-scene>
-<div data-ng-cloak data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
 
 <script src="bower_components/keydrown/keydrown.min.js"></script>
 <script src="bower_components/pixi/pixi.js"></script>
@@ -32,6 +22,7 @@
 <script src="bower_components/stomp/stomp.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.0-rc.0/angular.js"></script>
 <script src="app.js"></script>
+<script src="client/game-client.js"></script>
 <script src="graphics/assets.js"></script>
 <script src="graphics/scene.js"></script>
 <script src="graphics/sprite.js"></script>

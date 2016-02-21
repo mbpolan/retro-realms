@@ -2,6 +2,14 @@
     display: none !important;
 }
 
+.page-container {
+    text-align: center;
+}
+
+.main-container {
+    display: inline-block;
+}
+
 .name-field {
     margin-right: 15px;
     width: 150px;

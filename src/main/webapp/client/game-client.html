@@ -1,0 +1,22 @@
+<div>
+    <div>
+        <label for="player-name">Player:</label>
+        <input id="player-name" type="text" class="name-field"
+               data-ng-disabled="ctrl.isConnected()"
+               data-ng-model="ctrl.playerName">
+
+        <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect
+        </button>
+        &nbsp;
+        <button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button>
+        <br>
+        <div data-ng-cloak>{{ctrl.statusMessage}}</div>
+    </div>
+
+    <data-scene data-on-player-move="ctrl.onPlayerMove(dir)"
+                data-on-motion="ctrl.onPlayerMotion(moving)"
+                data-on-ready="ctrl.onSceneReady()"
+                data-api="ctrl.sceneApi">
+    </data-scene>
+    <div data-ng-cloak data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
+</div>
