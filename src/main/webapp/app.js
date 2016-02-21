@@ -17,7 +17,8 @@ app.constant('Events', {
     RemoveEntity: 'RemoveEntity',
     DirChange: 'DirectionChange',
     EntityMove: 'EntityMove',
-    EntityMotion: 'EntityMotion'
+    EntityMotion: 'EntityMotion',
+    PlayerChat: 'PlayerChat'
 });
 
 /**
@@ -34,6 +35,43 @@ app.constant('GameConstants', {
         Blocked: 'Blocked'
     }
 });
+
+/**
+ * An event bus that dispatches events to interested listeners.
+ */
+app.factory('EventBus', [function () {
+    
+    var listeners = [];
+    
+    return {
+        /**
+         * Registers a new listener to be notified of events.
+         * 
+         * @param listener {function} The function to invoked.
+         * @param events {Array=} Array of events to be notified of, or undefined for all events.
+         */
+        register: function (listener, events) {
+            listeners.push({
+                callback: listener,
+                events: events
+            });
+        },
+
+        /**
+         * Dispatches an event to listeners that have registered for that event type.
+         * 
+         * @param type {string} The type of event.
+         * @param data {object} The payload of the event.
+         */
+        dispatch: function (type, data) {
+            listeners.forEach(function (listener) {
+                if (!angular.isDefined(listener.events) || listener.events.indexOf(type) > 0) {
+                    listener.callback(type, data);
+                }
+            });
+        }
+    };
+}]);
 
 /**
  * Factory that provides the client-side interface for communicating with the web server.
@@ -213,6 +251,15 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
          */
         sendMotion: function (moving) {
             client.send('/api/user/player/motion', {}, JSON.stringify({ moving: moving }));
+        },
+
+        /**
+         * Sends a chat message that the user provided.
+         * 
+         * @param message {string} The message to send.
+         */
+        sendChatMessage: function (message) {
+            client.send('/api/user/player/chat', {}, JSON.stringify({ message: message }));
         },
 
         /**

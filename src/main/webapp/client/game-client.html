@@ -20,5 +20,8 @@
     </data-scene>
     <div data-ng-cloak data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
 
-    <data-chat-box class="chatbox"></data-chat-box>
+    <data-chat-box class="chatbox"
+                   data-api="ctrl.chatApi"
+                   data-on-init="ctrl.onChildInit()">
+    </data-chat-box>
 </div>

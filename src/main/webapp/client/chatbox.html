@@ -1,4 +1,9 @@
 <div>
-    <textarea readonly></textarea>
-    <input type="text" data-ng-model="ctrl.userInput">
+    <textarea data-ng-model="ctrl.chatHistory" readonly></textarea>
+    <form class="chatbox-input" data-ng-submit="ctrl.onSend()">
+        <button type="submit">Send</button>
+        <span>
+            <input type="text" data-ng-model="ctrl.userInput">
+        </span>
+    </form>
 </div>

@@ -16,8 +16,22 @@
     resize: none;
 }
 
-.chatbox > input {
-    width: calc(100% - 5px);
+.chatbox-input {
+    overflow: hidden;
+}
+
+.chatbox-input > span {
+    display: block;
+    overflow: hidden;
+    padding-right: 10px;
+}
+
+.chatbox-input > span > input {
+    width: 100%;
+}
+
+.chatbox-input > button {
+    float: right;
 }
 
 .name-field {

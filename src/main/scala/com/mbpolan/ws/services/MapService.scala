@@ -90,6 +90,16 @@ class MapService {
     }.map(_.asInstanceOf[Creature])
   }
 
+  /** Returns a list of players that are in viewing distance of a given player.
+    *
+    * @param ref The internal ID of the player.
+    * @return A list of [[Creature]]s that are near the player.
+    */
+  def nearByPlayers(ref: Int): Vector[Creature] = {
+    // FIXME: right now we only have one map area, so return all players
+    entities.filter(_.isInstanceOf[Creature]).map(_.asInstanceOf[Creature])
+  }
+
   /** Determines if a creature can be moved by some positional delta.
     *
     * @param c The [[Creature]] to move.

@@ -3,7 +3,7 @@ package com.mbpolan.ws.services
 import javax.annotation.PostConstruct
 
 import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, SessionDetails}
-import com.mbpolan.ws.beans.messages.{AddEntityMessage, EntityMotionMessage, PlayerMoveResult, PlayerMoveResultMessage}
+import com.mbpolan.ws.beans.messages._
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -102,6 +102,34 @@ class GameService {
   def playerMotion(sessionId: String, moving: Boolean): Unit = synchronized {
     userService.byId(sessionId) match {
       case Some(ref) => mapService.creatureMotionChange(ref, moving)
+      case None =>
+    }
+  }
+
+  /** Sends a chat message to nearby players.
+    *
+    * @param sessionId The session ID of the player in question.
+    * @param message The text content of the message to send.
+    */
+  def playerChatMessage(sessionId: String, message: String): Unit = synchronized {
+    userService.byId(sessionId) match {
+      case Some(ref) =>
+        mapService.creatureBy(ref) match {
+
+          case Some(sender) =>
+            mapService.nearByPlayers(ref).foreach(c =>
+              userService.byRef(c.ref) match {
+
+                case Some(theirSessionId) =>
+                  websocket.convertAndSend(s"/topic/user/$theirSessionId/message",
+                    PlayerChatMessage(ref = ref, name = sender.name, text = message))
+
+                case None =>
+              })
+
+          case None =>
+        }
+
       case None =>
     }
   }

@@ -42,11 +42,21 @@ class UserController {
 
   /** Endpoint for users sending requests to start or stop moving their players.
     *
-    * @param message THe message containing a motion request.
+    * @param message The message containing a motion request.
     * @param header Additional headers sent with the message.
     */
   @MessageMapping(Array("/user/player/motion"))
   def motion(message: PlayerMotionRequest, header: SimpMessageHeaderAccessor): Unit = {
     gameService.playerMotion(header.getSessionId, message.moving)
+  }
+
+  /** Endpoint for users sending requests for chat messages.
+    *
+    * @param message The message containing a motion request.
+    * @param header Additional headers sent with the message.
+    */
+  @MessageMapping(Array("/user/player/chat"))
+  def chatMessage(message: ChatMessageRequest, header: SimpMessageHeaderAccessor): Unit = {
+    gameService.playerChatMessage(header.getSessionId, message.message)
   }
 }

@@ -34,6 +34,19 @@ module.controller('GameClientCtrl', [
         this.sceneReady = false;
         this.playerName = 'Mike';
         this.sceneApi = {};
+        this.chatApi = {};
+        this.pendingInit = 1;
+
+        /**
+         * Handler invoked when a child directive has finished initializing.
+         */
+        this.onChildInit = function () {
+            self.pendingInit--;
+
+            if (self.pendingInit === 0) {
+                self.init();
+            }
+        };
 
         /**
          * Handler invoked when a server-side event has been received for this player.
@@ -99,6 +112,11 @@ module.controller('GameClientCtrl', [
                 // an entity is now facing a different direction
                 case Events.DirChange:
                     self.sceneApi.creatureDirChange(data.ref, data.dir);
+                    break;
+                
+                // a player has sent a public chat message
+                case Events.PlayerChat:
+                    self.chatApi.addMessage(data.name, data.text);
                     break;
 
                 // unknown event (or unsupported)
@@ -186,9 +204,9 @@ module.controller('GameClientCtrl', [
          * Initializes the controller.
          */
         this.init = function () {
+            $log.debug('GameClientCtrl initialized');
+
             Client.subscribe(this);
         };
-
-        this.init();
     }
 ]);
