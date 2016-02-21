@@ -42,8 +42,19 @@ module.controller('ChatBoxCtrl', ['$log', '$timeout', 'Client', function ($log, 
      * Handler invoked when the user wishes to send their chat message.
      */
     this.onSend = function () {
-        Client.sendChatMessage(self.userInput);
-        self.userInput = null;
+        if (self.isMessageValid()) {
+            Client.sendChatMessage(self.userInput.trim());
+            self.userInput = null;
+        }
+    };
+
+    /**
+     * Determines if the current chat message can be sent.
+     * 
+     * @returns {boolean} true if the current message cannot be sent, false otherwise.
+     */
+    this.isMessageValid = function () {
+        return self.userInput !== null && self.userInput.trim().length > 0;
     };
 
     /**
