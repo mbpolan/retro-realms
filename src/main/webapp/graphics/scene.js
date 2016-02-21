@@ -194,6 +194,16 @@ module.controller('SceneCtrl', [
             self.world.changeDirection(ref, dir);
         };
 
+        /**
+         * Displays a chat message sent by a player on the map.
+         * 
+         * @param ref {number} The internal ID of the player that sent the message.
+         * @param text {string} The contents of the message.
+         */
+        this.api.addPlayerChat = function (ref, text) {
+            self.world.addPlayerChat(ref, text);
+        };
+
         // initialize the directive now that we've defined all our of APIs
         this.init();
     }

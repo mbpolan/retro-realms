@@ -90,6 +90,13 @@ module.factory('Sprite', ['SpriteConstants', function (SpriteConstants) {
             this.root.position.set(x, y);
         },
 
+        getPosition: function () {
+            return {
+                x: this.root.position.x,
+                y: this.root.position.y
+            };
+        },
+
         getRoot: function () {
             return this.root;
         },

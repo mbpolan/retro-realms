@@ -5,7 +5,7 @@ var module = angular.module('wsApp.graphics.world', []);
 /**
  * Service that primarily manages and coordinates graphics on the scene.
  */
-module.factory('World', ['Creature', 'Global', function (Creature, Global) {
+module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, Global, $timeout) {
 
     /**
      * Creates a new viewable "world" view of the game map.
@@ -160,6 +160,36 @@ module.factory('World', ['Creature', 'Global', function (Creature, Global) {
         var entity = this.refs[ref];
         if (entity) {
             entity.setDirection(dir);
+        }
+    };
+
+    /**
+     * Adds text for a chat message sent by a player.
+     *
+     * @param ref {number} The internal ID of the player that sent the message.
+     * @param text {string} The contents of the message.
+     */
+    World.prototype.addPlayerChat = function (ref, text) {
+        var entity = this.refs[ref];
+        if (entity) {
+            // create a new text element
+            var msg = new PIXI.Text(text, {
+                font: '20px Arial bold',
+                fill: 'yellow',
+                stroke: 'black',
+                strokeThickness: 1
+            });
+
+            // position it above the player that sent the message
+            var pos = entity.getPosition();
+            msg.position.set(pos.x, pos.y - 30);
+            this.addChild(msg);
+
+            // have the text disappear after a few seconds
+            var self = this;
+            $timeout(function () {
+                self.removeChild(msg);
+            }, 2500);
         }
     };
 

@@ -117,6 +117,7 @@ module.controller('GameClientCtrl', [
                 // a player has sent a public chat message
                 case Events.PlayerChat:
                     self.chatApi.addMessage(data.name, data.text);
+                    this.sceneApi.addPlayerChat(data.ref, data.text);
                     break;
 
                 // unknown event (or unsupported)
