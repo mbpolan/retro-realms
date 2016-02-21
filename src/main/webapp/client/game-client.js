@@ -1,6 +1,7 @@
 'use strict';
 
-var module = angular.module('wsApp.gameClient', [
+var module = angular.module('wsApp.client.gameClient', [
+    'wsApp.client.chatBox',
     'wsApp.graphics.scene'
 ]);
 
@@ -12,6 +13,7 @@ module.directive('gameClient', [function () {
     return {
         restrict: 'E',
         replace: true,
+        scope: {},
         controller: 'GameClientCtrl',
         controllerAs: 'ctrl',
         bindToController: true,

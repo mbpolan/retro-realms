@@ -1,7 +1,7 @@
 'use strict';
 
 var app = angular.module('wsApp', [
-    'wsApp.gameClient'
+    'wsApp.client.gameClient'
 ]);
 
 /**
