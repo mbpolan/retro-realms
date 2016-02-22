@@ -182,7 +182,10 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
 
             // position it above the player that sent the message
             var pos = entity.getPosition();
-            msg.position.set(pos.x, pos.y - 30);
+            var x = pos.x + (entity.getRoot().width / 2) - (msg.width / 2);
+            var y = pos.y - 30; // FIXME
+            
+            msg.position.set(Math.max(0, x), Math.max(0, y));
             this.addChild(msg);
 
             // have the text disappear after a few seconds
