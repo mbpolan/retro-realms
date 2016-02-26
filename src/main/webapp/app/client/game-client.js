@@ -17,7 +17,7 @@ module.directive('gameClient', [function () {
         controller: 'GameClientCtrl',
         controllerAs: 'ctrl',
         bindToController: true,
-        templateUrl: 'client/game-client.html'
+        templateUrl: 'app/client/game-client.html'
     }
 }]);
 

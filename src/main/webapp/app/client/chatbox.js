@@ -17,7 +17,7 @@ module.directive('chatBox', [function () {
         controller: 'ChatBoxCtrl',
         controllerAs: 'ctrl',
         bindToController: true,
-        templateUrl: 'client/chatbox.html',
+        templateUrl: 'app/client/chatbox.html',
         link: function (scope, el, attrs, ctrl) {
             var textArea = el.find('textarea')[0];
 
