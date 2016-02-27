@@ -5,11 +5,38 @@
                data-ng-disabled="ctrl.isConnected()"
                data-ng-model="ctrl.playerName">
 
-        <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()"
-                data-ng-click="ctrl.onConnect()">Connect</button>
+        <button class="btn btn-default"
+                data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()"
+                data-ng-click="ctrl.onConnect()">Connect
+        </button>
 
-        <button data-ng-disabled="!ctrl.isConnected()"
-                data-ng-click="ctrl.onDisconnect()">Disconnect</button>
+        <button class="btn btn-default"
+                data-ng-disabled="!ctrl.isConnected()"
+                data-ng-click="ctrl.onDisconnect()">Disconnect
+        </button>
+
+        <div class="btn-group" data-uib-dropdown >
+            <button id="btn-append-to-body" type="button" class="btn" data-uib-dropdown-toggle>
+                <div class="color-swatch"
+                     data-ng-class="'player-' + ctrl.playerColor"></div>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu player-color-menu" uib-dropdown-menu role="menu" aria-labelledby="btn-append-to-body">
+                <li role="menuitem" class="text-center">
+                    <div class="color-swatch player-green"
+                         data-ng-click="ctrl.onPlayerColor('green')"></div>
+                </li>
+                <li role="menuitem" class="text-center">
+                    <div class="color-swatch player-blue"
+                         data-ng-click="ctrl.onPlayerColor('blue')"></div>
+                </li>
+                <li role="menuitem" class="text-center">
+                    <div class="color-swatch player-red"
+                         data-ng-click="ctrl.onPlayerColor('red')"></div>
+                </li>
+            </ul>
+        </div>
+
         <br>
         <div data-ng-cloak>{{ctrl.statusMessage}}</div>
     </div>
@@ -22,7 +49,8 @@
     </data-scene>
     <div class="status-text"
          data-ng-cloak
-         data-ng-class="{ 'invisible': !ctrl.gameMessage }">{{ctrl.gameMessage}}</div>
+         data-ng-class="{ 'invisible': !ctrl.gameMessage }">{{ctrl.gameMessage}}
+    </div>
 
     <data-chat-box class="chatbox"
                    data-api="ctrl.chatApi"

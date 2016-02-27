@@ -1,7 +1,8 @@
 'use strict';
 
 var app = angular.module('wsApp', [
-    'wsApp.client.gameClient'
+    'wsApp.client.gameClient',
+    'ui.bootstrap'
 ]);
 
 /**
@@ -123,10 +124,11 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
     /**
      * Processes the server's response to a connection request.
      *
-     * @param name The user name to request.
-     * @param instance The instance of the factory.
+     * @param name {string} The user name to request.
+     * @param color {string} The color for the player's character.
+     * @param instance {object} The instance of the factory.
      */
-    var processConnection = function (name, instance) {
+    var processConnection = function (name, color, instance) {
         scoped(function () {
             connected = true;
         });
@@ -138,6 +140,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
         var token = uuid();
         client.send('/api/user/register', {}, JSON.stringify({
             name: name,
+            color: color,
             token: token
         }));
 
@@ -216,8 +219,9 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
          * Connects to the server and sends the client's registration request.
          * 
          * @param name {string} The name of the player.
+         * @param color {string} The color for the player's character.
          */
-        connect: function (name) {
+        connect: function (name, color) {
             if (client !== null) {
                 $log.warn('Client is already connected');
             }
@@ -230,7 +234,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
                 // connect to the server-side websockets provider
                 var self = this;
                 client.connect('mike', 'mike', function () {
-                    processConnection(name, self);
+                    processConnection(name, color, self);
 
                 }, function (error) {
                     // handle the case where the server drops the client's connection

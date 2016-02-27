@@ -2,7 +2,7 @@ package com.mbpolan.ws.services
 
 import javax.annotation.PostConstruct
 
-import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, SessionDetails}
+import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, PlayerColor, SessionDetails}
 import com.mbpolan.ws.beans.messages._
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,22 +36,27 @@ class GameService {
     *
     * @param sessionId The session ID of the player to add.
     * @param name The name for the player.
+    * @param color The color of the player's character.
     * @param token The registration token on which to send a response message to.
     */
-  def addPlayer(sessionId: String, name: String, token: String): Unit = synchronized {
+  def addPlayer(sessionId: String, name: String, color: PlayerColor, token: String): Unit = synchronized {
     websocket.convertAndSend(s"/topic/user/$token/register", userService.exists(name) match {
 
       case false =>
-        val myRef = mapService.addCreature(new Creature(0, "char", name, Rect(0, 0, 4, 4), Direction.Down, 4))
+        // add the player to the map
+        val myRef = mapService.addCreature(new Creature(0, s"char-${color.id}", name, Rect(0, 0, 4, 4), Direction.Down, 4))
         userService.add(name, sessionId, myRef)
 
         ConnectResponse(result = ConnectResult.Valid.id,
           session = SessionDetails(sessionId, myRef, mapService.areaOf,
           mapService.entitiesOf.map {
+
             case e: StaticObject =>
               AddEntityMessage(ref = null, name = null, dir = null, id = e.id, x = e.pos.x, y = e.pos.y)
+
             case e: Creature =>
               AddEntityMessage(ref = e.ref, name = e.name, dir = e.dir.value, id = e.id, x = e.pos.x, y = e.pos.y)
+
             case _ => null
           }))
 

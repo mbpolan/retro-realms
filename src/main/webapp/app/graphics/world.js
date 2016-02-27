@@ -98,7 +98,7 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      */
     World.prototype.addEntity = function (entity) {
         if (angular.isNumber(entity.ref)) {
-            var creature = Creature.cardinal('char', 4)
+            var creature = Creature.cardinal(entity.id, 4)
                 .setName(entity.name)
                 .setDirection(entity.dir)
                 .moveTo(entity.x * 8, entity.y * 8);

@@ -33,6 +33,7 @@ module.controller('GameClientCtrl', [
         this.gameMessage = null;
         this.sceneReady = false;
         this.playerName = 'Mike';
+        this.playerColor = 'green';
         this.sceneApi = {};
         this.chatApi = {};
         this.pendingInit = 1;
@@ -46,6 +47,15 @@ module.controller('GameClientCtrl', [
             if (self.pendingInit === 0) {
                 self.init();
             }
+        };
+
+        /**
+         * Handler invoked when the user changes their player character's color.
+         * 
+         * @param color {string} The color to use.
+         */
+        this.onPlayerColor = function (color) {
+            self.playerColor = color;
         };
 
         /**
@@ -176,7 +186,7 @@ module.controller('GameClientCtrl', [
          * Handler invoked when a connection to the server is requested.
          */
         this.onConnect = function () {
-            Client.connect(self.playerName);
+            Client.connect(self.playerName, self.playerColor);
         };
 
         /**

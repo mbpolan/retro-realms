@@ -24,7 +24,13 @@ class UserController {
     */
   @MessageMapping(Array("/user/register"))
   def register(message: NewUser, header: SimpMessageHeaderAccessor): Unit = {
-    gameService.addPlayer(header.getSessionId, message.name, message.token)
+    PlayerColor.fromValue(message.color) match {
+
+      case Some(color) =>
+        gameService.addPlayer(header.getSessionId, message.name, color, message.token)
+
+      case _ =>
+    }
   }
 
   /** Endpoint for users sending requests to move on the map.

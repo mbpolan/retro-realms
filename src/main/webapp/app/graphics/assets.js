@@ -31,6 +31,35 @@ module.factory('AssetManager', ['$http', function ($http) {
         }
     };
 
+    AssetManager.prototype.parseSpriteSheet = function (data, baseImage) {
+        var self = this;
+
+        data.forEach(function (sprite) {
+            for (var i = 0; i < sprite.textures.length; i++) {
+                var tile = sprite.textures[i];
+
+                var id = sprite.prefix + '-' + tile.id;
+
+                if (angular.isObject(tile.anim)) {
+                    var anim = tile.anim;
+
+                    for (var j = 0; j < anim.frames.length; j++) {
+                        var frame = anim.frames[j];
+
+                        self.loadTile(id + '-' + j, baseImage,
+                            new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h))
+                            .animDelay = anim.delay;
+                    }
+                }
+
+                else {
+                    self.loadTile(id, baseImage,
+                        new PIXI.Rectangle(tile.x, tile.y, tile.w, tile.h));
+                }
+            }
+        });
+    };
+
     AssetManager.prototype.loadTextureMap = function (file, callback) {
         var self = this;
         var baseUrl = '/app/assets/' + file;
@@ -43,29 +72,7 @@ module.factory('AssetManager', ['$http', function ($http) {
 
                 $http.get(baseUrl + '.json').then(function (result) {
                     var data = result.data;
-
-                    for (var i = 0; i < data.textures.length; i++) {
-                        var tile = data.textures[i];
-
-                        var id = data.prefix + '-' + tile.id;
-
-                        if (angular.isObject(tile.anim)) {
-                            var anim = tile.anim;
-
-                            for (var j = 0; j < anim.frames.length; j++) {
-                                var frame = anim.frames[j];
-
-                                self.loadTile(id + '-' + j, baseImage,
-                                    new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h))
-                                    .animDelay = anim.delay;
-                            }
-                        }
-
-                        else {
-                            self.loadTile(id, baseImage,
-                                new PIXI.Rectangle(tile.x, tile.y, tile.w, tile.h));
-                        }
-                    }
+                    self.parseSpriteSheet(data, baseImage);
 
                     callback();
                 });
