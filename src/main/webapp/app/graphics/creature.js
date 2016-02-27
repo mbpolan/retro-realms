@@ -41,12 +41,21 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
      */
     Creature.prototype.setName = function (text) {
         if (!this.name) {
-            this.name = new PIXI.extras.BitmapText(text, {
-                font: '8px Nokia Cellphone FC'
+            this.name = new PIXI.Text(text, {
+                font: 'bold 18px Arial',
+                fill: 'green',
+                stroke: 'black',
+                strokeThickness: 4,
+                miterLimit: 1
             });
 
             // position the creature's name above its sprite
-            this.name.position.set((this.root.width / (SpriteConstants.Scale * 2)) -(this.name.textWidth / 2), -7);
+            var x = (this.root.width / (SpriteConstants.Scale * 2)) - (this.name.width / (SpriteConstants.Scale * 2));
+            var y = -(this.name.height / SpriteConstants.Scale);
+            this.name.position.set(x, y);
+
+            // scale the text down since the sprite is already upscaled
+            this.name.scale.set(1 / SpriteConstants.Scale, 1 / SpriteConstants.Scale);
             this.root.addChild(this.name);
         }
 
