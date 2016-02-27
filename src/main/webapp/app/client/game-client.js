@@ -76,7 +76,9 @@ module.controller('GameClientCtrl', [
                 // a new player session has been negotiated
                 case Events.NewSession:
                     self.statusMessage = 'Opened new client session';
+                    
                     self.sceneApi.setMap(data);
+                    self.chatApi.focusElements();
                     break;
 
                 // we've disconnected from the server

@@ -20,9 +20,14 @@ module.directive('chatBox', [function () {
         templateUrl: 'app/client/chatbox.html',
         link: function (scope, el, attrs, ctrl) {
             var textArea = el.find('textarea')[0];
+            var input = el.find('input')[0];
 
             ctrl.showLatestMessages = function () {
                 textArea.scrollTop = textArea.scrollHeight;
+            };
+            
+            ctrl.autoFocus = function () {
+                input.focus();
             };
         }
     };
@@ -62,6 +67,13 @@ module.controller('ChatBoxCtrl', ['$log', '$timeout', 'Client', function ($log, 
      */
     this.init = function () {
         self.onInit && self.onInit();
+    };
+
+    /**
+     * Sets the input focus on the text input for chat messages.
+     */
+    this.api.focusElements = function () {
+        self.autoFocus();
     };
 
     /**

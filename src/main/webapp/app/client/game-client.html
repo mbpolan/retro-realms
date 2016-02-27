@@ -18,7 +18,9 @@
                 data-on-ready="ctrl.onSceneReady()"
                 data-api="ctrl.sceneApi">
     </data-scene>
-    <div data-ng-cloak data-ng-hide="!ctrl.gameMessage">{{ctrl.gameMessage}}</div>
+    <div class="status-text"
+         data-ng-cloak
+         data-ng-class="{ 'invisible': !ctrl.gameMessage }">{{ctrl.gameMessage}}</div>
 
     <data-chat-box class="chatbox"
                    data-api="ctrl.chatApi"
