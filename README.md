@@ -11,8 +11,10 @@ This repo is basically a rolling "log" of my progress.
 You will find here a Gradle project that has a frontend written in AngularJS 1.x and PIXI.JS, and a backend
 written in Scala using the Spring framework. The code is for a very watered-down multiplayer RPG with some
 basic controls, like chatting and server-side collision detection. It uses the STOMP protocol to deliver messages
-over a web socket between clients and the server. I borrowed sprites and tiles from my favorite SNES games
-for some nostalgia. :)
+over a web socket between clients and the server. I borrowed sprites and tiles from my favorite SNES games to
+give the demo some color - a big thanks to [this project](https://github.com/christopho/solarus-alttp-pack) for
+making them available to everyone!
+
 
 ##Building
 You can start the project up right away by first cloning this repository, and then running the following command
