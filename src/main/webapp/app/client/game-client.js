@@ -25,8 +25,8 @@ module.directive('gameClient', [function () {
  * Controller that drives the game client interface.
  */
 module.controller('GameClientCtrl', [
-    '$log', 'Client', 'Events', 'GameConstants',
-    function ($log, Client, Events, GameConstants) {
+    '$log', '$window', 'Client', 'Events', 'GameConstants',
+    function ($log, $window, Client, Events, GameConstants) {
 
         var self = this;
         this.statusMessage = 'Not connected to anything';
@@ -46,6 +46,15 @@ module.controller('GameClientCtrl', [
             if (self.pendingInit === 0) {
                 self.init();
             }
+        };
+
+        /**
+         * Handler invoked when the frame rate count changes.
+         *
+         * @param count The amount of frames drawn per second.
+         */
+        this.onFpsCount = function (count) {
+            self.fps = count;
         };
 
         /**

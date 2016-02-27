@@ -26,7 +26,8 @@ module.directive('scene', [function () {
             api: '=',
             onReady: '&',
             onMotion: '&',
-            onPlayerMove: '&'
+            onPlayerMove: '&',
+            onFpsCount: '&'
         },
         controller: 'SceneCtrl',
         controllerAs: 'ctrl',
@@ -50,6 +51,11 @@ module.controller('SceneCtrl', [
         this.stage = new PIXI.Container();
         this.world = new World(self.stage, Global.TilesWide, Global.TilesHigh);
         this.assets = new AssetManager();
+        this.fps = {
+            rate: 0,
+            frames: 0,
+            lastTime: new Date().getTime()
+        };
 
         /**
          * Handler invoked when a keyboard key has been released.
@@ -115,6 +121,20 @@ module.controller('SceneCtrl', [
 
             // draw the next frame of animation of the scene
             self.renderer.render(self.stage);
+
+            // compute the frames-per-second count for this last iteration
+            var now = new Date().getTime();
+            if (now - self.fps.lastTime > 1000) {
+                self.onFpsCount && self.fps.fps !== self.fps.frames && self.onFpsCount({count: self.fps.frames});
+                
+                self.fps.lastTime = now;
+                self.fps.fps = frames;
+                self.fps.frames = 0;
+            }
+
+            else {
+                self.fps.frames++;
+            }
         };
 
         /**

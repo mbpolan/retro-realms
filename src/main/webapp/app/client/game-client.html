@@ -5,10 +5,11 @@
                data-ng-disabled="ctrl.isConnected()"
                data-ng-model="ctrl.playerName">
 
-        <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()" data-ng-click="ctrl.onConnect()">Connect
-        </button>
-        &nbsp;
-        <button data-ng-disabled="!ctrl.isConnected()" data-ng-click="ctrl.onDisconnect()">Disconnect</button>
+        <button data-ng-disabled="!ctrl.isSceneReady() || ctrl.isConnected()"
+                data-ng-click="ctrl.onConnect()">Connect</button>
+
+        <button data-ng-disabled="!ctrl.isConnected()"
+                data-ng-click="ctrl.onDisconnect()">Disconnect</button>
         <br>
         <div data-ng-cloak>{{ctrl.statusMessage}}</div>
     </div>
@@ -16,6 +17,7 @@
     <data-scene data-on-player-move="ctrl.onPlayerMove(dir)"
                 data-on-motion="ctrl.onPlayerMotion(moving)"
                 data-on-ready="ctrl.onSceneReady()"
+                data-on-fps-count="ctrl.onFpsCount(count)"
                 data-api="ctrl.sceneApi">
     </data-scene>
     <div class="status-text"

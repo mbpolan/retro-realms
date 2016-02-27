@@ -81,6 +81,15 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
     };
 
     /**
+     * Sorts the entities on the scene in descending order of y-axis coordinates.
+     */
+    World.prototype.sortEntities = function () {
+        this.entities.children.sort(function (a, b) {
+            return (a.position.y - b.position.y);
+        });
+    };
+
+    /**
      * Adds a new entity to the world.
      *
      * Entities may be either creatures or static objects.
@@ -93,7 +102,10 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
                 .setName(entity.name)
                 .setDirection(entity.dir)
                 .moveTo(entity.x * 8, entity.y * 8);
+            
+            // add the entity to the entities container and resort it
             this.entities.addChild(creature.getRoot());
+            this.sortEntities();
 
             this.refs[entity.ref] = creature;
         }
@@ -133,7 +145,9 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
     World.prototype.moveEntity = function (ref, x, y) {
         var entity = this.creatureBy(ref);
         if (entity) {
+            // move the entity and recompute sorting attributes
             entity.moveTo(x, y);
+            this.sortEntities();
         }
     };
 
