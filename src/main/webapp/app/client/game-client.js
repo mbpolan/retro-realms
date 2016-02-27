@@ -83,7 +83,7 @@ module.controller('GameClientCtrl', [
 
                 // we've disconnected from the server
                 case Events.Disconnected:
-                    self.statusMessage = 'Not connected to anything';
+                    self.statusMessage = data.error ? 'Connection to server lost' : 'Not connected to anything';
                     break;
 
                 // a player move request was processed

@@ -2,6 +2,10 @@
     display: none !important;
 }
 
+.status-text {
+    height: 20px;
+}
+
 .invisible {
     visibility: hidden;
 }

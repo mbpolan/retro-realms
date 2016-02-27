@@ -231,6 +231,12 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
                 var self = this;
                 client.connect('mike', 'mike', function () {
                     processConnection(name, self);
+
+                }, function (error) {
+                    // handle the case where the server drops the client's connection
+                    if (error && error.indexOf('Lost connection') > 0) {
+                        self.disconnect(true);
+                    }
                 });
             }
         },
@@ -264,8 +270,10 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
 
         /**
          * Disconnects a previously established connection to the server.
+         *
+         * @param error {boolean} true if the client disconnected in error, false otherwise.
          */
-        disconnect: function () {
+        disconnect: function (error) {
             if (client !== null) {
                 $log.debug('Disconnecting from server');
                 scoped(function () {
@@ -273,7 +281,7 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
                 });
 
                 // let the app know we've disconnected at this point
-                dispatchEvent(Events.Disconnected);
+                dispatchEvent(Events.Disconnected, { error: angular.isDefined(error) && error });
                 client.disconnect();
                 client = null;
             }
