@@ -1,6 +1,7 @@
 'use strict';
 
 var module = angular.module('wsApp.graphics.scene', [
+    'wsApp.client.keyboard',
     'wsApp.graphics.assetManager',
     'wsApp.graphics.creature',
     'wsApp.graphics.sprite',
@@ -38,8 +39,8 @@ module.directive('scene', [function () {
  * Controller that drives the interactions provided by the scene directive.
  */
 module.controller('SceneCtrl', [
-    '$element', '$log', '$http', 'AssetManager', 'Creature', 'Global', 'World',
-    function ($element, $log, $http, AssetManager, Creature, Global, World) {
+    '$element', '$log', '$http', 'AssetManager', 'Creature', 'Global', 'Key', 'Keyboard', 'World',
+    function ($element, $log, $http, AssetManager, Creature, Global, Key, Keyboard, World) {
 
         var self = this;
         this.api = this.api || {};
@@ -95,16 +96,10 @@ module.controller('SceneCtrl', [
          */
         this.registerKeyHandlers = function () {
             // register listeners for when an arrow key is pressed down
-            kd.UP.down(self.onKeyDown.bind(null, 'up'));
-            kd.DOWN.down(self.onKeyDown.bind(null, 'down'));
-            kd.LEFT.down(self.onKeyDown.bind(null, 'left'));
-            kd.RIGHT.down(self.onKeyDown.bind(null, 'right'));
-
-            // register listeners for when an arrow key is released
-            kd.UP.up(self.onKeyUp);
-            kd.DOWN.up(self.onKeyUp);
-            kd.LEFT.up(self.onKeyUp);
-            kd.RIGHT.up(self.onKeyUp);
+            Keyboard.bind(Key.Up, self.onKeyDown.bind(null, 'up'), self.onKeyUp);
+            Keyboard.bind(Key.Down, self.onKeyDown.bind(null, 'down'), self.onKeyUp);
+            Keyboard.bind(Key.Left, self.onKeyDown.bind(null, 'left'), self.onKeyUp);
+            Keyboard.bind(Key.Right, self.onKeyDown.bind(null, 'right'), self.onKeyUp);
         };
 
         /**
@@ -115,7 +110,7 @@ module.controller('SceneCtrl', [
             requestAnimationFrame(self.gameLoop);
 
             // tick any ongoing keyboard events and world state
-            kd.tick();
+            Keyboard.tick();
             self.world.tick();
 
             // draw the next frame of animation of the scene

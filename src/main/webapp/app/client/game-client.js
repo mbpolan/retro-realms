@@ -13,7 +13,7 @@ module.directive('gameClient', [function () {
     return {
         restrict: 'E',
         replace: true,
-        scope: {},
+        scope: true,
         controller: 'GameClientCtrl',
         controllerAs: 'ctrl',
         bindToController: true,

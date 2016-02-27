@@ -6,7 +6,7 @@ module.factory('AssetManager', ['$http', function ($http) {
 
     function AssetManager() {
         this.textureMaps = ['hyrule_tileset', 'character'];
-        this.fonts = ['assets/nokia.xml'];
+        this.fonts = ['app/assets/nokia.xml'];
         this.unloadedMaps = this.textureMaps.length;
         this.unloadedFonts = this.fonts.length;
     }
@@ -33,7 +33,7 @@ module.factory('AssetManager', ['$http', function ($http) {
 
     AssetManager.prototype.loadTextureMap = function (file, callback) {
         var self = this;
-        var baseUrl = '/assets/' + file;
+        var baseUrl = '/app/assets/' + file;
         var image = baseUrl + '.png';
 
         PIXI.loader
