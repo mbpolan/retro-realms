@@ -46,6 +46,8 @@ class MapService {
     }
 
     entities = entities :+ new StaticObject(id = "2", pos = Rect(16, 0, 8, 6))
+    entities = entities :+ new Creature(ref = lastRef, id = "villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 1)
+    lastRef = lastRef + 1
 
     println(s"Loaded map of ${block.length} tiles and ${entities.size} entities")
   }

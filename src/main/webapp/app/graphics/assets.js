@@ -5,10 +5,11 @@ var module = angular.module('wsApp.graphics.assetManager', []);
 module.factory('AssetManager', ['$http', function ($http) {
 
     function AssetManager() {
-        this.textureMaps = ['hyrule_tileset', 'character'];
+        this.textureMaps = ['hyrule_tileset', 'character', 'npc'];
         this.fonts = ['app/assets/nokia.xml'];
         this.unloadedMaps = this.textureMaps.length;
         this.unloadedFonts = this.fonts.length;
+        this.animations = {};
     }
 
     AssetManager.prototype.loadAssets = function (callback) {
@@ -30,6 +31,10 @@ module.factory('AssetManager', ['$http', function ($http) {
             });
         }
     };
+    
+    AssetManager.prototype.getNumFrames = function (anim) {
+        return this.animations[anim];
+    };
 
     AssetManager.prototype.parseSpriteSheet = function (data, baseImage) {
         var self = this;
@@ -42,6 +47,7 @@ module.factory('AssetManager', ['$http', function ($http) {
 
                 if (angular.isObject(tile.anim)) {
                     var anim = tile.anim;
+                    self.animations[id] = anim.frames.length;
 
                     for (var j = 0; j < anim.frames.length; j++) {
                         var frame = anim.frames[j];

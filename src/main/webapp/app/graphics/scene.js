@@ -49,8 +49,8 @@ module.controller('SceneCtrl', [
         this.isMoving = false;
         this.lastMove = 0;
         this.stage = new PIXI.Container();
-        this.world = new World(self.stage, Global.TilesWide, Global.TilesHigh);
         this.assets = new AssetManager();
+        this.world = new World(self.stage, self.assets, Global.TilesWide, Global.TilesHigh);
         this.fps = {
             rate: 0,
             frames: 0,

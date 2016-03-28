@@ -160,16 +160,18 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
      * Builds that creates a new creature with properties.
      * 
      * @param prefix {string} The prefix for the creature's animations.
-     * @param frames {number} The amount of frames in each animation. 
+     * @param assets {AssetManager} The asset manager to use for loading animations. 
      * @param parent The parent canvas element.
      * @returns {Creature} A new instance of this object.
      */
-    Creature.cardinal = function (prefix, frames, parent) {
-        var creature = new Creature(parent)
-            .addAnimation('up', prefix + '-up', frames)
-            .addAnimation('down', prefix + '-down', frames)
-            .addAnimation('right', prefix + '-right', frames)
-            .addAnimation('left', prefix + '-left', frames);
+    Creature.cardinal = function (prefix, assets, parent) {
+        var creature = new Creature(parent);
+
+        // load animations for the four cardinal directions
+        ['up', 'down', 'left', 'right'].forEach(function (dir) {
+            var animName = prefix + '-' + dir;
+            creature.addAnimation(dir, animName, assets.getNumFrames(animName));
+        });
 
         creature.setAnimation('down');
         return creature;

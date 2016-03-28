@@ -11,14 +11,16 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      * Creates a new viewable "world" view of the game map.
      *
      * @param parent The parent canvas element.
+     * @param assets {AssetManager} The asset manager to use for loading graphics.
      * @param width The width of the map, in tiles.
      * @param height The height of the map, in tiles.
      * @constructor Creates a new map canvas.
      */
-    function World(parent, width, height) {
+    function World(parent, assets, width, height) {
         PIXI.Container.call(this);
 
         this.refs = {};
+        this.assets = assets;
         this.tileSpan = Global.TileSize * Global.TileScale;
         this.map = new PIXI.Container();
         this.entities = new PIXI.Container();
@@ -98,7 +100,7 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      */
     World.prototype.addEntity = function (entity) {
         if (angular.isNumber(entity.ref)) {
-            var creature = Creature.cardinal(entity.id, 4)
+            var creature = Creature.cardinal(entity.id, this.assets)
                 .setName(entity.name)
                 .setDirection(entity.dir)
                 .moveTo(entity.x * 8, entity.y * 8);
