@@ -2,8 +2,8 @@ package com.mbpolan.ws.services
 
 import javax.annotation.PostConstruct
 
-import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, PlayerColor, SessionDetails}
 import com.mbpolan.ws.beans.messages._
+import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, PlayerColor, SessionDetails}
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -30,6 +30,9 @@ class GameService {
   @PostConstruct
   def init(): Unit = {
     Log.info("Initialized game engine")
+
+    // add an npc to the map
+    mapService.addCreature("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 1)
   }
 
   /** Adds a player to the game.
@@ -44,7 +47,7 @@ class GameService {
 
       case false =>
         // add the player to the map
-        val myRef = mapService.addCreature(new Creature(0, s"char-${color.id}", name, Rect(0, 0, 4, 4), Direction.Down, 4))
+        val myRef = mapService.addPlayer(sessionId, s"char-${color.id}", name, Rect(0, 0, 4, 4))
         userService.add(name, sessionId, myRef)
 
         ConnectResponse(result = ConnectResult.Valid.id,
@@ -122,15 +125,8 @@ class GameService {
         mapService.creatureBy(ref) match {
 
           case Some(sender) =>
-            mapService.nearByPlayers(ref).foreach(c =>
-              userService.byRef(c.ref) match {
-
-                case Some(theirSessionId) =>
-                  websocket.convertAndSend(s"/topic/user/$theirSessionId/message",
-                    PlayerChatMessage(ref = ref, name = sender.name, text = message))
-
-                case None =>
-              })
+            mapService.nearByPlayers(ref)
+              .foreach(_.send(websocket, PlayerChatMessage(ref = ref, name = sender.name, text = message)))
 
           case None =>
         }

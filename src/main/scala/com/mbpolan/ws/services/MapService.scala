@@ -46,25 +46,34 @@ class MapService {
     }
 
     entities = entities :+ new StaticObject(id = "2", pos = Rect(16, 0, 8, 6))
-    entities = entities :+ new Creature(ref = lastRef, id = "villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 1)
     lastRef = lastRef + 1
 
     println(s"Loaded map of ${block.length} tiles and ${entities.size} entities")
   }
 
-  /** Adds a new creature to the map.
+  /** Adds a player to the map.
     *
-    * @param c The [[Creature]] to add.
-    * @return The internal ID assigned to the creature.
+    * @param sessionId The session ID of the player.
+    * @param spriteId The ID of the sprite animation to represent the player.
+    * @param name The visible name of player.
+    * @param bounds The position and bounding rectangle for the player.
+    * @return The player's assigned internal ID.
     */
-  def addCreature(c: Creature): Int = synchronized {
-    c.ref = lastRef
-    entities = entities :+ c
-    lastRef += 1
+  def addPlayer(sessionId: String, spriteId: String, name: String, bounds: Rect): Int = synchronized {
+    addCreatureInternal(new Player(sessionId, lastRef, spriteId, name, bounds))
+  }
 
-    notifyAll(AddEntityMessage(ref = c.ref, id = "char", name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y))
-
-    c.ref
+  /** Adds a creature to the map.
+    *
+    * @param spriteId The ID of the sprite animation to represent the creature.
+    * @param name The visible name of the creature.
+    * @param bounds The position and bounding rectangle for the creature.
+    * @param dir The direction the creature is initially facing.
+    * @param speed The speed at which the creature moves.
+    * @return The creature's assigned internal ID.
+    */
+  def addCreature(spriteId: String, name: String, bounds: Rect, dir: Direction, speed: Int): Int = synchronized {
+    addCreatureInternal(new Creature(lastRef, spriteId, name, bounds, dir, speed))
   }
 
   /** Removes a creature from the map/
@@ -78,6 +87,15 @@ class MapService {
     }
 
     notifyAll(RemoveEntityMessage(ref = ref))
+  }
+
+  /** Returns a [[Player]] on the map whose internal ID matches of that given one.
+    *
+    * @param ref The internal ID of the player.
+    * @return The corresponding [[Player]].
+    */
+  def playerBy(ref: Int): Option[Player] = synchronized {
+    creatureBy(ref).map(_.asInstanceOf[Player])
   }
 
   /** Returns a [[Creature]] on the map whose internal ID matches that of the given one.
@@ -97,9 +115,9 @@ class MapService {
     * @param ref The internal ID of the player.
     * @return A list of [[Creature]]s that are near the player.
     */
-  def nearByPlayers(ref: Int): Vector[Creature] = {
+  def nearByPlayers(ref: Int): Vector[Player] = {
     // FIXME: right now we only have one map area, so return all players
-    entities.filter(_.isInstanceOf[Creature]).map(_.asInstanceOf[Creature])
+    entities.filter(_.isInstanceOf[Player]).map(_.asInstanceOf[Player])
   }
 
   /** Determines if a creature can be moved by some positional delta.
@@ -180,10 +198,21 @@ class MapService {
     */
   private def notifyAll(message: Message): Unit = {
     entities
-      .filter(_.isInstanceOf[Creature])
-      .foreach(e => userService.byRef(e.asInstanceOf[Creature].ref) match {
-        case Some(r) => websocket.convertAndSend(s"/topic/user/$r/message", message)
-        case None =>
-      })
+      .filter(_.isInstanceOf[Player])
+      .foreach(_.asInstanceOf[Player].send(websocket, message))
+  }
+
+  /** Adds a creature to the map and notifies nearby players.
+    *
+    * @param c The creature to add.
+    * @return The creature's assigned internal ID.
+    */
+  private def addCreatureInternal(c: Creature): Int = {
+    entities = entities :+ c
+    lastRef += 1
+
+    notifyAll(AddEntityMessage(ref = c.ref, id = "char", name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y))
+
+    c.ref
   }
 }
