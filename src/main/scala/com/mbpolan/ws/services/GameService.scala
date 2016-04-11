@@ -7,6 +7,7 @@ import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, PlayerColor, Sessio
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /** Service that provides high-level game interaction and coordination.
@@ -27,12 +28,28 @@ class GameService {
   @Autowired
   private var websocket: SimpMessagingTemplate = _
 
+  @Scheduled(fixedDelay = 1000L)
+  def tickCreatures(): Unit = {
+    mapService.nonPlayers.foreach(c => {
+      mapService.creatureMotionChange(c.ref, moving = true)
+      Thread.sleep(c.speed * 12) // FIXME adjust the speed
+
+      // move the creature in its intended direction and about-face if we can't move anymore
+      mapService.moveDelta(c.ref, c.dir) match {
+        case true =>
+        case false => c.invertDirection()
+      }
+
+      mapService.creatureMotionChange(c.ref, moving = false)
+    })
+  }
+
   @PostConstruct
   def init(): Unit = {
     Log.info("Initialized game engine")
 
     // add an npc to the map
-    mapService.addCreature("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 1)
+    mapService.addNpc("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 4)
   }
 
   /** Adds a player to the game.

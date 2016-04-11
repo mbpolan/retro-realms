@@ -63,7 +63,7 @@ class MapService {
     addCreatureInternal(new Player(sessionId, lastRef, spriteId, name, bounds))
   }
 
-  /** Adds a creature to the map.
+  /** Adds a non-player controlled character to the map.
     *
     * @param spriteId The ID of the sprite animation to represent the creature.
     * @param name The visible name of the creature.
@@ -72,8 +72,8 @@ class MapService {
     * @param speed The speed at which the creature moves.
     * @return The creature's assigned internal ID.
     */
-  def addCreature(spriteId: String, name: String, bounds: Rect, dir: Direction, speed: Int): Int = synchronized {
-    addCreatureInternal(new Creature(lastRef, spriteId, name, bounds, dir, speed))
+  def addNpc(spriteId: String, name: String, bounds: Rect, dir: Direction, speed: Int): Int = synchronized {
+    addCreatureInternal(new Npc(lastRef, spriteId, name, bounds, dir, speed))
   }
 
   /** Removes a creature from the map/
@@ -108,6 +108,14 @@ class MapService {
       case c: Creature => c.ref == ref
       case _ => false
     }.map(_.asInstanceOf[Creature])
+  }
+
+  /** Returns a list of non-player creatures on the map.
+    *
+    * @return A list of [[Npc]]s who are not players.
+    */
+  def nonPlayers: Vector[Npc] = synchronized {
+    entities.filter(_.isInstanceOf[Npc]).map(_.asInstanceOf[Npc])
   }
 
   /** Returns a list of players that are in viewing distance of a given player.

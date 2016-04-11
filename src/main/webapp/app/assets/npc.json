@@ -5,7 +5,7 @@
       {
         "id": "right",
         "anim": {
-          "delay": 50,
+          "delay": 100,
           "frames": [
             {
               "x": 100,
@@ -25,7 +25,7 @@
       {
         "id": "up",
         "anim": {
-          "delay": 50,
+          "delay": 100,
           "frames": [
             {
               "x": 100,
@@ -45,7 +45,7 @@
       {
         "id": "left",
         "anim": {
-          "delay": 50,
+          "delay": 100,
           "frames": [
             {
               "x": 100,
@@ -65,7 +65,7 @@
       {
         "id": "down",
         "anim": {
-          "delay": 50,
+          "delay": 100,
           "frames": [
             {
               "x": 100,
