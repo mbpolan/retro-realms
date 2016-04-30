@@ -28,11 +28,11 @@ class GameService {
   @Autowired
   private var websocket: SimpMessagingTemplate = _
 
-  @Scheduled(fixedDelay = 1000L)
+//  @Scheduled(fixedDelay = 1L)
   def tickCreatures(): Unit = {
     mapService.nonPlayers.foreach(c => {
       mapService.creatureMotionChange(c.ref, moving = true)
-      Thread.sleep(c.speed * 12) // FIXME adjust the speed
+      Thread.sleep(c.speed * 50) // FIXME adjust the speed
 
       // move the creature in its intended direction and about-face if we can't move anymore
       mapService.moveDelta(c.ref, c.dir) match {
@@ -49,7 +49,7 @@ class GameService {
     Log.info("Initialized game engine")
 
     // add an npc to the map
-    mapService.addNpc("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 4)
+    mapService.addNpc("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 2)
   }
 
   /** Adds a player to the game.
@@ -103,7 +103,7 @@ class GameService {
   def movePlayer(sessionId: String, dir: Direction): Unit = synchronized {
     val result = userService.byId(sessionId)
       .flatMap(mapService.creatureBy)
-      .filter(_.canMove)
+//      .filter(_.canMove)
       .flatMap(user => {
         mapService.moveDelta(user.ref, dir) match {
 

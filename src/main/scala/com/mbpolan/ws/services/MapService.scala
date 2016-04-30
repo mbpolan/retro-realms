@@ -159,17 +159,16 @@ class MapService {
   def moveDelta(ref: Int, dir: Direction): Boolean = synchronized {
     creatureBy(ref)
       .flatMap(e => {
+        // has the creature changed the direction its facing? if so, notify nearby creatures
+        if (dir != e.dir) {
+          notifyAll(DirChangeMessage(ref = e.ref, dir = dir.value))
+          e.dir = dir
+        }
+
         canMoveToDelta(e, dir.dx, dir.dy) match {
           case true =>
             e.pos = Rect(e.pos.x + dir.dx, e.pos.y + dir.dy, e.pos.w, e.pos.h)
-
-            // has the creature changed the direction its facing? if so, notify nearby creatures
-            if (dir != e.dir) {
-              notifyAll(DirChangeMessage(ref = e.ref, dir = dir.value))
-            }
-
             notifyAll(EntityMoveMessage(ref = ref, x = e.pos.x, y = e.pos.y))
-            e.dir = dir
 
             Some(true)
           case false => None
@@ -219,7 +218,7 @@ class MapService {
     entities = entities :+ c
     lastRef += 1
 
-    notifyAll(AddEntityMessage(ref = c.ref, id = "char", name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y))
+    notifyAll(AddEntityMessage(ref = c.ref, id = c.id, name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y))
 
     c.ref
   }

@@ -103,7 +103,7 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
             var creature = Creature.cardinal(entity.id, this.assets)
                 .setName(entity.name)
                 .setDirection(entity.dir)
-                .moveTo(entity.x * 8, entity.y * 8);
+                .placeAt(entity.x, entity.y);
             
             // add the entity to the entities container and resort it
             this.entities.addChild(creature.getRoot());

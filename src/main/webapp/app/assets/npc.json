@@ -25,7 +25,7 @@
       {
         "id": "up",
         "anim": {
-          "delay": 100,
+          "delay": 500,
           "frames": [
             {
               "x": 100,
@@ -65,7 +65,7 @@
       {
         "id": "down",
         "anim": {
-          "delay": 100,
+          "delay": 500,
           "frames": [
             {
               "x": 100,

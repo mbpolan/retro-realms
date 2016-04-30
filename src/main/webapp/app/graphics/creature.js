@@ -16,6 +16,8 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
     function Creature(parent) {
         Sprite.call(this, parent);
 
+        this.x = 0;
+        this.y = 0;
         this.name = null;
         this.setSpeed(1);
         this.setVelocity(0, 0);
@@ -137,15 +139,37 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
     };
 
     /**
-     * Positions the creature at a new location on the scene.
+     * Places the creature on the map at a specified location immediately.
+     *
+     * @param x {number} The x coordinate.
+     * @param y {number} The y coordinate.
+     * @returns {Creature} This instance.
+     */
+    Creature.prototype.placeAt = function (x, y) {
+        this.x = x;
+        this.y = y;
+        this.root.x = this.x * 8;
+        this.root.y = this.y * 8;
+        return this;
+    };
+
+    /**
+     * Transitions the creature to the specified location on the map with animation.
      * 
      * @param x {number} The x coordinate.
      * @param y {number} The y coordinate.
      * @returns {Creature} This instance.
      */
     Creature.prototype.moveTo = function (x, y) {
-        this.root.x = x;
-        this.root.y = y;
+        this.x0 = this.x;
+        this.y0 = this.y;
+        this.x1 = x;
+        this.y1 = y;
+
+        this.t0 = new Date().getTime();
+        this.tf = 40;
+        this.moveAnim = true;
+
         return this;
     };
 
@@ -154,6 +178,28 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
      */
     Creature.prototype.tick = function () {
         this.animate();
+
+        if (this.moveAnim) {
+            var t1 = new Date().getTime();
+            var ratio = (t1 - this.t0) / this.tf;
+
+            var x = this.x0 + ((this.x1 - this.x0) * ratio);
+            var y = this.y0 + ((this.y1 - this.y0) * ratio);
+            this.x = x;
+            this.y = y;
+
+            this.root.x = x * 8;
+            this.root.y = y * 8;
+
+            if (ratio >= 1) {
+                this.moveAnim = false;
+                this.x = this.x1;
+                this.y = this.y1;
+
+                this.root.x = this.x1 * 8;
+                this.root.y = this.y1 * 8;
+            }
+        }
     };
 
     /**

@@ -80,7 +80,7 @@ module.controller('SceneCtrl', [
 
             // rate limit the player's movement before sending a server request
             var now = new Date().getTime();
-            if (now - self.lastMove > 25) {
+            if (now - self.lastMove > 41) {
                 self.lastMove = now;
                 self.onPlayerMove({dir: dir});
             }
@@ -186,7 +186,7 @@ module.controller('SceneCtrl', [
          * @param y {number} The new y coordinate.
          */
         this.api.moveEntity = function (ref, x, y) {
-            self.world.moveEntity(ref, x * 8, y * 8);
+            self.world.moveEntity(ref, x, y);
         };
 
         /**
