@@ -255,12 +255,10 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
         },
 
         /**
-         * Sends a player motion change request to the server.
-         * 
-         * @param moving {boolean} true if the player started moving, false if stopped.
+         * Sends a player stop request to the server.
          */
-        sendMotion: function (moving) {
-            client.send('/api/user/player/motion', {}, JSON.stringify({ moving: moving }));
+        sendStop: function () {
+            client.send('/api/user/player/stop', {});
         },
 
         /**

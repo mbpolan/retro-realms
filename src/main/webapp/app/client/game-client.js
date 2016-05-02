@@ -158,12 +158,10 @@ module.controller('GameClientCtrl', [
         };
 
         /**
-         * Handler invoked when the player has either started or stopped moving.
-         *
-         * @param moving {boolean} true if motion has started, false if stopped.
+         * Handler invoked when the player has stopped moving.
          */
-        this.onPlayerMotion = function (moving) {
-            Client.sendMotion(moving);
+        this.onPlayerStop = function () {
+            Client.sendStop();
         };
 
         /**

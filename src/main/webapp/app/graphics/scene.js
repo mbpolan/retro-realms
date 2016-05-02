@@ -27,6 +27,7 @@ module.directive('scene', [function () {
             onReady: '&',
             onMotion: '&',
             onPlayerMove: '&',
+            onPlayerStopped: '&',
             onFpsCount: '&'
         },
         controller: 'SceneCtrl',
@@ -63,7 +64,7 @@ module.controller('SceneCtrl', [
         this.onKeyUp = function () {
             if (self.isMoving) {
                 self.isMoving = false;
-                self.onMotion({moving: false});
+                self.onPlayerStopped();
             }
         };
 
@@ -75,13 +76,6 @@ module.controller('SceneCtrl', [
         this.onKeyDown = function (dir) {
             if (!self.isMoving) {
                 self.isMoving = true;
-                self.onMotion({moving: true});
-            }
-
-            // rate limit the player's movement before sending a server request
-            var now = new Date().getTime();
-            if (now - self.lastMove > 41) {
-                self.lastMove = now;
                 self.onPlayerMove({dir: dir});
             }
         };

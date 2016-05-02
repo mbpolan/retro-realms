@@ -7,7 +7,6 @@ import com.mbpolan.ws.beans.{ConnectResponse, ConnectResult, PlayerColor, Sessio
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /** Service that provides high-level game interaction and coordination.
@@ -28,21 +27,8 @@ class GameService {
   @Autowired
   private var websocket: SimpMessagingTemplate = _
 
-//  @Scheduled(fixedDelay = 1L)
-  def tickCreatures(): Unit = {
-    mapService.nonPlayers.foreach(c => {
-      mapService.creatureMotionChange(c.ref, moving = true)
-      Thread.sleep(c.speed * 50) // FIXME adjust the speed
-
-      // move the creature in its intended direction and about-face if we can't move anymore
-      mapService.moveDelta(c.ref, c.dir) match {
-        case true =>
-        case false => c.invertDirection()
-      }
-
-      mapService.creatureMotionChange(c.ref, moving = false)
-    })
-  }
+  @Autowired
+  private var scheduler: Scheduler = _
 
   @PostConstruct
   def init(): Unit = {
@@ -50,6 +36,11 @@ class GameService {
 
     // add an npc to the map
     mapService.addNpc("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 2)
+
+    // schedule a task to review each creature's state
+    scheduler.scheduleFixedRate(() => {
+      mapService.nonPlayers.foreach(c => c.tick())
+    }, 1000L)
   }
 
   /** Adds a player to the game.
@@ -101,34 +92,54 @@ class GameService {
     * @param dir The [[Direction]] to move the player.
     */
   def movePlayer(sessionId: String, dir: Direction): Unit = synchronized {
-    val result = userService.byId(sessionId)
+    userService.byId(sessionId)
       .flatMap(mapService.creatureBy)
-//      .filter(_.canMove)
+      .filter(_.canMove)
       .flatMap(user => {
-        mapService.moveDelta(user.ref, dir) match {
 
-          case true =>
-            user.lastMove = System.currentTimeMillis()
-            Some(PlayerMoveResultMessage(result = PlayerMoveResult.Valid.id))
+        lazy val f: () => Unit = {
+          () => {
+            // attempt to move the player in their current direction
+            mapService.moveDelta(user.ref, dir) match {
 
-          case false => Some(PlayerMoveResultMessage(result = PlayerMoveResult.Blocked.id))
+              case true =>
+                // if the player wasn't previously moving, update their status
+                if (!user.isMoving) {
+                  mapService.creatureMotionChange(user.ref, moving = true)
+                  user.isMoving = true
+                }
+
+                user.lastMove = System.currentTimeMillis()
+
+                // schedule the next movement but only if the player is still moving at that time
+                scheduler.schedule(() => {
+                  if (user.isMoving) f()
+                }, 50)
+
+              case false =>
+                mapService.creatureMotionChange(user.ref, moving = false)
+            }
+          }
         }
 
-      }).getOrElse(PlayerMoveResultMessage(result = PlayerMoveResult.TooSoon.id))
-
-    websocket.convertAndSend(s"/topic/user/$sessionId/message", result)
+        // schedule the initial movement right away
+        scheduler.schedule(f)
+        websocket.convertAndSend(s"/topic/user/$sessionId/message", PlayerMoveResultMessage(result = PlayerMoveResult.Valid.id))
+        None
+      })
   }
 
-  /** Flags that a player has started or stopping moving their character on the map.
+  /** Stops a currently moving player.
     *
-    * @param sessionId The session ID of the player in question.
-    * @param moving true if the player is now moving, false if they stopped moving.
+    * @param sessionId The session ID of the player to halt.
     */
-  def playerMotion(sessionId: String, moving: Boolean): Unit = synchronized {
-    userService.byId(sessionId) match {
-      case Some(ref) => mapService.creatureMotionChange(ref, moving)
-      case None =>
-    }
+  def stopPlayer(sessionId: String): Unit = synchronized {
+    userService.byId(sessionId)
+      .flatMap(mapService.creatureBy)
+      .foreach(c => {
+        c.isMoving = false
+        mapService.creatureMotionChange(c.ref, moving = false)
+      })
   }
 
   /** Sends a chat message to nearby players.

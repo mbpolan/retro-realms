@@ -20,4 +20,7 @@ class Npc(
     speed: Int)
   extends Creature(ref: Int, id: String, name: String, pos: Rect, dir: Direction, speed: Int) {
 
+  /** Triggers the creature to reevaluate its current state and perform any actions. */
+  def tick(): Unit = {
+  }
 }

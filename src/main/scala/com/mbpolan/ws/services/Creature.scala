@@ -22,12 +22,13 @@ abstract class Creature(
   extends Entity {
 
   var lastMove: Long = 0L
+  var isMoving = false
 
   /** Determines if the creature can moved again.
     *
     * @return true if the creature can move, false if not.
     */
-  def canMove: Boolean = System.currentTimeMillis() - lastMove > 25
+  def canMove: Boolean = !isMoving
 
   /** Inverts the direction the creature is currently facing. */
   def invertDirection(): Unit = {
