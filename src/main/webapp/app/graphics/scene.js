@@ -48,7 +48,7 @@ module.controller('SceneCtrl', [
         this.api = this.api || {};
         this.player = null;
         this.isMoving = false;
-        this.lastMove = 0;
+        this.dirStack = [];
         this.stage = new PIXI.Container();
         this.assets = new AssetManager();
         this.world = new World(self.stage, self.assets, Global.TilesWide, Global.TilesHigh);
@@ -60,11 +60,26 @@ module.controller('SceneCtrl', [
 
         /**
          * Handler invoked when a keyboard key has been released.
+         *
+         * @param dir {string} The direction represented by the key (up, down, left, right).
          */
-        this.onKeyUp = function () {
+        this.onKeyUp = function (dir) {
             if (self.isMoving) {
-                self.isMoving = false;
-                self.onPlayerStopped();
+                // remove the direction for this key from the stack
+                var current = _.last(self.dirStack);
+                _.pull(self.dirStack, dir);
+
+                // if no more arrow keys are pressed, then we've stopped moving
+                if (_.isEmpty(self.dirStack)) {
+                    self.isMoving = false;
+                    self.onPlayerStopped();
+                }
+
+                // otherwise start moving in the next direction
+                else if (current !== _.last(self.dirStack)) {
+                    self.onPlayerMove({dir: _.last(self.dirStack)});
+                }
+
             }
         };
 
@@ -74,10 +89,12 @@ module.controller('SceneCtrl', [
          * @param dir {string} The direction the player is to move (up, down, left, right).
          */
         this.onKeyDown = function (dir) {
-            if (!self.isMoving) {
+            if (!self.isMoving || dir !== _.last(self.dirStack)) {
                 self.isMoving = true;
                 self.onPlayerMove({dir: dir});
             }
+
+            self.dirStack.push(dir);
         };
 
         /**
@@ -96,10 +113,10 @@ module.controller('SceneCtrl', [
          */
         this.registerKeyHandlers = function () {
             // register listeners for when an arrow key is pressed down
-            Keyboard.bind(Key.Up, self.onKeyDown.bind(null, 'up'), self.onKeyUp);
-            Keyboard.bind(Key.Down, self.onKeyDown.bind(null, 'down'), self.onKeyUp);
-            Keyboard.bind(Key.Left, self.onKeyDown.bind(null, 'left'), self.onKeyUp);
-            Keyboard.bind(Key.Right, self.onKeyDown.bind(null, 'right'), self.onKeyUp);
+            Keyboard.bind(Key.Up, self.onKeyDown.bind(null, 'up'), self.onKeyUp.bind(null, 'up'));
+            Keyboard.bind(Key.Down, self.onKeyDown.bind(null, 'down'), self.onKeyUp.bind(null, 'down'));
+            Keyboard.bind(Key.Left, self.onKeyDown.bind(null, 'left'), self.onKeyUp.bind(null, 'left'));
+            Keyboard.bind(Key.Right, self.onKeyDown.bind(null, 'right'), self.onKeyUp.bind(null, 'right'));
         };
 
         /**
@@ -109,8 +126,7 @@ module.controller('SceneCtrl', [
             // impose a rate limit on how many frames we drawn
             requestAnimationFrame(self.gameLoop);
 
-            // tick any ongoing keyboard events and world state
-            Keyboard.tick();
+            // tick any world state
             self.world.tick();
 
             // draw the next frame of animation of the scene
@@ -120,7 +136,7 @@ module.controller('SceneCtrl', [
             var now = new Date().getTime();
             if (now - self.fps.lastTime > 1000) {
                 self.onFpsCount && self.fps.fps !== self.fps.frames && self.onFpsCount({count: self.fps.frames});
-                
+
                 self.fps.lastTime = now;
                 self.fps.fps = frames;
                 self.fps.frames = 0;
@@ -205,7 +221,7 @@ module.controller('SceneCtrl', [
 
         /**
          * Displays a chat message sent by a player on the map.
-         * 
+         *
          * @param ref {number} The internal ID of the player that sent the message.
          * @param text {string} The contents of the message.
          */

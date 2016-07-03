@@ -17,7 +17,7 @@ class Player(
     id: String,
     name: String,
     pos: Rect)
-  extends Creature(ref: Int, id: String, name: String, pos: Rect, Direction.Down, 2) {
+  extends Creature(ref: Int, id: String, name: String, pos: Rect, Direction.Down, 50) {
 
   /** Sends a message to the player's client.
     *

@@ -54,6 +54,11 @@ module.factory('Keyboard', ['$document', '$window', function ($document, $window
     
         if (!activeKeys[key]) {
             activeKeys[key] = true;
+
+            // first the down handler right away
+            (listeners[key] || []).forEach(function (listener) {
+                listener.down && listener.down();
+            });
         }
     
         suppressEvent(key, e);

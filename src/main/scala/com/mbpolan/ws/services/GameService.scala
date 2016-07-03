@@ -94,13 +94,13 @@ class GameService {
   def movePlayer(sessionId: String, dir: Direction): Unit = synchronized {
     userService.byId(sessionId)
       .flatMap(mapService.creatureBy)
-      .filter(_.canMove)
+      .filter(_.canMove(dir))
       .flatMap(user => {
 
         lazy val f: () => Unit = {
           () => {
             // attempt to move the player in their current direction
-            mapService.moveDelta(user.ref, dir) match {
+            mapService.moveDelta(user.ref, user.moveDir) match {
 
               case true =>
                 // if the player wasn't previously moving, update their status
@@ -114,16 +114,21 @@ class GameService {
                 // schedule the next movement but only if the player is still moving at that time
                 scheduler.schedule(() => {
                   if (user.isMoving) f()
-                }, 50)
+                }, user.speed)
 
               case false =>
                 mapService.creatureMotionChange(user.ref, moving = false)
+                user.isMoving = false
             }
           }
         }
 
-        // schedule the initial movement right away
-        scheduler.schedule(f)
+        // schedule the initial movement right away if we have just started moving
+        user.moveDir = dir
+        if (!user.isMoving) {
+          scheduler.schedule(f)
+        }
+
         websocket.convertAndSend(s"/topic/user/$sessionId/message", PlayerMoveResultMessage(result = PlayerMoveResult.Valid.id))
         None
       })

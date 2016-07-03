@@ -23,12 +23,14 @@ abstract class Creature(
 
   var lastMove: Long = 0L
   var isMoving = false
+  var moveDir = dir
 
   /** Determines if the creature can moved again.
     *
+    * @param dir The direction the creature intends to move.
     * @return true if the creature can move, false if not.
     */
-  def canMove: Boolean = !isMoving
+  def canMove(dir: Direction): Boolean = !isMoving || dir != this.dir
 
   /** Inverts the direction the creature is currently facing. */
   def invertDirection(): Unit = {
