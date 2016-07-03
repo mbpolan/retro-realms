@@ -35,11 +35,11 @@ class GameService {
     Log.info("Initialized game engine")
 
     // add an npc to the map
-    mapService.addNpc("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 2)
+    mapService.addNpc("villager-purple", "Villager", Rect(20, 20, 4, 4), Direction.Down, 100)
 
     // schedule a task to review each creature's state
     scheduler.scheduleFixedRate(() => {
-      mapService.nonPlayers.foreach(c => c.tick())
+      mapService.nonPlayers.foreach(c => c.tick(this))
     }, 1000L)
   }
 
@@ -100,7 +100,7 @@ class GameService {
         // schedule the initial movement right away if we have just started moving
         player.moveDir = dir
         if (!player.isMoving) {
-          moveCreature(player)
+          moveCreatureContinuous(player)
         }
       })
   }
@@ -112,10 +112,16 @@ class GameService {
   def stopPlayer(sessionId: String): Unit = synchronized {
     userService.byId(sessionId)
       .flatMap(mapService.creatureBy)
-      .foreach(c => {
-        c.stopMoving()
-        mapService.creatureMotionChange(c.ref, moving = false)
-      })
+      .foreach(c => stopCreature(c))
+  }
+
+  /** Stops a currently moveing creature.
+    *
+    * @param c The [[Creature]] to halt.
+    */
+  def stopCreature(c: Creature): Unit = synchronized {
+    c.stopMoving()
+    mapService.creatureMotionChange(c.ref, moving = false)
   }
 
   /** Sends a chat message to nearby players.
@@ -139,15 +145,34 @@ class GameService {
     }
   }
 
-  /**
-    * Performs the next scheduled movement for a creature.
+  /** Schedules the next movement for a creature in its movement direction.
+    *
+    * @param c The [[Creature]] to move.
+    * @param f Function to invoke when the movement was executed.
+    */
+  def scheduleCreatureMove(c: Creature, f: (CreatureMoveResult) => Unit): Unit = {
+    scheduler.schedule(() => {
+      moveCreature(c, continuous = false, f)
+    }, c.speed)
+  }
+
+  /** Performs the next scheduled movement for a creature and schedules the next one.
+    *
+    * @param c The [[Creature]] to move.
+    */
+  def moveCreatureContinuous(c: Creature): Unit = {
+    moveCreature(c, continuous = true, (result) => {})
+  }
+
+  /** Performs the next scheduled movement for a creature.
     *
     * If the creature can still move in their intended direction, the movement is done, any
     * direction changes are broadcast, and the next movement is scheduled.
     *
     * @param c The [[Creature]] to move.
+    * @param continuous true to schedule a subsequent movement, false to schedule just this one.
     */
-  private def moveCreature(c: Creature): Unit = {
+  def moveCreature(c: Creature, continuous: Boolean, f: (CreatureMoveResult) => Unit): Unit = {
     // cancel the creature's future movements before planning this one
     c.nextMove = c.nextMove.flatMap(t => {
       t.cancel()
@@ -167,17 +192,27 @@ class GameService {
         c.lastMove = System.currentTimeMillis()
 
         // schedule the next movement but only if the creature is still moving at that time
-        c.nextMove = Some(scheduler.schedule(() => {
-          if (c.isMoving) moveCreature(c)
-        }, c.speed))
+        c.nextMove = continuous match {
+          case true =>
+            Some(scheduler.schedule(() => {
+              if (c.isMoving) moveCreature(c, continuous, f)
+            }, c.speed))
+
+          case false =>
+            c.isMoving = false
+            None
+        }
 
         CreatureMoveResult.Valid
 
       case false =>
         mapService.creatureMotionChange(c.ref, moving = false)
         c.isMoving = false
+        c.nextMove = None
         CreatureMoveResult.Blocked
     }
+
+    f(result)
 
     // if this was a player that moved, notify them of their movement status
     c match {
