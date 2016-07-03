@@ -1,6 +1,6 @@
 package com.mbpolan.ws.services
 
-import com.mbpolan.ws.beans.messages.Message
+import com.mbpolan.ws.beans.messages.{CreatureMoveResult, Message}
 import org.springframework.messaging.simp.SimpMessagingTemplate
 
 /** Model for a player in the game world.
@@ -18,6 +18,8 @@ class Player(
     name: String,
     pos: Rect)
   extends Creature(ref: Int, id: String, name: String, pos: Rect, Direction.Down, 50) {
+
+  var lastMoveResult: CreatureMoveResult = CreatureMoveResult.Valid
 
   /** Sends a message to the player's client.
     *

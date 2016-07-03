@@ -95,42 +95,13 @@ class GameService {
     userService.byId(sessionId)
       .flatMap(mapService.creatureBy)
       .filter(_.canMove(dir))
-      .flatMap(user => {
-
-        lazy val f: () => Unit = {
-          () => {
-            // attempt to move the player in their current direction
-            mapService.moveDelta(user.ref, user.moveDir) match {
-
-              case true =>
-                // if the player wasn't previously moving, update their status
-                if (!user.isMoving) {
-                  mapService.creatureMotionChange(user.ref, moving = true)
-                  user.isMoving = true
-                }
-
-                user.lastMove = System.currentTimeMillis()
-
-                // schedule the next movement but only if the player is still moving at that time
-                scheduler.schedule(() => {
-                  if (user.isMoving) f()
-                }, user.speed)
-
-              case false =>
-                mapService.creatureMotionChange(user.ref, moving = false)
-                user.isMoving = false
-            }
-          }
-        }
+      .foreach(player => {
 
         // schedule the initial movement right away if we have just started moving
-        user.moveDir = dir
-        if (!user.isMoving) {
-          scheduler.schedule(f)
+        player.moveDir = dir
+        if (!player.isMoving) {
+          moveCreature(player)
         }
-
-        websocket.convertAndSend(s"/topic/user/$sessionId/message", PlayerMoveResultMessage(result = PlayerMoveResult.Valid.id))
-        None
       })
   }
 
@@ -165,6 +136,49 @@ class GameService {
         }
 
       case None =>
+    }
+  }
+
+  /**
+    * Performs the next scheduled movement for a creature.
+    *
+    * If the creature can still move in their intended direction, the movement is done, any
+    * direction changes are broadcast, and the next movement is scheduled.
+    *
+    * @param c The [[Creature]] to move.
+    */
+  private def moveCreature(c: Creature): Unit = {
+    // attempt to move the creature in their current direction
+    val result = mapService.moveDelta(c.ref, c.moveDir) match {
+
+      case true =>
+        // if the creature wasn't previously moving, update their status
+        if (!c.isMoving) {
+          mapService.creatureMotionChange(c.ref, moving = true)
+          c.isMoving = true
+        }
+
+        c.lastMove = System.currentTimeMillis()
+
+        // schedule the next movement but only if the creature is still moving at that time
+        scheduler.schedule(() => {
+          if (c.isMoving) moveCreature(c)
+        }, c.speed)
+
+        CreatureMoveResult.Valid
+
+      case false =>
+        mapService.creatureMotionChange(c.ref, moving = false)
+        c.isMoving = false
+        CreatureMoveResult.Blocked
+    }
+
+    // if this was a player that moved, notify them of their movement status
+    c match {
+      case player: Player if player.lastMoveResult != result =>
+        player.lastMoveResult = result
+        player.send(websocket, PlayerMoveResultMessage(result.id))
+      case _ =>
     }
   }
 }
