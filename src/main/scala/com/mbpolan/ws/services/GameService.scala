@@ -113,7 +113,7 @@ class GameService {
     userService.byId(sessionId)
       .flatMap(mapService.creatureBy)
       .foreach(c => {
-        c.isMoving = false
+        c.stopMoving()
         mapService.creatureMotionChange(c.ref, moving = false)
       })
   }
@@ -148,6 +148,12 @@ class GameService {
     * @param c The [[Creature]] to move.
     */
   private def moveCreature(c: Creature): Unit = {
+    // cancel the creature's future movements before planning this one
+    c.nextMove = c.nextMove.flatMap(t => {
+      t.cancel()
+      None
+    })
+
     // attempt to move the creature in their current direction
     val result = mapService.moveDelta(c.ref, c.moveDir) match {
 
@@ -161,9 +167,9 @@ class GameService {
         c.lastMove = System.currentTimeMillis()
 
         // schedule the next movement but only if the creature is still moving at that time
-        scheduler.schedule(() => {
+        c.nextMove = Some(scheduler.schedule(() => {
           if (c.isMoving) moveCreature(c)
-        }, c.speed)
+        }, c.speed))
 
         CreatureMoveResult.Valid
 

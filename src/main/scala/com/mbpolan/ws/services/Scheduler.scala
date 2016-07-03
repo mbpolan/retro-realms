@@ -22,13 +22,20 @@ class Scheduler {
     *
     * @param f The function to execute.
     * @param delay The amount of milliseconds to wait starting from now until execution.
+    * @return A [[Task]] that's been allocated for this work.
     */
-  def schedule(f: () => Unit, delay: Long = 0L): Unit = {
+  def schedule(f: () => Unit, delay: Long = 0L): Task = {
+    val task = new Task() {
+      override protected def doRun(): Unit = f()
+    }
+
     taskScheduler.schedule(new Runnable() {
-      override def run(): Unit = f()
+      override def run(): Unit = task.run()
 
     }, Date.from(LocalDateTime.now().plus(delay, ChronoUnit.MILLIS)
       .atZone(ZoneId.systemDefault()).toInstant))
+
+    task
   }
 
   /** Schedules a task to be run at fixed periods of time.

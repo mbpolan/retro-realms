@@ -24,6 +24,7 @@ abstract class Creature(
   var lastMove: Long = 0L
   var isMoving = false
   var moveDir = dir
+  var nextMove: Option[Task] = None
 
   /** Determines if the creature can moved again.
     *
@@ -31,6 +32,16 @@ abstract class Creature(
     * @return true if the creature can move, false if not.
     */
   def canMove(dir: Direction): Boolean = !isMoving || dir != this.dir
+
+  /** Stops the creature from moving and cancels all planned movement. */
+  def stopMoving(): Unit = {
+    nextMove = nextMove.flatMap(t => {
+      t.cancel()
+      None
+    })
+
+    isMoving = false
+  }
 
   /** Inverts the direction the creature is currently facing. */
   def invertDirection(): Unit = {
