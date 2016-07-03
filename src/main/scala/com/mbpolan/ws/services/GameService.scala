@@ -39,7 +39,7 @@ class GameService {
 
     // schedule a task to review each creature's state
     scheduler.scheduleFixedRate(() => {
-      mapService.nonPlayers.foreach(c => c.tick(this))
+      mapService.animateObjects.foreach(c => c.tick(this))
     }, 1000L)
   }
 
@@ -93,14 +93,15 @@ class GameService {
     */
   def movePlayer(sessionId: String, dir: Direction): Unit = synchronized {
     userService.byId(sessionId)
-      .flatMap(mapService.creatureBy)
+      .flatMap(mapService.playerBy)
       .filter(_.canMove(dir))
       .foreach(player => {
 
         // schedule the initial movement right away if we have just started moving
         player.moveDir = dir
         if (!player.isMoving) {
-          moveCreatureContinuous(player)
+          player.moveRequested = true
+          player.tick(this)
         }
       })
   }
@@ -136,7 +137,7 @@ class GameService {
 
           case Some(sender) =>
             mapService.nearByPlayers(ref)
-              .foreach(_.send(websocket, PlayerChatMessage(ref = ref, name = sender.name, text = message)))
+              .foreach(_.send(PlayerChatMessage(ref = ref, name = sender.name, text = message)))
 
           case None =>
         }
@@ -151,17 +152,9 @@ class GameService {
     * @param f Function to invoke when the movement was executed.
     */
   def scheduleCreatureMove(c: Creature, f: (CreatureMoveResult) => Unit): Unit = {
-    scheduler.schedule(() => {
-      moveCreature(c, continuous = false, f)
-    }, c.speed)
-  }
-
-  /** Performs the next scheduled movement for a creature and schedules the next one.
-    *
-    * @param c The [[Creature]] to move.
-    */
-  def moveCreatureContinuous(c: Creature): Unit = {
-    moveCreature(c, continuous = true, (result) => {})
+    c.nextMove = Some(scheduler.schedule(() => {
+      moveCreature(c, f)
+    }, c.speed))
   }
 
   /** Performs the next scheduled movement for a creature.
@@ -170,9 +163,8 @@ class GameService {
     * direction changes are broadcast, and the next movement is scheduled.
     *
     * @param c The [[Creature]] to move.
-    * @param continuous true to schedule a subsequent movement, false to schedule just this one.
     */
-  def moveCreature(c: Creature, continuous: Boolean, f: (CreatureMoveResult) => Unit): Unit = {
+  def moveCreature(c: Creature, f: (CreatureMoveResult) => Unit): Unit = {
     // cancel the creature's future movements before planning this one
     c.nextMove = c.nextMove.flatMap(t => {
       t.cancel()
@@ -190,19 +182,7 @@ class GameService {
         }
 
         c.lastMove = System.currentTimeMillis()
-
-        // schedule the next movement but only if the creature is still moving at that time
-        c.nextMove = continuous match {
-          case true =>
-            Some(scheduler.schedule(() => {
-              if (c.isMoving) moveCreature(c, continuous, f)
-            }, c.speed))
-
-          case false =>
-            c.isMoving = false
-            None
-        }
-
+        c.nextMove = None
         CreatureMoveResult.Valid
 
       case false =>
@@ -213,13 +193,5 @@ class GameService {
     }
 
     f(result)
-
-    // if this was a player that moved, notify them of their movement status
-    c match {
-      case player: Player if player.lastMoveResult != result =>
-        player.lastMoveResult = result
-        player.send(websocket, PlayerMoveResultMessage(result.id))
-      case _ =>
-    }
   }
 }

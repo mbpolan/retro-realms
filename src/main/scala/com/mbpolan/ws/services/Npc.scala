@@ -34,7 +34,7 @@ class Npc(
     *
     * @param game Instance of [[GameService]] to work against.
     */
-  def tick(game: GameService): Unit = {
+  override def tick(game: GameService): Unit = {
     Random.nextInt(100) match {
       // one in three chance of moving
       case i if i >= 0 && i <= 30 && isReadyToMove =>
@@ -57,7 +57,7 @@ class Npc(
     */
   private def planMove(game: GameService): Unit = {
     // randomize the amount of steps to take and the direction in which to move
-    plannedMoves = Random.nextInt(10) + 1
+    plannedMoves = Random.nextInt(10) + 3
     moveDir = MoveDirections(Random.nextInt(MoveDirections.size))
 
     lazy val processMoveResult: (CreatureMoveResult) => Unit = {

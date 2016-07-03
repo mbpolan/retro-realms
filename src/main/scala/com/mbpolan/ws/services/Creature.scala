@@ -19,7 +19,7 @@ abstract class Creature(
     var pos: Rect,
     var dir: Direction,
     val speed: Int)
-  extends Entity {
+  extends Entity with Animate {
 
   var lastMove: Long = 0L
   var isMoving = false

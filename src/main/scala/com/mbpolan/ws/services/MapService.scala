@@ -60,7 +60,7 @@ class MapService {
     * @return The player's assigned internal ID.
     */
   def addPlayer(sessionId: String, spriteId: String, name: String, bounds: Rect): Int = synchronized {
-    addCreatureInternal(new Player(sessionId, lastRef, spriteId, name, bounds))
+    addCreatureInternal(new Player(websocket, sessionId, lastRef, spriteId, name, bounds))
   }
 
   /** Adds a non-player controlled character to the map.
@@ -110,12 +110,12 @@ class MapService {
     }.map(_.asInstanceOf[Creature])
   }
 
-  /** Returns a list of non-player creatures on the map.
+  /** Returns a list of entities that are [[Animate]].
     *
-    * @return A list of [[Npc]]s who are not players.
+    * @return A list of animate objects on the map.
     */
-  def nonPlayers: Vector[Npc] = synchronized {
-    entities.filter(_.isInstanceOf[Npc]).map(_.asInstanceOf[Npc])
+  def animateObjects: Vector[Animate] = synchronized {
+    entities.filter(_.isInstanceOf[Animate]).map(_.asInstanceOf[Animate])
   }
 
   /** Returns a list of players that are in viewing distance of a given player.
@@ -206,7 +206,7 @@ class MapService {
   private def notifyAll(message: Message): Unit = {
     entities
       .filter(_.isInstanceOf[Player])
-      .foreach(_.asInstanceOf[Player].send(websocket, message))
+      .foreach(_.asInstanceOf[Player].send(message))
   }
 
   /** Adds a creature to the map and notifies nearby players.
