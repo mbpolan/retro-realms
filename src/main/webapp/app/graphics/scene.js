@@ -10,15 +10,13 @@ var module = angular.module('wsApp.graphics.scene', [
 
 module.constant('Global', {
     TileScale: 2,
-    TileSize: 16,
-    TilesWide: 30,
-    TilesHigh: 22
+    TileSize: 16
 });
 
 /**
  * Directive that maintains the graphics context and underlying game engine.
  */
-module.directive('scene', [function () {
+module.directive('scene', ['$window', function ($window) {
 
     return {
         restrict: 'E',
@@ -33,7 +31,19 @@ module.directive('scene', [function () {
         controller: 'SceneCtrl',
         controllerAs: 'ctrl',
         bindToController: true,
-        template: '<div></div>'
+        template: '<div></div>',
+        link: function (scope, el, attrs, ctrl) {
+            
+            // computes the current height of the scene element
+            var updateHeight = function () {
+                var rect = el[0].getBoundingClientRect();
+                ctrl.onSizeChanged(rect.width, rect.height - 5);
+            };
+            
+            // listen for window resizes and do an initial dimensions update
+            angular.element($window).bind('resize', updateHeight);
+            updateHeight();
+        }
     };
 }]);
 
@@ -52,11 +62,28 @@ module.controller('SceneCtrl', [
         this.dirStack = [];
         this.stage = new PIXI.Container();
         this.assets = new AssetManager();
-        this.world = new World(self.stage, self.assets, Global.TilesWide, Global.TilesHigh);
+        this.world = null;
+        this.sceneSize = {width: 0, height: 0};
         this.fps = {
             rate: 0,
             frames: 0,
             lastTime: new Date().getTime()
+        };
+
+        /**
+         * Handler invoked when the scene dimensions change.
+         * 
+         * @param width {number} The new width of the scene, in pixels.
+         * @param height {number} The new height of the scene, in pixels.
+         */
+        this.onSizeChanged = function (width, height) {
+            self.sceneSize.width = width;
+            self.sceneSize.height = height;
+
+            // update our active world with these new dimensions
+            if (self.world) {
+                self.world.setSceneSize(width, height);
+            }
         };
 
         /**
@@ -110,6 +137,15 @@ module.controller('SceneCtrl', [
         };
 
         /**
+         * Determines if the scene has been initialized with a world.
+         *
+         * @returns {boolean} true if the scene has a world, false if not.
+         */
+        this.hasWorld = function () {
+            return this.world !== null;
+        };
+
+        /**
          * Sets up key listeners and prescribes further callbacks for each.
          */
         this.registerKeyHandlers = function () {
@@ -128,7 +164,9 @@ module.controller('SceneCtrl', [
             requestAnimationFrame(self.gameLoop);
 
             // tick any world state
-            self.world.tick();
+            if (self.hasWorld()) {
+                self.world.tick();
+            }
 
             // draw the next frame of animation of the scene
             self.renderer.render(self.stage);
@@ -166,6 +204,14 @@ module.controller('SceneCtrl', [
          * @param data {object} Tile and entity information for the map.
          */
         this.api.setMap = function (data) {
+            // delete any previously defined world
+            if (self.world) {
+                self.stage.removeChild(self.world);
+            }
+
+            // allocate a new world to contain this map area
+            self.world = new World(self.stage, self.assets, data.tilesWide, data.tilesHigh);
+            self.world.setSceneSize(self.sceneSize.width, self.sceneSize.height);
             self.world.define(data);
 
             console.log('My ref: ' + data.ref);

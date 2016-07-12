@@ -24,9 +24,10 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
         this.tileSpan = Global.TileSize * Global.TileScale;
         this.tilesWide = 0;
         this.tilesHigh = 0;
-        this.translateY = 0;
         this.map = new PIXI.Container();
         this.entities = new PIXI.Container();
+        this.sceneWidth = 0;
+        this.sceneHeight = 0;
         this.addChild(this.map);
         this.addChild(this.entities);
 
@@ -36,6 +37,17 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
 
     World.prototype = Object.create(PIXI.Container.prototype);
     World.prototype.constructor = World;
+
+    /**
+     * Sets the size of the containing scene.
+     *
+     * @param width {number} The width of the scene, in pixels.
+     * @param height {number} The height of the scene, in pixels.
+     */
+    World.prototype.setSceneSize = function (width, height) {
+        this.sceneWidth = width;
+        this.sceneHeight = height;
+    };
 
     /**
      * Initializes a map area for the viewable scene.
@@ -232,17 +244,15 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      * @param y The y coordinate of the entity.
      */
     World.prototype.centerAround = function (x, y) {
-        // compute the pixel height of the screen
-        var sceneHeight = 600; // FIXME
-        var sceneWidth = 800; // FIXME
+        // compute the pixel height of the map area
         var mapHeight = this.tilesHigh * this.tileSpan;
         var mapWidth = this.tilesWide * this.tileSpan;
 
-        var dt = y - (sceneHeight / 2);
-        this.y = dt < 0 ? 0 : Math.min(mapHeight - sceneHeight, dt) * -1;
+        var dt = y - (this.sceneHeight / 2);
+        this.y = dt < 0 ? 0 : Math.min(mapHeight - this.sceneHeight, dt) * -1;
 
-        var du = x - (sceneWidth / 2);
-        this.x = du < 0 ? 0 : Math.min(mapWidth - sceneWidth, du) * -1;
+        var du = x - (this.sceneWidth / 2);
+        this.x = du < 0 ? 0 : Math.min(mapWidth - this.sceneWidth, du) * -1;
     };
 
     World.prototype.placeEntity = function (id, x, y) {
