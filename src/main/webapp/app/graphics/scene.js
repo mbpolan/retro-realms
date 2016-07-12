@@ -11,8 +11,8 @@ var module = angular.module('wsApp.graphics.scene', [
 module.constant('Global', {
     TileScale: 2,
     TileSize: 16,
-    TilesWide: 25,
-    TilesHigh: 20
+    TilesWide: 30,
+    TilesHigh: 22
 });
 
 /**
@@ -47,6 +47,7 @@ module.controller('SceneCtrl', [
         var self = this;
         this.api = this.api || {};
         this.player = null;
+        this.ourRef = null;
         this.isMoving = false;
         this.dirStack = [];
         this.stage = new PIXI.Container();
@@ -165,8 +166,10 @@ module.controller('SceneCtrl', [
          * @param data {object} Tile and entity information for the map.
          */
         this.api.setMap = function (data) {
-            console.log('My ref: ' + data.ref);
             self.world.define(data);
+
+            console.log('My ref: ' + data.ref);
+            self.ourRef = data.ref;
             self.player = self.world.creatureBy(data.ref);
         };
 
@@ -196,7 +199,8 @@ module.controller('SceneCtrl', [
          * @param y {number} The new y coordinate.
          */
         this.api.moveEntity = function (ref, x, y) {
-            self.world.moveEntity(ref, x, y);
+            // center the world around our player if he's moving
+            self.world.moveEntity(ref, x, y, ref === self.ourRef);
         };
 
         /**

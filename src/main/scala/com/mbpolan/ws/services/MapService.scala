@@ -25,8 +25,9 @@ class MapService {
   @Autowired
   private var websocket: SimpMessagingTemplate = _
 
-  private val TilesHigh = 20
-  private val TilesWide = 25
+  val TilesHigh = 22
+  val TilesWide = 30
+
   private val TileSpace = 4
   private val CoordsWide = TilesWide * TileSpace
   private val CoordsHigh = TilesHigh * TileSpace

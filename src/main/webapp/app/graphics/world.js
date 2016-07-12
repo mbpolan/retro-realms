@@ -22,6 +22,9 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
         this.refs = {};
         this.assets = assets;
         this.tileSpan = Global.TileSize * Global.TileScale;
+        this.tilesWide = 0;
+        this.tilesHigh = 0;
+        this.translateY = 0;
         this.map = new PIXI.Container();
         this.entities = new PIXI.Container();
         this.addChild(this.map);
@@ -47,9 +50,14 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
         this.map.removeChildren();
         this.entities.removeChildren();
 
-        for (var x = 0; x < this.scene.w; x++) {
-            for (var y = 0; y < this.scene.h; y++) {
-                var id = world.map[y * this.scene.w + x];
+        // save the dimensions of this map
+        this.tilesWide = world.tilesWide;
+        this.tilesHigh = world.tilesHigh;
+
+        // place the tiles of the map on each coordinate space
+        for (var x = 0; x < world.tilesWide; x++) {
+            for (var y = 0; y < world.tilesHigh; y++) {
+                var id = world.map[y * world.tilesWide + x];
 
                 this.placeTile('tile-' + id, x * this.tileSpan, y * this.tileSpan);
             }
@@ -123,7 +131,6 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      * @param ref {number} The internal ID of the entity to remove.
      */
     World.prototype.removeEntityByRef = function (ref) {
-        console.log('Remove: ' + ref);
         var entity = this.refs[ref];
         if (entity) {
             this.entities.removeChild(entity.getRoot());
@@ -143,13 +150,19 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      * @param ref {number} The internal ID of the entity to move.
      * @param x {number} The new x coordinate.
      * @param y {number} The new y coordinate.
+     * @param adjustMap {boolean} true to translate the world to center around the entity, false otherwise.
      */
-    World.prototype.moveEntity = function (ref, x, y) {
+    World.prototype.moveEntity = function (ref, x, y, adjustMap) {
         var entity = this.creatureBy(ref);
         if (entity) {
             // move the entity and recompute sorting attributes
             entity.moveTo(x, y);
             this.sortEntities();
+        }
+
+        // position the map so that it's centered around this entity if requested
+        if (adjustMap) {
+            this.centerAround(x * 8, y * 8);
         }
     };
 
@@ -210,6 +223,26 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
                 self.removeChild(msg);
             }, 2500);
         }
+    };
+
+    /**
+     * Centers the map to be focused around a particular entity.
+     *
+     * @param x The x coordinate of the entity.
+     * @param y The y coordinate of the entity.
+     */
+    World.prototype.centerAround = function (x, y) {
+        // compute the pixel height of the screen
+        var sceneHeight = 600; // FIXME
+        var sceneWidth = 800; // FIXME
+        var mapHeight = this.tilesHigh * this.tileSpan;
+        var mapWidth = this.tilesWide * this.tileSpan;
+
+        var dt = y - (sceneHeight / 2);
+        this.y = dt < 0 ? 0 : Math.min(mapHeight - sceneHeight, dt) * -1;
+
+        var du = x - (sceneWidth / 2);
+        this.x = du < 0 ? 0 : Math.min(mapWidth - sceneWidth, du) * -1;
     };
 
     World.prototype.placeEntity = function (id, x, y) {

@@ -59,7 +59,7 @@ class GameService {
         userService.add(name, sessionId, myRef)
 
         ConnectResponse(result = ConnectResult.Valid.id,
-          session = SessionDetails(sessionId, myRef, mapService.areaOf,
+`          session = SessionDetails(sessionId, myRef, mapService.areaOf, mapService.TilesWide, mapService.TilesHigh,
           mapService.entitiesOf.map {
 
             case e: StaticObject =>

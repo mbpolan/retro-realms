@@ -167,6 +167,8 @@ app.factory('Client', ['$log', '$timeout', 'Events', 'GameConstants', function (
                         id: sessionId,
                         ref: session.ref,
                         map: session.area,
+                        tilesWide: session.tilesWide,
+                        tilesHigh: session.tilesHigh,
                         entities: session.entities
                     });
 
