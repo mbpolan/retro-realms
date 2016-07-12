@@ -1,11 +1,11 @@
 'use strict';
 
-var module = angular.module('wsApp.graphics.world', []);
+var module = angular.module('wsApp.graphics.world', ['wsApp.graphics.util']);
 
 /**
  * Service that primarily manages and coordinates graphics on the scene.
  */
-module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, Global, $timeout) {
+module.factory('World', ['$timeout', 'Creature', 'Global', 'Util', function ($timeout, Creature, Global, Util) {
 
     /**
      * Creates a new viewable "world" view of the game map.
@@ -84,6 +84,14 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
      * Processes the world's state on each game loop iteration.
      */
     World.prototype.tick = function () {
+        if (this.moveAnim) {
+            var result = Util.linearInterpolate(this.t0, this.tf, this.x0, this.y0, this.x1, this.y1);
+
+            this.x = result.x;
+            this.y = result.y;
+            this.moveAnim = !result.done;
+        }
+
         // tick each of the creatures on the map
         for (var key in this.refs) {
             if (this.refs.hasOwnProperty(key)) {
@@ -249,10 +257,19 @@ module.factory('World', ['Creature', 'Global', '$timeout', function (Creature, G
         var mapWidth = this.tilesWide * this.tileSpan;
 
         var dt = y - (this.sceneHeight / 2);
-        this.y = dt < 0 ? 0 : Math.min(mapHeight - this.sceneHeight, dt) * -1;
+        var y1 = dt < 0 ? 0 : Math.min(mapHeight - this.sceneHeight, dt) * -1;
 
         var du = x - (this.sceneWidth / 2);
-        this.x = du < 0 ? 0 : Math.min(mapWidth - this.sceneWidth, du) * -1;
+        var x1 = du < 0 ? 0 : Math.min(mapWidth - this.sceneWidth, du) * -1;
+
+        this.x0 = this.x;
+        this.y0 = this.y;
+        this.x1 = x1;
+        this.y1 = y1;
+
+        this.t0 = new Date().getTime();
+        this.tf = 40;
+        this.moveAnim = true;
     };
 
     World.prototype.placeEntity = function (id, x, y) {

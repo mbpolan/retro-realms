@@ -1,11 +1,14 @@
 'use strict';
 
-var module = angular.module('wsApp.graphics.creature', ['wsApp.graphics.sprite']);
+var module = angular.module('wsApp.graphics.creature', [
+    'wsApp.graphics.sprite',
+    'wsApp.graphics.util'
+]);
 
 /**
  * Factory that creates models for creatures on the game world.
  */
-module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, SpriteConstants) {
+module.factory('Creature', ['Sprite', 'SpriteConstants', 'Util', function (Sprite, SpriteConstants, Util) {
 
     /**
      * Creates a new creature sprite.
@@ -180,25 +183,13 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', function (Sprite, Sprit
         this.animate();
 
         if (this.moveAnim) {
-            var t1 = new Date().getTime();
-            var ratio = (t1 - this.t0) / this.tf;
+            var result = Util.linearInterpolate(this.t0, this.tf, this.x0, this.y0, this.x1, this.y1);
 
-            var x = this.x0 + ((this.x1 - this.x0) * ratio);
-            var y = this.y0 + ((this.y1 - this.y0) * ratio);
-            this.x = x;
-            this.y = y;
-
-            this.root.x = x * 8;
-            this.root.y = y * 8;
-
-            if (ratio >= 1) {
-                this.moveAnim = false;
-                this.x = this.x1;
-                this.y = this.y1;
-
-                this.root.x = this.x1 * 8;
-                this.root.y = this.y1 * 8;
-            }
+            this.x = result.x;
+            this.y = result.y;
+            this.root.x = this.x * 8;
+            this.root.y = this.y * 8;
+            this.moveAnim = !result.done;
         }
     };
 
