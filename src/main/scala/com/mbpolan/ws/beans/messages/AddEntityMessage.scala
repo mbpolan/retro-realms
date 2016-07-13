@@ -10,6 +10,7 @@ import scala.beans.BeanProperty
   * @param dir The direction the entity is facing.
   * @param x The x coordinate of the entity.
   * @param y The y coordinate of the entity.
+  * @param speed The amount of milliseconds between entity movements.
   */
 case class AddEntityMessage(
     @BeanProperty ref: Integer,
@@ -17,5 +18,6 @@ case class AddEntityMessage(
     @BeanProperty name: String,
     @BeanProperty dir: String,
     @BeanProperty x: Int,
-    @BeanProperty y: Int)
+    @BeanProperty y: Int,
+    @BeanProperty speed: Int)
   extends Message(MessageType.AddEntity.id)

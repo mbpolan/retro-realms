@@ -219,7 +219,7 @@ class MapService {
     entities = entities :+ c
     lastRef += 1
 
-    notifyAll(AddEntityMessage(ref = c.ref, id = c.id, name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y))
+    notifyAll(AddEntityMessage(ref = c.ref, id = c.id, name = c.name, dir = Direction.Down.value, x = c.pos.x, y = c.pos.y, speed = c.speed))
 
     c.ref
   }

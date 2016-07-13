@@ -84,12 +84,9 @@ module.factory('World', ['$timeout', 'Creature', 'Global', 'Util', function ($ti
      * Processes the world's state on each game loop iteration.
      */
     World.prototype.tick = function () {
-        if (this.moveAnim) {
-            var result = Util.linearInterpolate(this.t0, this.tf, this.x0, this.y0, this.x1, this.y1);
-
-            this.x = result.x;
-            this.y = result.y;
-            this.moveAnim = !result.done;
+        // animate the world itself if needed
+        if (this.tickAnim && this.tickAnim.active()) {
+            this.tickAnim.animate();
         }
 
         // tick each of the creatures on the map
@@ -124,13 +121,14 @@ module.factory('World', ['$timeout', 'Creature', 'Global', 'Util', function ($ti
      *
      * Entities may be either creatures or static objects.
      *
-     * @param entity {Entity} The new entity object to add.
+     * @param entity {object} The new entity object to add.
      */
     World.prototype.addEntity = function (entity) {
         if (angular.isNumber(entity.ref)) {
             var creature = Creature.cardinal(entity.id, this.assets)
                 .setName(entity.name)
                 .setDirection(entity.dir)
+                .setSpeed(entity.speed - 10) // FIXME: need to account for latency
                 .placeAt(entity.x, entity.y);
             
             // add the entity to the entities container and resort it
@@ -178,11 +176,11 @@ module.factory('World', ['$timeout', 'Creature', 'Global', 'Util', function ($ti
             // move the entity and recompute sorting attributes
             entity.moveTo(x, y);
             this.sortEntities();
-        }
 
-        // position the map so that it's centered around this entity if requested
-        if (adjustMap) {
-            this.centerAround(x * 8, y * 8);
+            // position the map so that it's centered around this entity if requested
+            if (adjustMap) {
+                this.centerAround(x * 8, y * 8, entity.getSpeed());
+            }
         }
     };
 
@@ -248,10 +246,11 @@ module.factory('World', ['$timeout', 'Creature', 'Global', 'Util', function ($ti
     /**
      * Centers the map to be focused around a particular entity.
      *
-     * @param x The x coordinate of the entity.
-     * @param y The y coordinate of the entity.
+     * @param x {number} The x coordinate of the entity.
+     * @param y {number} The y coordinate of the entity.
+     * @param speed {number} The speed at which to move the world, in milliseconds.
      */
-    World.prototype.centerAround = function (x, y) {
+    World.prototype.centerAround = function (x, y, speed) {
         // compute the pixel height of the map area
         var mapHeight = this.tilesHigh * this.tileSpan;
         var mapWidth = this.tilesWide * this.tileSpan;
@@ -262,14 +261,7 @@ module.factory('World', ['$timeout', 'Creature', 'Global', 'Util', function ($ti
         var du = x - (this.sceneWidth / 2);
         var x1 = du < 0 ? 0 : Math.min(mapWidth - this.sceneWidth, du) * -1;
 
-        this.x0 = this.x;
-        this.y0 = this.y;
-        this.x1 = x1;
-        this.y1 = y1;
-
-        this.t0 = new Date().getTime();
-        this.tf = 40;
-        this.moveAnim = true;
+        this.tickAnim = Util.linearInterpolation(this, x1, y1, speed);
     };
 
     World.prototype.placeEntity = function (id, x, y) {

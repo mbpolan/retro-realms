@@ -59,14 +59,14 @@ class GameService {
         userService.add(name, sessionId, myRef)
 
         ConnectResponse(result = ConnectResult.Valid.id,
-`          session = SessionDetails(sessionId, myRef, mapService.areaOf, mapService.TilesWide, mapService.TilesHigh,
+          session = SessionDetails(sessionId, myRef, mapService.areaOf, mapService.TilesWide, mapService.TilesHigh,
           mapService.entitiesOf.map {
 
             case e: StaticObject =>
-              AddEntityMessage(ref = null, name = null, dir = null, id = e.id, x = e.pos.x, y = e.pos.y)
+              AddEntityMessage(ref = null, name = null, dir = null, id = e.id, x = e.pos.x, y = e.pos.y, speed = 0)
 
             case e: Creature =>
-              AddEntityMessage(ref = e.ref, name = e.name, dir = e.dir.value, id = e.id, x = e.pos.x, y = e.pos.y)
+              AddEntityMessage(ref = e.ref, name = e.name, dir = e.dir.value, id = e.id, x = e.pos.x, y = e.pos.y, speed = e.speed)
 
             case _ => null
           }))

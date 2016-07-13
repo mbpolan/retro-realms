@@ -23,7 +23,6 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', 'Util', function (Sprit
         this.y = 0;
         this.name = null;
         this.setSpeed(1);
-        this.setVelocity(0, 0);
     }
 
     Creature.prototype = Object.create(Sprite.prototype);
@@ -98,35 +97,21 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', 'Util', function (Sprit
      */
     Creature.prototype.setDirection = function (dir) {
         var direction = dir || this.currentAnim;
+
+        var anim = null;
         switch (direction) {
             case 'up':
-                this.setAnimation('up');
-                break;
             case 'down':
-                this.setAnimation('down');
-                break;
             case 'left':
-                this.setAnimation('left');
-                break;
             case 'right':
-                this.setAnimation('right');
+                anim = direction;
                 break;
             default:
                 throw new Error('Unknown creature direction: "' + dir + '"');
         }
 
-        return this;
-    };
+        this.setAnimation(anim);
 
-    /**
-     * Sets the velocity at which this creature moves across the map.
-     *
-     * @param vx {number} The velocity along the x-axis.
-     * @param vy {number} The velocity along the y-axis.
-     * @returns {Creature} This instance.
-     */
-    Creature.prototype.setVelocity = function (vx, vy) {
-        this.velocity = { x: vx, y: vy };
         return this;
     };
 
@@ -139,6 +124,15 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', 'Util', function (Sprit
     Creature.prototype.setSpeed = function (speed) {
         this.speed = speed;
         return this;
+    };
+
+    /**
+     * Returns the speed at which this creature moves.
+     * 
+     * @returns {number} The number of units this creature moves per tick.
+     */
+    Creature.prototype.getSpeed = function () {
+        return this.speed;
     };
 
     /**
@@ -164,15 +158,7 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', 'Util', function (Sprit
      * @returns {Creature} This instance.
      */
     Creature.prototype.moveTo = function (x, y) {
-        this.x0 = this.x;
-        this.y0 = this.y;
-        this.x1 = x;
-        this.y1 = y;
-
-        this.t0 = new Date().getTime();
-        this.tf = 40;
-        this.moveAnim = true;
-
+        this.tickAnim = Util.linearInterpolation(this.root, x * 8, y * 8, this.speed);
         return this;
     };
 
@@ -182,14 +168,11 @@ module.factory('Creature', ['Sprite', 'SpriteConstants', 'Util', function (Sprit
     Creature.prototype.tick = function () {
         this.animate();
 
-        if (this.moveAnim) {
-            var result = Util.linearInterpolate(this.t0, this.tf, this.x0, this.y0, this.x1, this.y1);
-
-            this.x = result.x;
-            this.y = result.y;
-            this.root.x = this.x * 8;
-            this.root.y = this.y * 8;
-            this.moveAnim = !result.done;
+        // animate the creature's movement
+        if (this.tickAnim && this.tickAnim.active()) {
+            var result = this.tickAnim.animate();
+            this.x = result.x / 8;
+            this.y = result.y / 8;
         }
     };
 
