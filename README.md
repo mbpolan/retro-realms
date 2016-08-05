@@ -1,4 +1,6 @@
 #WebGL and WebSockets
+![Heroku](https://heroku-badge.herokuapp.com/?app=retro-realms)
+
 This is a simple project that makes use of WebGL and WebSockets.
 
 I was inspired by some pretty cool examples of people creating interactive games and multimedia content
