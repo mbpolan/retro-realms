@@ -1,5 +1,6 @@
 #WebGL and WebSockets
-![Heroku](https://heroku-badge.herokuapp.com/?app=retro-realms)
+[![Build Status](https://travis-ci.org/mbpolan/retro-realms.svg?branch=master)](https://travis-ci.org/mbpolan/retro-realms)
+[![Heroku](https://heroku-badge.herokuapp.com/?app=retro-realms)](https://retro-realms.herokuapp.com)
 
 This is a simple project that makes use of WebGL and WebSockets.
 
