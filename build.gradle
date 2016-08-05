@@ -1,17 +1,30 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE")
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE"
+        classpath "com.moowork.gradle:gradle-node-plugin:0.13"
     }
 }
 
-group 'net.kanadakid'
+group 'com.mbpolan.realms'
 version '1.0.0-SNAPSHOT'
 
+apply plugin: 'com.moowork.node'
 apply plugin: 'scala'
 apply plugin: 'spring-boot'
+
+node {
+    version = '4.4.7'
+    download = true
+}
+
+jar.into('static') {
+    from('src/main/webapp')
+    exclude '**/node_modules/**'
+}
 
 repositories {
     mavenCentral()
@@ -35,6 +48,14 @@ dependencies {
 task stage {
     dependsOn build
 }
+
+task npmInstallLocal(type: NpmTask) {
+    group = 'node'
+    workingDir = file("${project.projectDir}/src/main/webapp")
+    args = ['install']
+}
+
+build.dependsOn npmInstallLocal
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.9'
