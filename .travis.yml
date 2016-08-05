@@ -4,6 +4,10 @@ language: java
 jdk:
   - oraclejdk8
 
+# make gradlew executable
+before_install:
+ - chmod +x gradlew
+
 # avoid uploading dependency caches that gradle generates
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
