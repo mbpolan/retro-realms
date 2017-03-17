@@ -3,5 +3,4 @@
 build
 *.iml
 **/npm-debug.log
-src/main/webapp/bower_components
-src/main/webapp/node_modules
+client/node_modules
