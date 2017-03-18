@@ -4,6 +4,8 @@ import {Injectable} from "@angular/core";
 class BoxInfo {
     x: number;
     y: number;
+    w: number;
+    h: number;
 }
 
 class TileInfo {
@@ -21,6 +23,7 @@ class TilesetInfo {
 export class AssetsService {
 
     private loader: PIXI.loaders.Loader;
+    private tiles: Map<number, PIXI.Rectangle>;
     private tileset: PIXI.Texture;
 
     public constructor(private http: Http) {
@@ -48,8 +51,8 @@ export class AssetsService {
      * @returns {PIXI.Sprite} A sprite representing the tile's graphics.
      */
     public createTile(id: number): PIXI.Sprite {
-        // TODO read tile from metadata
-        this.tileset.frame = new PIXI.Rectangle(192, 64, 32, 32);
+        // find the tile's geometry and create a sprite from the base texture
+        this.tileset.frame = this.tiles[id];
         return new PIXI.Sprite(this.tileset);
     }
 
@@ -77,6 +80,11 @@ export class AssetsService {
      * @param tileset Metadata about the tileset.
      */
     private loadTileset(tileset: TilesetInfo): void {
+        // load the base texture for the tileset
         this.tileset = this.loader.resources['tileset1'].texture;
+
+        // create a look-up of tile IDs to their locations on the base texture
+        this.tiles = new Map<number, PIXI.Rectangle>();
+        tileset.tiles.forEach(t => this.tiles[t.id] = new PIXI.Rectangle(t.box.x, t.box.y, t.box.w, t.box.h));
     }
 }

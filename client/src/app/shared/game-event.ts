@@ -1,7 +1,8 @@
 export enum GameEventType {
   LOGGED_IN,
   LOGGED_OUT,
-  MAP_INFO
+  MAP_INFO,
+  GAME_STATE
 }
 
 export class GameEvent {
@@ -25,5 +26,12 @@ export class MapInfoEvent extends GameEvent {
     this.width = width;
     this.height = height;
     this.tiles = tiles;
+  }
+}
+
+export class GameStateEvent extends GameEvent {
+
+  constructor() {
+    super(GameEventType.GAME_STATE);
   }
 }

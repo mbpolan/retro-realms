@@ -1,7 +1,7 @@
 import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
 import {AssetsService} from "./gfx/assets.service";
 import {ApiService} from "../shared/api.service";
-import {GameEvent, GameEventType, MapInfoEvent} from "../shared/game-event";
+import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent} from "../shared/game-event";
 
 declare let PIXI:any;
 
@@ -68,6 +68,10 @@ export class InterfaceComponent implements AfterViewInit {
                     this.processMapInfo(<MapInfoEvent> e);
                     break;
 
+                case GameEventType.GAME_STATE:
+                    this.processGameState(<GameStateEvent> e);
+                    break;
+
                 default:
                     break;
             }
@@ -99,5 +103,14 @@ export class InterfaceComponent implements AfterViewInit {
         }
 
         this.renderer.render(this.stage);
+    }
+
+    /**
+     * Processes a game event containing state information.
+     *
+     * @param e The event.
+     */
+    private processGameState(e: GameStateEvent): void {
+
     }
 }

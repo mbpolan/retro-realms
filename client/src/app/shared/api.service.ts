@@ -1,9 +1,9 @@
 import {Injectable} from "@angular/core";
 import {SocketService, SocketState} from "./socket.service";
 import {Subject} from "rxjs";
-import {Message, MessageHeader, LoginMessage, MapInfoMessage} from "./messages";
+import {Message, MessageHeader, LoginMessage, MapInfoMessage, GameStateMessage} from "./messages";
 import {ISubscription} from "rxjs/Subscription";
-import {GameEvent, GameEventType, MapInfoEvent} from "./game-event";
+import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent} from "./game-event";
 
 @Injectable()
 export class ApiService {
@@ -88,6 +88,10 @@ export class ApiService {
         this.processMapInfo(<MapInfoMessage> message);
             break;
 
+      case MessageHeader.GAME_STATE:
+        this.processGameState(<GameStateMessage> message);
+            break;
+
       default:
         console.error(`Unknown header: ${header}`);
         break;
@@ -118,5 +122,14 @@ export class ApiService {
    */
   private processMapInfo(message: MapInfoMessage): void {
     this.events.next(new MapInfoEvent(message.width, message.height, message.tiles));
+  }
+
+  /**
+   * Processes a game state update message from the server.
+   *
+   * @param message The message.
+   */
+  private processGameState(message: GameStateMessage): void {
+    this.events.next(new GameStateEvent());
   }
 }

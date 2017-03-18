@@ -1,5 +1,6 @@
 package com.mbpolan.retrorealms.services;
 
+import com.mbpolan.retrorealms.beans.responses.GameStateResponse;
 import com.mbpolan.retrorealms.beans.responses.LoginResponse;
 import com.mbpolan.retrorealms.beans.responses.MapInfoResponse;
 import com.mbpolan.retrorealms.services.beans.Player;
@@ -9,11 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -38,6 +39,24 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         this.players = new HashMap<>();
     }
 
+    /**
+     * Scheduled task that sends out updated game states to players.
+     */
+    @Scheduled(fixedDelay = 100)
+    public synchronized void gameStateDispatcher() {
+        // compute the current state of the game
+        GameStateResponse gameState = new GameStateResponse();
+
+        // and send it to each connected player
+        players.values().forEach(p -> p.send(gameState));
+    }
+
+    /**
+     * Adds a player to the game.
+     *
+     * @param sessionId The player's web socket session ID.
+     * @param username The player's username.
+     */
     public synchronized void addPlayer(String sessionId, String username) {
         if (players.containsKey(username)) {
             throw new IllegalStateException(String.format("Player already exists: %s", username));
@@ -56,6 +75,11 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 .toArray()));
     }
 
+    /**
+     * Handler invoked when a web socket session has terminated.
+     *
+     * @param event The application event.
+     */
     @Override
     public synchronized void onApplicationEvent(SessionDisconnectEvent event) {
         StompHeaderAccessor stomp = StompHeaderAccessor.wrap(event.getMessage());
