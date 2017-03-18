@@ -28,7 +28,7 @@ export class InterfaceComponent implements AfterViewInit {
      * Handler invoked when the view is initialized.
      */
     public ngAfterViewInit() {
-        this.renderer = PIXI.autoDetectRenderer(640, 480);
+        this.renderer = PIXI.autoDetectRenderer(960, 640);
         this.content.nativeElement.appendChild(this.renderer.view);
 
         this.stage = new PIXI.Container();
@@ -93,12 +93,13 @@ export class InterfaceComponent implements AfterViewInit {
         for (let x = 0; x < e.width; x++) {
             for (let y = 0; y < e.height; y++) {
                 let id = e.tiles[y * e.width + x];
-                console.log(`tile id: ${id}`);
-
                 let tile = this.assets.createTile(id);
-                tile.position.set(x * 32, y * 32);
 
-                this.stage.addChild(tile);
+                if (tile) {
+                    // position the tile accordingly, then add it to the stage
+                    tile.position.set(x * tile.width, y * tile.height);
+                    this.stage.addChild(tile);
+                }
             }
         }
 

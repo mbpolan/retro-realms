@@ -1,7 +1,6 @@
 package com.mbpolan.retrorealms.services.beans;
 
 import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -13,12 +12,14 @@ public class Player {
 
     private String sessionId;
     private String username;
+    private int mapArea;
     private SimpMessagingTemplate socket;
 
     public Player(String sessionId, String username, SimpMessagingTemplate socket) {
         this.sessionId = sessionId;
         this.username = username;
         this.socket = socket;
+        this.mapArea = 0;
     }
 
     public String getSessionId() {
@@ -27,6 +28,10 @@ public class Player {
 
     public String getUsername() {
         return username;
+    }
+
+    public int getMapArea() {
+        return mapArea;
     }
 
     public void send(AbstractResponse message) {

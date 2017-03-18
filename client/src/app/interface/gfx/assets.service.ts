@@ -25,6 +25,7 @@ export class AssetsService {
     private loader: PIXI.loaders.Loader;
     private tiles: Map<number, PIXI.Rectangle>;
     private tileset: PIXI.Texture;
+    private tileTextures: Map<number, PIXI.Texture>;
 
     public constructor(private http: Http) {
         this.loader = PIXI.loader;
@@ -52,8 +53,15 @@ export class AssetsService {
      */
     public createTile(id: number): PIXI.Sprite {
         // find the tile's geometry and create a sprite from the base texture
-        this.tileset.frame = this.tiles[id];
-        return new PIXI.Sprite(this.tileset);
+        let texture = this.tileTextures[id];
+        if (texture) {
+            return new PIXI.Sprite(texture);
+        }
+
+        else {
+            console.warn(`Missing texture for tile ID ${id}`);
+            return null;
+        }
     }
 
     /**
@@ -84,7 +92,12 @@ export class AssetsService {
         this.tileset = this.loader.resources['tileset1'].texture;
 
         // create a look-up of tile IDs to their locations on the base texture
-        this.tiles = new Map<number, PIXI.Rectangle>();
-        tileset.tiles.forEach(t => this.tiles[t.id] = new PIXI.Rectangle(t.box.x, t.box.y, t.box.w, t.box.h));
+        this.tileTextures = new Map<number, PIXI.Texture>();
+
+        tileset.tiles.forEach(t => {
+            // compute the frame of the tile based on its metadata rectangle
+            let rect = new PIXI.Rectangle(t.box.x, t.box.y, t.box.w, t.box.h);
+            this.tileTextures[t.id] = new PIXI.Texture(this.tileset.baseTexture, rect);
+        });
     }
 }
