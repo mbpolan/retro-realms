@@ -10,6 +10,8 @@ import { SocketService } from './shared';
 import { routing } from './app.routing';
 
 import { removeNgStyles, createNewHosts } from '@angularclass/hmr';
+import {InterfaceComponent} from "./interface/interface.component";
+import {AssetsService} from "./interface/gfx/assets.service";
 
 @NgModule({
   imports: [
@@ -20,9 +22,11 @@ import { removeNgStyles, createNewHosts } from '@angularclass/hmr';
   ],
   declarations: [
     AppComponent,
-    HomeComponent
+    HomeComponent,
+    InterfaceComponent
   ],
   providers: [
+    AssetsService,
     ApiService,
     SocketService
   ],

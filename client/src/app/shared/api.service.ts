@@ -1,10 +1,9 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from "@angular/core";
 import {SocketService, SocketState} from "./socket.service";
 import {Subject} from "rxjs";
-import {Message, MessageHeader} from "./message";
+import {Message, MessageHeader, LoginMessage, MapInfoMessage} from "./messages";
 import {ISubscription} from "rxjs/Subscription";
-import {GameEvent, GameEventType} from "./game-event";
-import {LoginMessage} from "./messages";
+import {GameEvent, GameEventType, MapInfoEvent} from "./game-event";
 
 @Injectable()
 export class ApiService {
@@ -19,22 +18,39 @@ export class ApiService {
     this.socketService.subscribe(this.onStateChange.bind(this));
   }
 
+  /**
+   * Subscribe for events from the server.
+   *
+   * @param func The callback to invoke.
+   * @returns {Subscription} Handle for the subscription.
+   */
   public subscribe(func: (e: GameEvent) => void): ISubscription {
     return this.events.subscribe(func);
   }
 
+  /**
+   * Connects and logs into the server.
+   *
+   * @param username The player's username.
+   * @param password The player's password.
+   */
   public login(username: string, password: string): void {
-    this.socket = this.socketService.connect();
-    this.username = username;
-    this.password = password;
-
+    this.socket = this.socketService.connect(this.username, this.password);
     this.socket.subscribe(this.processMessage.bind(this));
   }
 
+  /**
+   * Logs out and disconnects from the server.
+   */
   public logout(): void {
     this.socketService.disconnect();
   }
 
+  /**
+   * Handler invoked when the state of the websocket connection changes.
+   *
+   * @param state The new socket state.
+   */
   private onStateChange(state: SocketState): void {
     if (state == SocketState.CONNECTED) {
       console.log('connected, sending credentials');
@@ -51,6 +67,11 @@ export class ApiService {
     }
   }
 
+  /**
+   * Processes an incoming message from the server.
+   *
+   * @param frame The message frame.
+   */
   private processMessage(frame: any): void {
     let message = JSON.parse(frame.body);
 
@@ -61,12 +82,21 @@ export class ApiService {
         this.processLogin(<LoginMessage> message);
         break;
 
+      case MessageHeader.MAP_INFO:
+        this.processMapInfo(<MapInfoMessage> message);
+            break;
+
       default:
         console.error(`Unknown header: ${header}`);
         break;
     }
   }
 
+  /**
+   * Processes a login message from the server.
+   *
+   * @param message The message.
+   */
   private processLogin(message: LoginMessage): void {
     console.log(`login result: ${message.success}`);
 
@@ -77,5 +107,14 @@ export class ApiService {
     else {
       this.socketService.disconnect();
     }
+  }
+
+  /**
+   * Processes a map information message from the server.
+   *
+   * @param message The message.
+   */
+  private processMapInfo(message: MapInfoMessage): void {
+    this.events.next(new MapInfoEvent(message.width, message.height, message.tiles));
   }
 }

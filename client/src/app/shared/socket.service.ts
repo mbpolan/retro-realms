@@ -1,7 +1,7 @@
-import {Observable, Subject, Observer} from 'rxjs/Rx';
-import {Injectable} from '@angular/core'
-import {MessageHeader, Message} from "./message";
+import {Observable, Subject, Observer} from "rxjs/Rx";
+import {Injectable} from "@angular/core";
 import {ISubscription} from "rxjs/Subscription";
+import {Message} from "./messages";
 
 declare var Stomp: any;
 declare var SockJS: any;
@@ -27,7 +27,7 @@ export class SocketService {
     return this.stateSubject.subscribe(func);
   }
 
-  public connect(): Subject<Message> {
+  public connect(username: string, password: string): Subject<Message> {
     console.log('connecting...');
     let self = this;
 
@@ -39,7 +39,7 @@ export class SocketService {
       self.client.connect({}, () => {
         console.log('connected!');
 
-        self.client.subscribe('/topic/game', (msg) => obs.next(msg));
+        self.client.subscribe(`/topic/game`, (msg) => obs.next(msg));
 
         // notify listeners that we're connected now
         self.stateSubject.next(SocketState.CONNECTED);
