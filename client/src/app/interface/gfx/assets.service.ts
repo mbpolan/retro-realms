@@ -1,31 +1,17 @@
 import {Http, Response} from "@angular/http";
 import {Injectable} from "@angular/core";
-
-class BoxInfo {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-}
-
-class TileInfo {
-    id: number;
-    box: BoxInfo;
-}
-
-class TilesetInfo {
-
-    name: string;
-    tiles: Array<TileInfo>;
-}
+import {Entity} from "./entity";
+import {TilesetInfo, TileInfo, SpriteSheetInfo, SpriteInfo, BoxInfo} from "./metadata"
 
 @Injectable()
 export class AssetsService {
 
     private loader: PIXI.loaders.Loader;
-    private tiles: Map<number, PIXI.Rectangle>;
     private tileset: PIXI.Texture;
+    private spriteSheet: PIXI.Texture;
+    private entities: Map<string, Entity>;
     private tileTextures: Map<number, PIXI.Texture>;
+    private pendingLoad = 2;
 
     public constructor(private http: Http) {
         this.loader = PIXI.loader;
@@ -42,6 +28,7 @@ export class AssetsService {
      */
     public load(done: () => void): void {
         this.loader.add('tileset1', `/assets/tileset1.png`);
+        this.loader.add('char1', `/assets/char1.png`);
         this.loader.load((loader, resource) => this.loadDescriptors(loader, resource, done));
     }
 
@@ -65,6 +52,28 @@ export class AssetsService {
     }
 
     /**
+     * Creates an entity with the given name.
+     *
+     * @param name The name of the entity.
+     * @returns {Entity} An entity with that name.
+     */
+    public createEntity(name: string): Entity {
+        return this.entities[name];
+    }
+
+    /**
+     * Invokes a callback once all assets have been loaded.
+     *
+     * @param cb The callback.
+     */
+    private notifyIfDone(cb: () => void) {
+        this.pendingLoad--;
+        if (this.pendingLoad == 0) {
+            cb();
+        }
+    }
+
+    /**
      * Loads metadata about a tileset.
      *
      * @param loader The loader associated with the image.
@@ -78,7 +87,15 @@ export class AssetsService {
                 this.loadTileset(<TilesetInfo> data);
                 console.log('tileset loaded');
 
-                done();
+                this.notifyIfDone(done);
+            });
+
+        this.http.get(`/assets/char1.json`)
+            .map((res: Response) => res.json())
+            .subscribe(data => {
+                this.loadSprites(<SpriteSheetInfo> data);
+
+                this.notifyIfDone(done);
             });
     }
 
@@ -98,6 +115,30 @@ export class AssetsService {
             // compute the frame of the tile based on its metadata rectangle
             let rect = new PIXI.Rectangle(t.box.x, t.box.y, t.box.w, t.box.h);
             this.tileTextures[t.id] = new PIXI.Texture(this.tileset.baseTexture, rect);
+        });
+    }
+
+    /**
+     * Loads a raw spritesheet into usable sprites.
+     *
+     * @param sheet Metadata about the spritesheet.
+     */
+    private loadSprites(sheet: SpriteSheetInfo): void {
+        this.spriteSheet = this.loader.resources['char1'].texture;
+
+        // process each sprite and create animated entities from them
+        this.entities = new Map<string, Entity>();
+        sheet.sprites.forEach(s => {
+            let entity = new Entity();
+
+            s.animations.forEach(a => {
+                let textures = a.frames.map(f => new PIXI.Texture(this.spriteSheet.baseTexture,
+                    new PIXI.Rectangle(f.x, f.y, f.w, f.h)));
+
+                entity.addAnimation(a.name, new PIXI.extras.AnimatedSprite(textures));
+            });
+
+            this.entities[s.name] = entity;
         });
     }
 }

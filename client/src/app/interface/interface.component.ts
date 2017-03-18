@@ -41,6 +41,8 @@ export class InterfaceComponent implements AfterViewInit {
             // flush all pending events
             this.pendingEvents.forEach(e => this.processEvent(e));
             this.pendingEvents = [];
+
+            this.gameLoop();
         });
     }
 
@@ -50,6 +52,15 @@ export class InterfaceComponent implements AfterViewInit {
     private onLogout(): void {
         this.api.logout();
     }
+
+    /**
+     * Runs the rendering loop.
+     */
+    private gameLoop = () => {
+        requestAnimationFrame(this.gameLoop);
+
+        this.renderer.render(this.stage);
+    };
 
     /**
      * Processes a game-related event from the server.
