@@ -17,9 +17,11 @@ export class InterfaceComponent implements AfterViewInit {
 
     private renderer: PIXI.CanvasRenderer;
     private stage: PIXI.Container;
+    private loaded = false;
+    private pendingEvents: Array<GameEvent> = [];
 
     public constructor(private api: ApiService, private assets: AssetsService) {
-        this.api.subscribe(this.processEvent);
+        this.api.subscribe(this.processEvent.bind(this));
     }
 
     /**
@@ -34,6 +36,11 @@ export class InterfaceComponent implements AfterViewInit {
 
         this.assets.load(() => {
             console.log('ready');
+            this.loaded = true;
+
+            // flush all pending events
+            this.pendingEvents.forEach(e => this.processEvent(e));
+            this.pendingEvents = [];
         });
     }
 
@@ -50,12 +57,20 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processEvent(e: GameEvent): void {
-        switch (e.event) {
-            case GameEventType.MAP_INFO:
-                break;
+        if (!this.loaded) {
+            console.log(`received event before initialized: ${e.event}`);
+            this.pendingEvents.push(e);
+        }
 
-            default:
-                break;
+        else {
+            switch (e.event) {
+                case GameEventType.MAP_INFO:
+                    this.processMapInfo(<MapInfoEvent> e);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
@@ -68,10 +83,15 @@ export class InterfaceComponent implements AfterViewInit {
         // clear out the stage entirely
         this.stage.removeChildren();
 
+        console.log(`map: ${e.width} x ${e.height} tiles`);
+
         // place new tiles on the stage instead
         for (let x = 0; x < e.width; x++) {
             for (let y = 0; y < e.height; y++) {
-                let tile = this.assets.createTile(e.tiles[y * e.width + x]);
+                let id = e.tiles[y * e.width + x];
+                console.log(`tile id: ${id}`);
+
+                let tile = this.assets.createTile(id);
                 tile.position.set(x * 32, y * 32);
 
                 this.stage.addChild(tile);

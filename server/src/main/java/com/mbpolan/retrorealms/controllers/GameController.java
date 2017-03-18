@@ -34,13 +34,11 @@ public class GameController {
     private SimpMessagingTemplate socket;
 
     @SubscribeMapping("/game")
-//    @SendTo("/topic/game")
     public void login(LoginRequest data, SimpMessageHeaderAccessor headers) {
         String sessionId = headers.getSessionId();
 
         if (authService.authenticate(data.getUsername(), data.getPassword())) {
             gameService.addPlayer(sessionId, data.getUsername());
         }
-//        return new LoginResponse("mike".equals(data.getUsername()));
     }
 }
