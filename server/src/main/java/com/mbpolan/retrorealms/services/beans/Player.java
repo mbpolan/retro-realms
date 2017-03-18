@@ -21,6 +21,14 @@ public class Player {
         this.socket = socket;
     }
 
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
     public void send(AbstractResponse message) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
         headers.setSessionId(sessionId);
