@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -31,14 +33,14 @@ public class GameController {
     @Autowired
     private SimpMessagingTemplate socket;
 
-    @MessageMapping("/game")
-    @SendTo("/topic/game")
-    public LoginResponse login(LoginRequest data) {
-//        LOG.debug("{}", principal.getName());
+    @SubscribeMapping("/game")
+//    @SendTo("/topic/game")
+    public void login(LoginRequest data, SimpMessageHeaderAccessor headers) {
+        String sessionId = headers.getSessionId();
 
         if (authService.authenticate(data.getUsername(), data.getPassword())) {
-            gameService.addPlayer(data.getUsername());
+            gameService.addPlayer(sessionId, data.getUsername());
         }
-        return new LoginResponse("mike".equals(data.getUsername()));
+//        return new LoginResponse("mike".equals(data.getUsername()));
     }
 }

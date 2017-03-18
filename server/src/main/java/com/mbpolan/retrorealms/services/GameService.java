@@ -1,5 +1,6 @@
 package com.mbpolan.retrorealms.services;
 
+import com.mbpolan.retrorealms.beans.responses.LoginResponse;
 import com.mbpolan.retrorealms.services.beans.Player;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,12 +28,14 @@ public class GameService {
         this.players = new HashMap<>();
     }
 
-    public void addPlayer(String username) {
-        if (players.containsKey(username)) {
-            throw new IllegalStateException(String.format("Player already exists: %s", username));
-        }
+    public void addPlayer(String sessionId, String username) {
+//        if (players.containsKey(username)) {
+//            throw new IllegalStateException(String.format("Player already exists: %s", username));
+//        }
 
-        Player player = players.put(username, new Player(username, socket));
+        Player player = new Player(sessionId, username, socket);
+        players.put(username, player);
 
+        player.send(new LoginResponse(true));
     }
 }
