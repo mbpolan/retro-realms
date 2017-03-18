@@ -27,7 +27,7 @@ export class SocketService {
     return this.stateSubject.subscribe(func);
   }
 
-  public connect(username: string, password: string): Subject<Message> {
+  public connect(cb: () => void): Subject<Message> {
     console.log('connecting...');
     let self = this;
 
@@ -39,10 +39,13 @@ export class SocketService {
       self.client.connect({}, () => {
         console.log('connected!');
 
-        self.client.subscribe(`/topic/game`, (msg) => obs.next(msg));
+        self.client.subscribe(`/user/queue/game`, (msg) => obs.next(msg));
 
         // notify listeners that we're connected now
         self.stateSubject.next(SocketState.CONNECTED);
+
+        // invoke the connected callback up front
+        cb();
       }, (err: any) => {
         console.log(err);
 

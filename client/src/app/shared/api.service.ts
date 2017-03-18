@@ -10,8 +10,6 @@ export class ApiService {
 
   private events: Subject<GameEvent>;
   private socket: Subject<Message>;
-  private username: string;
-  private password: string;
 
   public constructor(private socketService: SocketService) {
     this.events = new Subject<GameEvent>();
@@ -35,7 +33,16 @@ export class ApiService {
    * @param password The player's password.
    */
   public login(username: string, password: string): void {
-    this.socket = this.socketService.connect(this.username, this.password);
+    this.socket = this.socketService.connect(() => {
+
+      // send login information upon connecting
+      console.log('sending credentials');
+      this.socket.next(new Message(MessageHeader.LOGIN, {
+        username: username,
+        password: password
+      }));
+    });
+
     this.socket.subscribe(this.processMessage.bind(this));
   }
 
@@ -53,12 +60,7 @@ export class ApiService {
    */
   private onStateChange(state: SocketState): void {
     if (state == SocketState.CONNECTED) {
-      console.log('connected, sending credentials');
-
-      this.socket.next(new Message(MessageHeader.LOGIN, {
-        username: this.username,
-        password: this.password
-      }));
+      console.log('connected to server');
     }
 
     else if (state == SocketState.DISCONNECTED) {

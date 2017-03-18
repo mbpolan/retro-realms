@@ -38,6 +38,13 @@ export class InterfaceComponent implements AfterViewInit {
     }
 
     /**
+     * Handler invoked when the user disconnects from the server.
+     */
+    private onLogout(): void {
+        this.api.logout();
+    }
+
+    /**
      * Processes a game-related event from the server.
      *
      * @param e The event.

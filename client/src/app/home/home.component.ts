@@ -29,10 +29,6 @@ export class HomeComponent {
     this.api.login(this.username, this.password);
   }
 
-  private onLogout() {
-    this.api.logout();
-  }
-
   private onGameEvent(e: GameEvent): void {
     switch (e.event) {
       case GameEventType.LOGGED_IN:
