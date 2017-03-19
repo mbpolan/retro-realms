@@ -2,6 +2,9 @@ import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
 import {AssetsService} from "./gfx/assets.service";
 import {ApiService} from "../shared/api.service";
 import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent} from "../shared/game-event";
+import {KeyboardService} from "./keyboard/keyboard.service";
+import {KeyEvent} from "./keyboard/key-event";
+import {ISubscription} from "rxjs/Subscription";
 
 declare let PIXI:any;
 
@@ -19,8 +22,9 @@ export class InterfaceComponent implements AfterViewInit {
     private stage: PIXI.Container;
     private loaded = false;
     private pendingEvents: Array<GameEvent> = [];
+    private keyEventSub: ISubscription;
 
-    public constructor(private api: ApiService, private assets: AssetsService) {
+    public constructor(private api: ApiService, private assets: AssetsService, private keyboard: KeyboardService) {
         this.api.subscribe(this.processEvent.bind(this));
     }
 
@@ -42,6 +46,9 @@ export class InterfaceComponent implements AfterViewInit {
             this.pendingEvents.forEach(e => this.processEvent(e));
             this.pendingEvents = [];
 
+            // listen for keyboard events
+            this.keyEventSub = this.keyboard.subscribe(this.onKey);
+
             this.gameLoop();
         });
     }
@@ -51,6 +58,15 @@ export class InterfaceComponent implements AfterViewInit {
      */
     private onLogout(): void {
         this.api.logout();
+    }
+
+    /**
+     * Handler invoked when a keyboard event is received.
+     *
+     * @param key The keyboard event.
+     */
+    private onKey(key: KeyEvent): void {
+        console.log((key.pressed ? 'START': 'STOP') + ': ' + key.key);
     }
 
     /**

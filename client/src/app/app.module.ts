@@ -13,6 +13,7 @@ import {removeNgStyles, createNewHosts} from '@angularclass/hmr';
 import {InterfaceComponent} from "./interface/interface.component";
 import {AssetsService} from "./interface/gfx/assets.service";
 import {UserInfoService} from "./shared/user-info.service";
+import {KeyboardService} from "./interface/keyboard/keyboard.service";
 
 @NgModule({
     imports: [
@@ -29,6 +30,7 @@ import {UserInfoService} from "./shared/user-info.service";
     providers: [
         AssetsService,
         ApiService,
+        KeyboardService,
         SocketService,
         UserInfoService
     ],

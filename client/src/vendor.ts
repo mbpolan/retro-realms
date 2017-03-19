@@ -13,3 +13,4 @@ import '@angularclass/hmr';
 // You can import js, ts, css, sass, ...
 import 'bootstrap/dist/css/bootstrap.css';
 import 'pixi.js/dist/pixi.min.js'
+import 'mousetrap'
