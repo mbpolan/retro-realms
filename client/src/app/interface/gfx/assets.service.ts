@@ -12,6 +12,7 @@ export class AssetsService {
     private entities: Map<string, Entity>;
     private tileTextures: Map<number, PIXI.Texture>;
     private pendingLoad = 2;
+    private loaded = false;
 
     public constructor(private http: Http) {
         this.loader = PIXI.loader;
@@ -27,9 +28,15 @@ export class AssetsService {
      * @param done Callback to invoke when all assets have been loaded.
      */
     public load(done: () => void): void {
-        this.loader.add('tileset1', `/assets/tileset1.png`);
-        this.loader.add('char1', `/assets/char1.png`);
-        this.loader.load((loader, resource) => this.loadDescriptors(loader, resource, done));
+        if (this.loaded) {
+            done();
+        }
+
+        else {
+            this.loader.add('tileset1', `/assets/tileset1.png`);
+            this.loader.add('char1', `/assets/char1.png`);
+            this.loader.load((loader, resource) => this.loadDescriptors(loader, resource, done));
+        }
     }
 
     /**
@@ -68,7 +75,9 @@ export class AssetsService {
      */
     private notifyIfDone(cb: () => void) {
         this.pendingLoad--;
+
         if (this.pendingLoad == 0) {
+            this.loaded = true;
             cb();
         }
     }
