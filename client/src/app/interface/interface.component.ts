@@ -205,7 +205,11 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processMoveStart(e: MoveStartEvent): void {
-        this.entities[e.id].animate();
+        let entity = this.entities[e.id];
+
+        // set the entity's direction and start their animation
+        entity.setAnimation(`walk-${e.dir}`);
+        entity.animate();
     }
 
     /**
