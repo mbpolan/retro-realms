@@ -54,6 +54,7 @@ public class SettingsService {
         Map<String, Object> players = (Map<String, Object>) game.get("players");
 
         this.gameSettings = new GameSettings(new PlayerSettings(
+                Integer.parseInt(players.get("walkDelay").toString()),
                 Integer.parseInt(players.get("speedMultiplier").toString())));
     }
 
@@ -81,6 +82,15 @@ public class SettingsService {
      * @return The player speed multiplier.
      */
     public int getPlayerSpeedMultiplier() {
-        return this.gameSettings.getPlayers().getSpeedMultipler();
+        return this.gameSettings.getPlayers().getSpeedMultiplier();
+    }
+
+    /**
+     * Returns the delay between player walk movements.
+     *
+     * @return The player walk delay, in milliseconds.
+     */
+    public int getPlayerWalkDelay() {
+        return this.gameSettings.getPlayers().getWalkDelay();
     }
 }

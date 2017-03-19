@@ -136,7 +136,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                     new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
 
             // schedule the player's next movement
-            scheduleWithDelay(() -> onMovePlayer(player), player.getSpeed() * settings.getPlayerSpeedMultiplier());
+            scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
         }
     }
 
@@ -181,11 +181,9 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
      * @param player The moving player.
      */
     private void onMovePlayer(Player player) {
-        int multiplier = settings.getPlayerSpeedMultiplier();
-
         // attempt to move the player, and if successful, schedule their next movement afterwards
-        if (player.isMoving() && map.getMapArea(player.getMapArea()).movePlayer(player, multiplier)) {
-            scheduleWithDelay(() -> onMovePlayer(player), player.getSpeed() * multiplier);
+        if (player.isMoving() && map.getMapArea(player.getMapArea()).movePlayer(player)) {
+            scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
         }
 
         // otherwise stop moving the player and notify spectators

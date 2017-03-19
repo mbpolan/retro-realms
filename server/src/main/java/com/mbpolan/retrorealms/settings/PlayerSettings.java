@@ -7,13 +7,19 @@ package com.mbpolan.retrorealms.settings;
  */
 public class PlayerSettings {
 
-    private int speedMultipler;
+    private int walkDelay;
+    private int speedMultiplier;
 
-    public PlayerSettings(int speedMultipler) {
-        this.speedMultipler = speedMultipler;
+    public PlayerSettings(int walkDelay, int speedMultiplier) {
+        this.walkDelay = walkDelay;
+        this.speedMultiplier = speedMultiplier;
     }
 
-    public int getSpeedMultipler() {
-        return speedMultipler;
+    public int getWalkDelay() {
+        return walkDelay;
+    }
+
+    public int getSpeedMultiplier() {
+        return speedMultiplier;
     }
 }

@@ -135,28 +135,22 @@ public class MapArea {
      * Computes a player movement and updates their position if needed.
      *
      * @param player The moving player.
-     * @param multiplier The speed multiplier.
      */
-    public boolean movePlayer(Player player, int multiplier) {
-        int delay = player.getSpeed() * multiplier;
-        if (System.currentTimeMillis() - player.getLastMovement() < delay) {
-            return false;
-        }
-
+    public boolean movePlayer(Player player) {
         // compute a delta movement vector
         int dx = 0, dy = 0;
         switch (player.getDirection()) {
             case UP:
-                dy = -1;
+                dy = -player.getSpeed();
                 break;
             case DOWN:
-                dy = 1;
+                dy = player.getSpeed();
                 break;
             case LEFT:
-                dx = -1;
+                dx = -player.getSpeed();
                 break;
             case RIGHT:
-                dx = 1;
+                dx = player.getSpeed();
                 break;
         }
 
