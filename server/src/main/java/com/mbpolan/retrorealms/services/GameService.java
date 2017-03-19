@@ -21,7 +21,10 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +39,9 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
 
     @Autowired
     private MapService map;
+
+    @Autowired
+    private SettingsService settings;
 
     @Autowired
     private TaskScheduler scheduler;
@@ -130,7 +136,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                     new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
 
             // schedule the player's next movement
-            scheduleWithDelay(() -> onMovePlayer(player), player.getSpeed() * 10);
+            scheduleWithDelay(() -> onMovePlayer(player), player.getSpeed() * settings.getPlayerSpeedMultiplier());
         }
     }
 
@@ -175,9 +181,11 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
      * @param player The moving player.
      */
     private void onMovePlayer(Player player) {
+        int multiplier = settings.getPlayerSpeedMultiplier();
+
         // attempt to move the player, and if successful, schedule their next movement afterwards
-        if (player.isMoving() && map.getMapArea(player.getMapArea()).movePlayer(player)) {
-            scheduleWithDelay(() -> onMovePlayer(player), player.getSpeed() * 10);
+        if (player.isMoving() && map.getMapArea(player.getMapArea()).movePlayer(player, multiplier)) {
+            scheduleWithDelay(() -> onMovePlayer(player), player.getSpeed() * multiplier);
         }
 
         // otherwise stop moving the player and notify spectators

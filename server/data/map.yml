@@ -1,0 +1,5 @@
+map:
+  width: 30
+  height: 20
+  tileSize: 32
+  file: data/map.csv

@@ -1,0 +1,4 @@
+# Configuration for the game server itself
+game:
+  players:
+    speedMultiplier: 10

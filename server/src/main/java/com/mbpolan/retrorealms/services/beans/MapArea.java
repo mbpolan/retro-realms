@@ -4,7 +4,6 @@ import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Represents a single area of the map that contains tiles, players and other entities.
@@ -21,6 +20,7 @@ public class MapArea {
     private List<List<Tile>> tiles;
     private int width;
     private int height;
+    private int tileSize;
     private GameState state;
 
     /**
@@ -31,12 +31,14 @@ public class MapArea {
      * @param tiles The rectangle of tiles in this area, in row-major order.
      * @param width The width of the map area, in tiles.
      * @param height The height of the map area, in tiles.
+     * @param tileSize The size (width and height) of a single, square tile.
      */
-    public MapArea(List<List<Tile>> tiles, int width, int height) {
+    public MapArea(List<List<Tile>> tiles, int width, int height, int tileSize) {
         this.players = new ArrayList<>();
         this.tiles = tiles;
         this.width = width;
         this.height = height;
+        this.tileSize = tileSize;
         this.state = new GameState();
     }
 
@@ -133,9 +135,10 @@ public class MapArea {
      * Computes a player movement and updates their position if needed.
      *
      * @param player The moving player.
+     * @param multiplier The speed multiplier.
      */
-    public boolean movePlayer(Player player) {
-        int delay = player.getSpeed() * 10;
+    public boolean movePlayer(Player player, int multiplier) {
+        int delay = player.getSpeed() * multiplier;
         if (System.currentTimeMillis() - player.getLastMovement() < delay) {
             return false;
         }
@@ -157,13 +160,16 @@ public class MapArea {
                 break;
         }
 
-        // check bounds prior to moving the player
-        if ((player.getX() < 0 || player.getX() > width * 32) ||
-                (player.getY() < 0 || player.getY() > height * 32)) {
+        // check bounds prior to committing to move the player
+        player.setPositionDelta(dx, dy);
+        if ((player.getX() < 0 || player.getX() > width * this.tileSize) ||
+                (player.getY() < 0 || player.getY() > height * this.tileSize)) {
+
+            // rollback the movement
+            player.setPositionDelta(dx * -1, dy * -1);
             return false;
         }
 
-        player.setPositionDelta(dx, dy);
         state.addChangedPlayer(player);
         return true;
     }
