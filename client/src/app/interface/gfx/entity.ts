@@ -6,12 +6,17 @@
  */
 export class Entity extends PIXI.Container {
 
+    private _lastFrame: number;
+    private _moving: boolean;
+    private _direction: string;
     private currentAnim: string;
     private anim: Map<string, PIXI.extras.AnimatedSprite>;
 
     public constructor() {
         super();
+
         this.anim = new Map<string, PIXI.extras.AnimatedSprite>();
+        this._moving = false;
     }
 
     /**
@@ -40,6 +45,60 @@ export class Entity extends PIXI.Container {
     }
 
     /**
+     * Returns the direction the entity is currently facing.
+     *
+     * @returns {string} The direction.
+     */
+    public get direction(): string {
+        return this._direction;
+    }
+
+    /**
+     * Sets the direction the entity is currently facing.
+     *
+     * @param value The direction.
+     */
+    public set direction(value: string) {
+        this._direction = value;
+    }
+
+    /**
+     * Returns whether the entity is currently in motion or not.
+     *
+     * @returns {boolean} true if the entity is moving, false if stationary.
+     */
+    public get moving(): boolean {
+        return this._moving;
+    }
+
+    /**
+     * Flags whether the entity is currently in motion or not.
+     *
+     * @param value true if the entity is moving, false if stationary.
+     */
+    public set moving(value: boolean) {
+        this._moving = value;
+    }
+
+    /**
+     * Returns the timestamp of the last rendering frame where this entity was animated.
+     *
+     * @returns {number} The last frame timestamp, or 0 if never.
+     */
+    public get lastFrame(): number {
+        return this._lastFrame;
+    }
+
+    /**
+     * Sets the timestamp of the last rendering frame where this entity was animated.
+     *
+     * @param value The last frame timestamp.
+     */
+    public set lastFrame(value: number) {
+        this._lastFrame = value;
+    }
+
+    /**
      * Begins animating the entity.
      */
     public animate(): void {
@@ -52,6 +111,7 @@ export class Entity extends PIXI.Container {
      * Stops animating the entity.
      */
     public stopAnimating(): void {
+        this._lastFrame = 0;
         this.getAnimation().stop();
     }
 

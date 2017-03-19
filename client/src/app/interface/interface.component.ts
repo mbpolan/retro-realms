@@ -116,8 +116,61 @@ export class InterfaceComponent implements AfterViewInit {
     private gameLoop = () => {
         requestAnimationFrame(this.gameLoop);
 
+        this.updateElements();
+
         this.renderer.render(this.stage);
     };
+
+    /**
+     * Updates elements on the stage for the next rendering frame.
+     */
+    private updateElements(): void {
+        let now = Date.now();
+
+        for (let id in this.entities) {
+            if (this.entities.hasOwnProperty(id)) {
+                let entity = this.entities[id];
+
+                if (entity.moving) {
+                    // only animate the entity if this is not their very first frame
+                    if (entity.lastFrame > 0) {
+                        // compute how long its been since we last rendered this entity
+                        let deltaT = now - entity.lastFrame;
+
+                        // we should move S units every D ms, where S is the entity's speed and D is the walk delay
+                        // so we need to move ((now - last) / D) * S units on each frame of motion
+                        // FIXME: get this info from the server
+                        // TODO: compensate for lag
+                        let span = (deltaT / 100) * 8;
+
+                        // compute the velocity vector based on the entity's direction of motion
+                        let dx = 0, dy = 0;
+                        switch (entity.direction) {
+                            case Direction.UP:
+                                dy = -1;
+                                break;
+                            case Direction.DOWN:
+                                dy = 1;
+                                break;
+                            case Direction.LEFT:
+                                dx = -1;
+                                break;
+                            case Direction.RIGHT:
+                                dx = 1;
+                                break;
+                        }
+
+                        // reposition the entity
+                        entity.x += span * dx;
+                        entity.y += span * dy;
+                    }
+
+                    // mark this as the last frame where the entity was rendered
+                    entity.lastFrame = now;
+                }
+            }
+        }
+    }
 
     /**
      * Processes a game-related event from the server.
@@ -211,6 +264,9 @@ export class InterfaceComponent implements AfterViewInit {
         let entity = this.entities[e.id];
 
         // set the entity's direction and start their animation
+        entity.lastFrame = 0;
+        entity.direction = e.dir;
+        entity.moving = true;
         entity.setAnimation(`walk-${e.dir}`);
         entity.animate();
     }
@@ -221,6 +277,9 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processMoveStop(e: MoveStopEvent): void {
-        this.entities[e.id].stopAnimating();
+        let entity = this.entities[e.id];
+
+        entity.moving = false;
+        entity.stopAnimating();
     }
 }
