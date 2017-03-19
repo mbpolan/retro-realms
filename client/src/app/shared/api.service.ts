@@ -1,9 +1,12 @@
 import {Injectable} from "@angular/core";
 import {SocketService, SocketState} from "./socket.service";
 import {Subject} from "rxjs";
-import {Message, MessageHeader, LoginMessage, MapInfoMessage, GameStateMessage} from "./messages";
 import {ISubscription} from "rxjs/Subscription";
-import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent, LoginEvent, LogoutEvent} from "./game-event";
+import {GameEvent, MapInfoEvent, GameStateEvent, LoginEvent, LogoutEvent} from "./game-event";
+import {Message, MessageHeader} from "./messages/message";
+import {MapInfoMessage} from "./messages/map-info-message";
+import {LoginMessage} from "./messages/login-message";
+import {GameStateMessage} from "./messages/game-state-message";
 
 @Injectable()
 export class ApiService {
