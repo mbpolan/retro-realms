@@ -64,8 +64,12 @@ export class MapInfoEvent extends GameEvent {
 
 export class GameStateEvent extends GameEvent {
 
-    public constructor() {
+    players: Array<PlayerInfo>;
+
+    public constructor(players: Array<PlayerInfo>) {
         super(GameEventType.GAME_STATE);
+
+        this.players = players;
     }
 }
 

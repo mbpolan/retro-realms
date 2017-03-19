@@ -162,7 +162,7 @@ export class ApiService {
      * @param message The message.
      */
     private processGameState(message: GameStateResponse): void {
-        this.events.next(new GameStateEvent());
+        this.events.next(new GameStateEvent(message.players));
     }
 
     /**

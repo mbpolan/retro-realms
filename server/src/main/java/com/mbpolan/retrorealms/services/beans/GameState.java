@@ -1,6 +1,7 @@
 package com.mbpolan.retrorealms.services.beans;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Bean that contains a snapshot of the state of the game.
@@ -9,25 +10,37 @@ import java.util.List;
  */
 public class GameState {
 
-    private List<Player> players;
+    private Set<Player> players;
 
-    public GameState(List<Player> players) {
+    public GameState() {
+        this.players = new HashSet<>();
+    }
+
+    public GameState(Set<Player> players) {
         this.players = players;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GameState gameState = (GameState) o;
-
-        return players.equals(gameState.players);
-
+    public boolean isDirty() {
+        return !players.isEmpty();
     }
 
-    @Override
-    public int hashCode() {
-        return players.hashCode();
+    public void addChangedPlayer(Player player) {
+        this.players.add(player);
+    }
+
+    public Set<Player> getPlayers() {
+        return players;
+    }
+
+    public GameState reset() {
+        // create a copy of the changed players in this state
+        Set<Player> copiedPlayers = new HashSet<>();
+        copiedPlayers.addAll(players);
+
+        // reset the players
+        this.players.clear();
+
+        // and return an identical copy of the previous state
+        return new GameState(copiedPlayers);
     }
 }

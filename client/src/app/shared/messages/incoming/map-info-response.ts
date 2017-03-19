@@ -1,3 +1,4 @@
+import {MapPlayerInfo} from "./map-player-info";
 /**
  * Message that contains a description of a map area.
  *
@@ -11,17 +12,4 @@ export class MapInfoResponse {
     height: number;
     tiles: Array<number>;
     players: Array<MapPlayerInfo>
-}
-
-/**
- * Data about a single player on the map.
- */
-export class MapPlayerInfo {
-
-    id: number;
-    username: string;
-    sprite: string;
-    x: number;
-    y: number;
-    dir: string;
 }

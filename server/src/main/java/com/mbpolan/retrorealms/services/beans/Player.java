@@ -19,6 +19,7 @@ public class Player {
     private int mapArea;
     private int x;
     private int y;
+    private int speed;
     private boolean moving;
     private long lastMovement;
     private Direction direction;
@@ -43,6 +44,7 @@ public class Player {
         this.mapArea = 0;
         this.x = 0;
         this.y = 0;
+        this.speed = 8;
         this.moving = false;
         this.lastMovement = 0;
         this.direction = direction;
@@ -68,12 +70,21 @@ public class Player {
         return mapArea;
     }
 
+    public void setPositionDelta(int dx, int dy) {
+        this.x += dx;
+        this.y += dy;
+    }
+
     public int getX() {
         return x;
     }
 
     public int getY() {
         return y;
+    }
+
+    public int getSpeed() {
+        return speed;
     }
 
     public boolean isMoving() {

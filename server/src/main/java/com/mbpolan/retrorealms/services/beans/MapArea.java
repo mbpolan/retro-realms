@@ -4,6 +4,7 @@ import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a single area of the map that contains tiles, players and other entities.
@@ -36,7 +37,7 @@ public class MapArea {
         this.tiles = tiles;
         this.width = width;
         this.height = height;
-        this.state = new GameState(this.players);
+        this.state = new GameState();
     }
 
     /**
@@ -117,17 +118,53 @@ public class MapArea {
     /**
      * Recomputes the current state of this map area and determines if something changed.
      *
-     * @return true if this map area has changed, false if not.
+     * @return The previous game state if changed, null otherwise.
      */
-    public boolean updateState() {
-        GameState newState = new GameState(this.players);
-
-        // has the game state changed?
-        boolean changed = !newState.equals(this.state);
-        if (changed) {
-            this.state = newState;
+    public GameState popState() {
+        GameState previous = null;
+        if (state.isDirty()) {
+            previous = state.reset();
         }
 
-        return changed;
+        return previous;
+    }
+
+    /**
+     * Computes a player movement and updates their position if needed.
+     *
+     * @param player The moving player.
+     */
+    public boolean movePlayer(Player player) {
+        int delay = player.getSpeed() * 10;
+        if (System.currentTimeMillis() - player.getLastMovement() < delay) {
+            return false;
+        }
+
+        // compute a delta movement vector
+        int dx = 0, dy = 0;
+        switch (player.getDirection()) {
+            case UP:
+                dy = -1;
+                break;
+            case DOWN:
+                dy = 1;
+                break;
+            case LEFT:
+                dx = -1;
+                break;
+            case RIGHT:
+                dx = 1;
+                break;
+        }
+
+        // check bounds prior to moving the player
+        if ((player.getX() < 0 || player.getX() > width * 32) ||
+                (player.getY() < 0 || player.getY() > height * 32)) {
+            return false;
+        }
+
+        player.setPositionDelta(dx, dy);
+        state.addChangedPlayer(player);
+        return true;
     }
 }

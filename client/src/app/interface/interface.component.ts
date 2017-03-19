@@ -196,7 +196,10 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processGameState(e: GameStateEvent): void {
-
+        // process any changed players
+        e.players.forEach(p => {
+            this.entities[p.id].position.set(p.x, p.y);
+        });
     }
 
     /**

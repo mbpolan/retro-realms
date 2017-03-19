@@ -1,11 +1,23 @@
 package com.mbpolan.retrorealms.beans.responses;
 
+import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
+
+import java.util.List;
+
 /**
  * @author Mike Polan
  */
 public class GameStateResponse extends AbstractResponse {
 
-    public GameStateResponse() {
+    private List<PlayerInfo> players;
+
+    public GameStateResponse(List<PlayerInfo> players) {
         super("gameState");
+
+        this.players = players;
+    }
+
+    public List<PlayerInfo> getPlayers() {
+        return players;
     }
 }
