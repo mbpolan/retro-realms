@@ -1,25 +1,25 @@
-#WebGL and WebSockets
-[![Build Status](https://travis-ci.org/mbpolan/retro-realms.svg?branch=master)](https://travis-ci.org/mbpolan/retro-realms)
-[![Heroku](https://heroku-badge.herokuapp.com/?app=retro-realms)](https://retro-realms.herokuapp.com)
+# Retro Realms
 
 This is a simple project that makes use of WebGL and WebSockets.
 
 I was inspired by some pretty cool examples of people creating interactive games and multimedia content
-with the help of these two technologies, so I figured that the time has come for me to learn it. For an
-extra challenge, I tried my hand at learning Scala for the server-side code.
+with the help of these two technologies, so I figured that the time has come for me to learn it.
 
-This repo is basically a rolling "log" of my progress.
+This repo is basically a rolling "log" of my progress. There exists a `legacy-1.x` branch that contains my initial
+attempt at this type of project. After a brief hiatus, I decided to rewrite it from scratch to give myself a better
+codebase to work with. The first design had some fundamental design flaws that were hard to fix without introducing
+bugs, hence this new attempt.
 
-##Project
-You will find here a Gradle project that has a frontend written in AngularJS 1.x and PIXI.JS, and a backend
-written in Scala using the Spring framework. The code is for a very watered-down multiplayer RPG with some
+## Project
+You will find here a Gradle project that has a frontend written in AngularJS 2.x and PIXI.JS, and a backend
+written in Java using the Spring framework. The code is for a very watered-down multiplayer RPG with some
 basic controls, like chatting and server-side collision detection. It uses the STOMP protocol to deliver messages
-over a web socket between clients and the server. I borrowed sprites and tiles from my favorite SNES games to
-give the demo some color - a big thanks to [this project](https://github.com/christopho/solarus-alttp-pack) for
+over a web socket between clients and the server. I borrowed sprites and tiles from RPG Maker resources to
+give the demo some color - a big thanks to [this project](https://vxresource.wordpress.com) for
 making them available to everyone!
 
 
-##Building
+## Building
 You can start the project up right away by first cloning this repository, and then running the following command
 in the root directory on Linux:
 
