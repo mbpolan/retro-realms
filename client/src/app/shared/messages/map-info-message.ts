@@ -21,4 +21,5 @@ export class MapPlayerInfo {
     sprite: string;
     x: number;
     y: number;
+    dir: string;
 }

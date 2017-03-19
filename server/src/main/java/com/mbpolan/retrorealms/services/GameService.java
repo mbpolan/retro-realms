@@ -4,6 +4,7 @@ import com.mbpolan.retrorealms.beans.responses.GameStateResponse;
 import com.mbpolan.retrorealms.beans.responses.LoginResponse;
 import com.mbpolan.retrorealms.beans.responses.MapInfoResponse;
 import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
+import com.mbpolan.retrorealms.services.beans.Direction;
 import com.mbpolan.retrorealms.services.beans.MapArea;
 import com.mbpolan.retrorealms.services.beans.Player;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         }
 
         // create a new player and put them in the global player map
-        Player player = new Player(lastPlayerId++, sessionId, username, "char1", socket);
+        Player player = new Player(lastPlayerId++, sessionId, username, "char1", Direction.DOWN, socket);
         players.put(username, player);
 
         // tell the player their login was successful
@@ -91,7 +92,13 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         // and send the player their initial map update
         List<Integer> tileIds = area.getTileIds();
         List<PlayerInfo> playerInfos = area.getPlayers().stream()
-                .map(p -> new PlayerInfo(p.getId(), p.getUsername(), p.getSprite(), p.getX(), p.getY()))
+                .map(p -> new PlayerInfo(
+                        p.getId(),
+                        p.getUsername(),
+                        p.getSprite(),
+                        p.getX(),
+                        p.getY(),
+                        p.getDirection().getValue()))
                 .collect(Collectors.toList());
 
         player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tileIds, playerInfos));

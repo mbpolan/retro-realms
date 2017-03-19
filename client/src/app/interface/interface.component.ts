@@ -117,7 +117,7 @@ export class InterfaceComponent implements AfterViewInit {
         // place sprites on top of the tiles
         e.players.forEach(p => {
             let entity = this.assets.createEntity(p.sprite);
-            entity.setAnimation('walk-up'); // TODO players need to send direction
+            entity.setAnimation(`walk-${p.dir}`);
             entity.position.set(p.x, p.y);
 
             this.stage.addChild(entity);

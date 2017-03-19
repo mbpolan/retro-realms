@@ -17,9 +17,10 @@ public class Player {
     private int mapArea;
     private int x;
     private int y;
+    private Direction direction;
     private SimpMessagingTemplate socket;
 
-    public Player(int id, String sessionId, String username, String sprite, SimpMessagingTemplate socket) {
+    public Player(int id, String sessionId, String username, String sprite, Direction direction, SimpMessagingTemplate socket) {
         this.id = id;
         this.sessionId = sessionId;
         this.username = username;
@@ -28,6 +29,7 @@ public class Player {
         this.mapArea = 0;
         this.x = 0;
         this.y = 0;
+        this.direction = direction;
     }
 
     public int getId() {
@@ -56,6 +58,14 @@ public class Player {
 
     public int getY() {
         return y;
+    }
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
     }
 
     public void send(AbstractResponse message) {

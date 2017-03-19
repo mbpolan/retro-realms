@@ -40,6 +40,7 @@ export class PlayerInfo {
   sprite: string;
   x: number;
   y: number;
+  dir: string;
 }
 
 export class MapInfoEvent extends GameEvent {
