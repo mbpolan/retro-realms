@@ -3,7 +3,7 @@ import {SocketService, SocketState} from "./socket.service";
 import {Subject} from "rxjs";
 import {Message, MessageHeader, LoginMessage, MapInfoMessage, GameStateMessage} from "./messages";
 import {ISubscription} from "rxjs/Subscription";
-import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent} from "./game-event";
+import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent, LoginEvent, LogoutEvent} from "./game-event";
 
 @Injectable()
 export class ApiService {
@@ -65,7 +65,7 @@ export class ApiService {
 
     else if (state == SocketState.DISCONNECTED) {
       console.log('disconnected from server');
-      this.events.next(new GameEvent(GameEventType.LOGGED_OUT));
+      this.events.next(new LogoutEvent());
     }
   }
 
@@ -107,7 +107,7 @@ export class ApiService {
     console.log(`login result: ${message.success}`);
 
     if (message.success) {
-      this.events.next(new GameEvent(GameEventType.LOGGED_IN));
+      this.events.next(new LoginEvent(message.id, message.success));
     }
 
     else {
@@ -121,7 +121,7 @@ export class ApiService {
    * @param message The message.
    */
   private processMapInfo(message: MapInfoMessage): void {
-    this.events.next(new MapInfoEvent(message.width, message.height, message.tiles));
+    this.events.next(new MapInfoEvent(message.width, message.height, message.tiles, message.players));
   }
 
   /**

@@ -7,11 +7,17 @@ package com.mbpolan.retrorealms.beans.responses;
  */
 public class LoginResponse extends AbstractResponse {
 
+    private final int id;
     private boolean success;
 
-    public LoginResponse(boolean success) {
+    public LoginResponse(int id, boolean success) {
         super("login");
+        this.id = id;
         this.success = success;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public boolean isSuccess() {

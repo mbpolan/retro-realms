@@ -3,6 +3,7 @@ package com.mbpolan.retrorealms.services;
 import com.mbpolan.retrorealms.beans.responses.GameStateResponse;
 import com.mbpolan.retrorealms.beans.responses.LoginResponse;
 import com.mbpolan.retrorealms.beans.responses.MapInfoResponse;
+import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
 import com.mbpolan.retrorealms.services.beans.MapArea;
 import com.mbpolan.retrorealms.services.beans.Player;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Core service that manages the state of the game.
@@ -40,6 +42,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
 
     // map of all players in the game now, keyed by their usernames
     private Map<String, Player> players;
+    private volatile int lastPlayerId = 0;
 
     @PostConstruct
     public void init() throws IOException {
@@ -75,20 +78,23 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         }
 
         // create a new player and put them in the global player map
-        Player player = new Player(sessionId, username, socket);
+        Player player = new Player(lastPlayerId++, sessionId, username, "char1", socket);
         players.put(username, player);
 
         // tell the player their login was successful
-        player.send(new LoginResponse(true));
+        player.send(new LoginResponse(player.getId(), true));
 
-        // add the player to the map area they last logged out from
+        // add the player to the map area
         MapArea area = map.getMapArea(player.getMapArea());
         area.addPlayer(player);
 
-        // send the player their first map update
-        List<Integer> tiles = new ArrayList<>();
-        area.getTiles().forEach(row -> row.forEach(col -> tiles.add(col.getId())));
-        player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tiles));
+        // and send the player their initial map update
+        List<Integer> tileIds = area.getTileIds();
+        List<PlayerInfo> playerInfos = area.getPlayers().stream()
+                .map(p -> new PlayerInfo(p.getId(), p.getUsername(), p.getSprite(), p.getX(), p.getY()))
+                .collect(Collectors.toList());
+
+        player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tileIds, playerInfos));
     }
 
     /**

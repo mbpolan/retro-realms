@@ -69,8 +69,11 @@ public class MapArea {
      *
      * @return A rectangle of tiles, in row-major order.
      */
-    public List<List<Tile>> getTiles() {
-        return tiles;
+    public List<Integer> getTileIds() {
+        List<Integer> ids = new ArrayList<>();
+        this.tiles.forEach(row -> row.forEach(col -> ids.add(col.getId())));
+
+        return ids;
     }
 
     /**

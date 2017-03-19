@@ -17,13 +17,23 @@ export class Message {
 }
 
 export class LoginMessage {
+  id: number;
   success: boolean;
+}
+
+export class PlayerInfoMessage {
+  id: number;
+  username: string;
+  sprite: string;
+  x: number;
+  y: number;
 }
 
 export class MapInfoMessage {
   width: number;
   height: number;
   tiles: Array<number>;
+  players: Array<PlayerInfoMessage>
 }
 
 export class GameStateMessage {
