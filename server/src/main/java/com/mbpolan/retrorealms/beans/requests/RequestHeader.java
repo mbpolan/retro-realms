@@ -3,12 +3,9 @@ package com.mbpolan.retrorealms.beans.requests;
 /**
  * @author Mike Polan
  */
-public enum RequestHeader {
+public final class RequestHeader {
 
-    LOGIN (1);
-
-    int code;
-    RequestHeader(int code) {
-        this.code = code;
-    }
+    public static final String LOGIN = "login";
+    public static final String MOVE_START = "moveStart";
+    public static final String MOVE_STOP = "moveStop";
 }

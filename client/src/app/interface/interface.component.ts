@@ -1,10 +1,16 @@
 import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
 import {AssetsService} from "./gfx/assets.service";
 import {ApiService} from "../shared/api.service";
-import {GameEvent, GameEventType, MapInfoEvent, GameStateEvent} from "../shared/game-event";
+import {
+    GameEvent, GameEventType, MapInfoEvent, GameStateEvent, MoveStartEvent,
+    MoveStopEvent
+} from "../shared/game-event";
 import {KeyboardService} from "./keyboard/keyboard.service";
 import {KeyEvent} from "./keyboard/key-event";
 import {ISubscription} from "rxjs/Subscription";
+import {Direction} from "../shared/direction";
+import {Key} from "./keyboard/key";
+import {Entity} from "./gfx/entity";
 
 declare let PIXI:any;
 
@@ -20,6 +26,7 @@ export class InterfaceComponent implements AfterViewInit {
 
     private renderer: PIXI.CanvasRenderer;
     private stage: PIXI.Container;
+    private entities: Map<number, Entity>;
     private loaded = false;
     private pendingEvents: Array<GameEvent> = [];
     private keyEventSub: ISubscription;
@@ -42,12 +49,15 @@ export class InterfaceComponent implements AfterViewInit {
             console.log('ready');
             this.loaded = true;
 
+            // initialize data structures
+            this.entities = new Map<number, Entity>();
+
             // flush all pending events
             this.pendingEvents.forEach(e => this.processEvent(e));
             this.pendingEvents = [];
 
             // listen for keyboard events
-            this.keyEventSub = this.keyboard.subscribe(this.onKey);
+            this.keyEventSub = this.keyboard.subscribe(this.onKey.bind(this));
 
             this.gameLoop();
         });
@@ -67,6 +77,37 @@ export class InterfaceComponent implements AfterViewInit {
      */
     private onKey(key: KeyEvent): void {
         console.log((key.pressed ? 'START': 'STOP') + ': ' + key.key);
+
+        // if the key was pressed, initiate movement in its corresponding direction
+        if (key.pressed) {
+            let dir;
+
+            // map the key to a concrete direction
+            switch (key.key) {
+                case Key.UP:
+                    dir = Direction.UP;
+                    break;
+
+                case Key.DOWN:
+                    dir = Direction.DOWN;
+                    break;
+
+                case Key.LEFT:
+                    dir = Direction.LEFT;
+                    break;
+
+                case Key.RIGHT:
+                    dir = Direction.RIGHT;
+                    break;
+            }
+
+            this.api.startMovement(dir);
+        }
+
+        // otherwise, stop the player's movement
+        else {
+            this.api.stopMovement();
+        }
     }
 
     /**
@@ -97,6 +138,14 @@ export class InterfaceComponent implements AfterViewInit {
 
                 case GameEventType.GAME_STATE:
                     this.processGameState(<GameStateEvent> e);
+                    break;
+
+                case GameEventType.MOVE_START:
+                    this.processMoveStart(<MoveStartEvent> e);
+                    break;
+
+                case GameEventType.MOVE_STOP:
+                    this.processMoveStop(<MoveStopEvent> e);
                     break;
 
                 default:
@@ -136,6 +185,7 @@ export class InterfaceComponent implements AfterViewInit {
             entity.setAnimation(`walk-${p.dir}`);
             entity.position.set(p.x, p.y);
 
+            this.entities[p.id] = entity;
             this.stage.addChild(entity);
         });
     }
@@ -147,5 +197,23 @@ export class InterfaceComponent implements AfterViewInit {
      */
     private processGameState(e: GameStateEvent): void {
 
+    }
+
+    /**
+     * Processes a game event containing an entity that started moving.
+     *
+     * @param e The event.
+     */
+    private processMoveStart(e: MoveStartEvent): void {
+        this.entities[e.id].animate();
+    }
+
+    /**
+     * Processes a game event containing an entity that stopped moving.
+     *
+     * @param e The event.
+     */
+    private processMoveStop(e: MoveStopEvent): void {
+        this.entities[e.id].stopAnimating();
     }
 }

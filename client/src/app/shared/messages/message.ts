@@ -7,17 +7,18 @@ export class MessageHeader {
     public static get LOGIN():string { return "login"; }
     public static get MAP_INFO():string { return "mapInfo"; }
     public static get GAME_STATE():string { return "gameState"; }
+    public static get MOVE_START():string { return "moveStart"; }
+    public static get MOVE_STOP():string { return "moveStop"; }
 }
 
 /**
  * Generic message sent by the server or the client.
  */
-export class Message {
-    header: string;
-    data: Object;
+export abstract class Message {
 
-    public constructor(header: string, data: Object = null) {
+    header: string;
+
+    public constructor(header: string) {
         this.header = header;
-        this.data = data;
     }
 }

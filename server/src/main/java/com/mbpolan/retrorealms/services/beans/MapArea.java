@@ -1,5 +1,7 @@
 package com.mbpolan.retrorealms.services.beans;
 
+import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +64,15 @@ public class MapArea {
      */
     public List<Player> getPlayers() {
         return players;
+    }
+
+    /**
+     * Sends a message to all players in this map area.
+     *
+     * @param message The message to send.
+     */
+    public void sendToAll(AbstractResponse message) {
+        players.forEach(p -> p.send(message));
     }
 
     /**

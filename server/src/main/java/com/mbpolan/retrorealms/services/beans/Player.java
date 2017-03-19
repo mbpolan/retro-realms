@@ -6,6 +6,8 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
+ * Representation of a player that's logged into the game.
+ *
  * @author Mike Polan
  */
 public class Player {
@@ -17,9 +19,21 @@ public class Player {
     private int mapArea;
     private int x;
     private int y;
+    private boolean moving;
+    private long lastMovement;
     private Direction direction;
     private SimpMessagingTemplate socket;
 
+    /**
+     * Creates a new player descriptor.
+     *
+     * @param id The unique ID assigned to this player.
+     * @param sessionId The player's websocket session ID.
+     * @param username The player's username.
+     * @param sprite The name of the sprite for the player.
+     * @param direction The direction the player is initially facing.
+     * @param socket The websocket to communicate over.
+     */
     public Player(int id, String sessionId, String username, String sprite, Direction direction, SimpMessagingTemplate socket) {
         this.id = id;
         this.sessionId = sessionId;
@@ -29,6 +43,8 @@ public class Player {
         this.mapArea = 0;
         this.x = 0;
         this.y = 0;
+        this.moving = false;
+        this.lastMovement = 0;
         this.direction = direction;
     }
 
@@ -60,6 +76,22 @@ public class Player {
         return y;
     }
 
+    public boolean isMoving() {
+        return moving;
+    }
+
+    public void setMoving(boolean moving) {
+        this.moving = moving;
+    }
+
+    public long getLastMovement() {
+        return lastMovement;
+    }
+
+    public void setLastMovement(long lastMovement) {
+        this.lastMovement = lastMovement;
+    }
+
     public Direction getDirection() {
         return direction;
     }
@@ -68,6 +100,14 @@ public class Player {
         this.direction = direction;
     }
 
+    /**
+     * Sends a message to the player.
+     *
+     * The message will be dispatched only to the player in question; it will not be broadcast to any
+     * other player in the game.
+     *
+     * @param message The message to send.
+     */
     public void send(AbstractResponse message) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
         headers.setSessionId(sessionId);

@@ -1,68 +1,94 @@
 export enum GameEventType {
-  LOGGED_IN,
-  LOGGED_OUT,
-  MAP_INFO,
-  GAME_STATE
+    LOGGED_IN,
+    LOGGED_OUT,
+    MAP_INFO,
+    GAME_STATE,
+    MOVE_START,
+    MOVE_STOP
 }
 
 export abstract class GameEvent {
 
-  event: GameEventType;
+    event: GameEventType;
 
-  public constructor(event: GameEventType) {
-    this.event = event;
-  }
+    public constructor(event: GameEventType) {
+        this.event = event;
+    }
 }
 
 export class LoginEvent extends GameEvent {
 
-  id: number;
-  success: boolean;
+    id: number;
+    success: boolean;
 
-  public constructor(id: number, success: boolean) {
-    super(GameEventType.LOGGED_IN);
+    public constructor(id: number, success: boolean) {
+        super(GameEventType.LOGGED_IN);
 
-    this.id = id;
-    this.success = success;
-  }
+        this.id = id;
+        this.success = success;
+    }
 }
 
 export class LogoutEvent extends GameEvent {
 
-  public constructor() {
-    super(GameEventType.LOGGED_OUT);
-  }
+    public constructor() {
+        super(GameEventType.LOGGED_OUT);
+    }
 }
 
 export class PlayerInfo {
-  id: number;
-  username: string;
-  sprite: string;
-  x: number;
-  y: number;
-  dir: string;
+    id: number;
+    username: string;
+    sprite: string;
+    x: number;
+    y: number;
+    dir: string;
 }
 
 export class MapInfoEvent extends GameEvent {
 
-  width: number;
-  height: number;
-  tiles: Array<number>;
-  players: Array<PlayerInfo>;
+    width: number;
+    height: number;
+    tiles: Array<number>;
+    players: Array<PlayerInfo>;
 
-  public constructor(width: number, height: number, tiles: Array<number>, players: Array<PlayerInfo>) {
-    super(GameEventType.MAP_INFO);
+    public constructor(width: number, height: number, tiles: Array<number>, players: Array<PlayerInfo>) {
+        super(GameEventType.MAP_INFO);
 
-    this.width = width;
-    this.height = height;
-    this.tiles = tiles;
-    this.players = players;
-  }
+        this.width = width;
+        this.height = height;
+        this.tiles = tiles;
+        this.players = players;
+    }
 }
 
 export class GameStateEvent extends GameEvent {
 
-  constructor() {
-    super(GameEventType.GAME_STATE);
-  }
+    public constructor() {
+        super(GameEventType.GAME_STATE);
+    }
+}
+
+export class MoveStartEvent extends GameEvent {
+
+    id: number;
+    dir: string;
+
+    public constructor(id: number, dir: string) {
+        super(GameEventType.MOVE_START);
+
+        this.id = id;
+        this.dir = dir;
+    }
+}
+
+export class MoveStopEvent extends GameEvent {
+
+    id: number;
+
+    public constructor(id: number) {
+        super(GameEventType.MOVE_STOP);
+
+        this.id = id;
+    }
 }

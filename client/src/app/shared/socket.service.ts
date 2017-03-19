@@ -1,7 +1,7 @@
 import {Observable, Subject, Observer} from "rxjs/Rx";
 import {Injectable} from "@angular/core";
 import {ISubscription} from "rxjs/Subscription";
-import {Message} from "./messages";
+import {Message} from "./messages/message";
 
 declare var Stomp: any;
 declare var SockJS: any;
@@ -58,12 +58,7 @@ export class SocketService {
 
     let observer = {
       next: (message: Message) => {
-        let payload = message.data;
-        let body = Object.assign({
-          header: message.header
-        }, payload);
-
-        self.client.send('/api/game', {}, JSON.stringify(body));
+        self.client.send('/api/game', {}, JSON.stringify(message));
       }
     };
 

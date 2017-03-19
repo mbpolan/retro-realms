@@ -1,8 +1,6 @@
 package com.mbpolan.retrorealms.services;
 
-import com.mbpolan.retrorealms.beans.responses.GameStateResponse;
-import com.mbpolan.retrorealms.beans.responses.LoginResponse;
-import com.mbpolan.retrorealms.beans.responses.MapInfoResponse;
+import com.mbpolan.retrorealms.beans.responses.*;
 import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
 import com.mbpolan.retrorealms.services.beans.Direction;
 import com.mbpolan.retrorealms.services.beans.MapArea;
@@ -41,7 +39,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
     @Autowired
     private SimpMessagingTemplate socket;
 
-    // map of all players in the game now, keyed by their usernames
+    // map of all players in the game now, keyed by their session IDs
     private Map<String, Player> players;
     private volatile int lastPlayerId = 0;
 
@@ -70,17 +68,17 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
     /**
      * Adds a player to the game.
      *
-     * @param sessionId The player's web socket session ID.
+     * @param sessionId The player's websocket session ID.
      * @param username The player's username.
      */
     public synchronized void addPlayer(String sessionId, String username) {
-        if (players.containsKey(username)) {
-            throw new IllegalStateException(String.format("Player already exists: %s", username));
+        if (players.containsKey(sessionId)) {
+            throw new IllegalStateException(String.format("Player already exists: %s", sessionId));
         }
 
         // create a new player and put them in the global player map
         Player player = new Player(lastPlayerId++, sessionId, username, "char1", Direction.DOWN, socket);
-        players.put(username, player);
+        players.put(sessionId, player);
 
         // tell the player their login was successful
         player.send(new LoginResponse(player.getId(), true));
@@ -102,6 +100,43 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 .collect(Collectors.toList());
 
         player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tileIds, playerInfos));
+    }
+
+    /**
+     * Initiates the player walking from their current position on the map.
+     *
+     * @param sessionId The player's websocket session ID.
+     * @param direction The direction to move the player.
+     */
+    public synchronized void movePlayer(String sessionId, Direction direction) {
+        Player player = players.get(sessionId);
+
+        // have the player start moving if they aren't already
+        if (!player.isMoving()) {
+            player.setMoving(true);
+            player.setDirection(direction);
+
+            // notify all spectators
+            map.getMapArea(player.getMapArea()).sendToAll(
+                    new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
+        }
+    }
+
+    /**
+     * Halts a moving player from walking in their current direction.
+     *
+     * @param sessionId The player's websocket session ID.
+     */
+    public synchronized void stopPlayer(String sessionId) {
+        Player player = players.get(sessionId);
+
+        // have the player stop moving immediately if they haven't already
+        if (player.isMoving()) {
+            player.setMoving(false);
+
+            // notify all spectators
+            map.getMapArea(player.getMapArea()).sendToAll(new EntityMoveStopResponse(player.getId()));
+        }
     }
 
     /**

@@ -5,7 +5,8 @@
  * dimensions. Sprites are reported with all information the client needs to render them on-screen and
  * later identify them.
  */
-export class MapInfoMessage {
+export class MapInfoResponse {
+
     width: number;
     height: number;
     tiles: Array<number>;
@@ -16,6 +17,7 @@ export class MapInfoMessage {
  * Data about a single player on the map.
  */
 export class MapPlayerInfo {
+
     id: number;
     username: string;
     sprite: string;

@@ -11,6 +11,16 @@ public enum Direction {
     LEFT  ("left"),
     RIGHT ("right");
 
+    public static Direction fromValue(String value) {
+        for (Direction dir : values()) {
+            if (dir.value.equals(value)) {
+                return dir;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format("Unknown direction: %s", value));
+    }
+
     public String getValue() {
         return value;
     }
