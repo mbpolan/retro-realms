@@ -62,11 +62,12 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
      * Scheduled task that sends out updated game states to players.
      */
     @Scheduled(fixedDelay = 200)
-    public synchronized void gameStateDispatcher() {
+    public void gameStateDispatcher() {
         // recompute the state of each map area
         map.getMapAreas().forEach(a -> {
-            GameState state = a.popState();
+            a.lock();
 
+            GameState state = a.popState();
             if (state != null) {
                 // compute an updated game state for this area
                 GameStateResponse gameState = new GameStateResponse(
@@ -77,6 +78,8 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 // if the state has changed, notify all the players in that area only
                 a.getPlayers().forEach(p -> p.send(gameState));
             }
+
+            a.unlock();
         });
     }
 
@@ -100,6 +103,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
 
         // add the player to the map area
         MapArea area = map.getMapArea(player.getMapArea());
+        area.lock();
         area.addPlayer(player);
 
         // and send the player their initial map update
@@ -115,6 +119,17 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 .collect(Collectors.toList());
 
         player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tileIds, playerInfos));
+
+        // notify spectators that this player has appeared
+        area.sendToAll(new EntityAppearResponse(new PlayerInfo(
+                player.getId(),
+                player.getUsername(),
+                player.getSprite(),
+                player.getX(),
+                player.getY(),
+                player.getDirection().getValue())), player);
+
+        area.unlock();
     }
 
     /**
@@ -132,8 +147,11 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
             player.setDirection(direction);
 
             // notify all spectators
-            map.getMapArea(player.getMapArea()).sendToAll(
-                    new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
+            MapArea area = map.getMapArea(player.getMapArea());
+
+            area.lock();
+            area.sendToAll(new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
+            area.unlock();
 
             // schedule the player's next movement
             scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
@@ -169,9 +187,17 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 .filter(p -> p.getSessionId().equals(sessionId))
                 .findFirst()
                 .ifPresent(p -> {
+                    MapArea area = map.getMapArea(p.getMapArea());
+                    area.lock();
+
                     // remove the player from his map area and from the global player map
-                    map.getMapArea(p.getMapArea()).removePlayer(p);
+                    area.removePlayer(p);
                     players.remove(p.getUsername());
+
+                    // notify spectators that this player has disappeared
+                    area.sendToAll(new EntityDisappearResponse(p.getId()));
+
+                    area.unlock();
                 });
     }
 
@@ -182,8 +208,15 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
      */
     private void onMovePlayer(Player player) {
         // attempt to move the player, and if successful, schedule their next movement afterwards
-        if (player.isMoving() && map.getMapArea(player.getMapArea()).movePlayer(player)) {
-            scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
+        if (player.isMoving()) {
+            MapArea area = map.getMapArea(player.getMapArea());
+            area.lock();
+
+            if (area.movePlayer(player)) {
+                scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
+            }
+
+            area.unlock();
         }
 
         // otherwise stop moving the player and notify spectators
@@ -201,7 +234,11 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         player.setMoving(false);
 
         // notify spectators that this player is no longer moving
-        map.getMapArea(player.getMapArea()).sendToAll(new EntityMoveStopResponse(player.getId()));
+        MapArea area = map.getMapArea(player.getMapArea());
+
+        area.lock();
+        area.sendToAll(new EntityMoveStopResponse(player.getId()));
+        area.unlock();
     }
 
     /**

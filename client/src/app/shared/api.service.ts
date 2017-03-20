@@ -3,8 +3,15 @@ import {SocketService, SocketState} from "./socket.service";
 import {Subject} from "rxjs";
 import {ISubscription} from "rxjs/Subscription";
 import {
-    GameEvent, MapInfoEvent, GameStateEvent, LoginEvent, LogoutEvent, MoveStartEvent,
-    MoveStopEvent
+    GameEvent,
+    MapInfoEvent,
+    GameStateEvent,
+    LoginEvent,
+    LogoutEvent,
+    MoveStartEvent,
+    MoveStopEvent,
+    EntityAppearEvent,
+    EntityDisappearEvent
 } from "./game-event";
 import {Message, MessageHeader} from "./messages/message";
 import {LoginRequest} from "./messages/outgoing/login-request";
@@ -15,6 +22,8 @@ import {MoveStartRequest} from "./messages/outgoing/move-start-request";
 import {MoveStopRequest} from "./messages/outgoing/move-stop-request";
 import {MoveStartResponse} from "./messages/incoming/move-start-response";
 import {MoveStopResponse} from "./messages/incoming/move-stop-response";
+import {EntityAppearResponse} from "./messages/incoming/appear-response";
+import {EntityDisappearResponse} from "./messages/incoming/disappear-response";
 
 @Injectable()
 export class ApiService {
@@ -31,7 +40,7 @@ export class ApiService {
      * Subscribe for events from the server.
      *
      * @param func The callback to invoke.
-     * @returns {Subscription} Handle for the subscription.
+     * @returns {ISubscription} Handle for the subscription.
      */
     public subscribe(func: (e: GameEvent) => void): ISubscription {
         return this.events.subscribe(func);
@@ -124,6 +133,14 @@ export class ApiService {
                 this.processMoveStop(<MoveStopResponse> message);
                 break;
 
+            case MessageHeader.ENTITY_APPEAR:
+                this.processEntityAppear(<EntityAppearResponse> message);
+                break;
+
+            case MessageHeader.ENTITY_DISAPPEAR:
+                this.processEntityDisappear(<EntityDisappearResponse> message);
+                break;
+
             default:
                 console.error(`Unknown header: ${header}`);
                 break;
@@ -181,5 +198,23 @@ export class ApiService {
      */
     private processMoveStop(message: MoveStopResponse): void {
         this.events.next(new MoveStopEvent(message.id));
+    }
+
+    /**
+     * Processes an entity appearance message from the server.
+     *
+     * @param message The message.
+     */
+    private processEntityAppear(message: EntityAppearResponse): void {
+        this.events.next(new EntityAppearEvent(message.player));
+    }
+
+    /**
+     * Processes an entity disappearance message from the server.
+     *
+     * @param message The message.
+     */
+    private processEntityDisappear(message: EntityDisappearResponse): void {
+        this.events.next(new EntityDisappearEvent(message.id));
     }
 }

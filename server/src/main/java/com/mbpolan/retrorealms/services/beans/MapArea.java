@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author Mike Polan
  */
-public class MapArea {
+public class MapArea extends Lockable {
 
     private List<Player> players;
     private List<List<Tile>> tiles;
@@ -49,6 +49,7 @@ public class MapArea {
      */
     public void addPlayer(Player player) {
         this.players.add(player);
+        this.state.addChangedPlayer(player);
     }
 
     /**
@@ -76,6 +77,18 @@ public class MapArea {
      */
     public void sendToAll(AbstractResponse message) {
         players.forEach(p -> p.send(message));
+    }
+
+    /**
+     * Sends a message to all players in this map area excluding one.
+     *
+     * @param message The message to send.
+     * @param excluded The player to not send the message to.
+     */
+    public void sendToAll(AbstractResponse message, Player excluded) {
+        players.stream()
+                .filter(p -> p.getId() != excluded.getId())
+                .forEach(p -> p.send(message));
     }
 
     /**

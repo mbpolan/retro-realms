@@ -4,7 +4,9 @@ export enum GameEventType {
     MAP_INFO,
     GAME_STATE,
     MOVE_START,
-    MOVE_STOP
+    MOVE_STOP,
+    ENTITY_APPEAR,
+    ENTITY_DISAPPEAR
 }
 
 export abstract class GameEvent {
@@ -92,6 +94,28 @@ export class MoveStopEvent extends GameEvent {
 
     public constructor(id: number) {
         super(GameEventType.MOVE_STOP);
+
+        this.id = id;
+    }
+}
+
+export class EntityAppearEvent extends GameEvent {
+
+    player: PlayerInfo;
+
+    public constructor(player: PlayerInfo) {
+        super(GameEventType.ENTITY_APPEAR);
+
+        this.player = player;
+    }
+}
+
+export class EntityDisappearEvent extends GameEvent {
+
+    id: number;
+
+    public constructor(id: number) {
+        super(GameEventType.ENTITY_DISAPPEAR);
 
         this.id = id;
     }

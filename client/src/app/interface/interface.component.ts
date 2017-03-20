@@ -3,7 +3,7 @@ import {AssetsService} from "./gfx/assets.service";
 import {ApiService} from "../shared/api.service";
 import {
     GameEvent, GameEventType, MapInfoEvent, GameStateEvent, MoveStartEvent,
-    MoveStopEvent
+    MoveStopEvent, EntityAppearEvent, EntityDisappearEvent, PlayerInfo
 } from "../shared/game-event";
 import {KeyboardService} from "./keyboard/keyboard.service";
 import {KeyEvent} from "./keyboard/key-event";
@@ -201,10 +201,32 @@ export class InterfaceComponent implements AfterViewInit {
                     this.processMoveStop(<MoveStopEvent> e);
                     break;
 
+                case GameEventType.ENTITY_APPEAR:
+                    this.processEntityAppear(<EntityAppearEvent> e);
+                    break;
+
+                case GameEventType.ENTITY_DISAPPEAR:
+                    this.processEntityDisappear(<EntityDisappearEvent> e);
+                    break;
+
                 default:
                     break;
             }
         }
+    }
+
+    /**
+     * Adds an entity to the map.
+     *
+     * @param p The entity to add.
+     */
+    private addEntity(p: PlayerInfo): void {
+        let entity = this.assets.createEntity(p.sprite);
+        entity.setAnimation(`walk-${p.dir}`);
+        entity.position.set(p.x, p.y);
+
+        this.entities[p.id] = entity;
+        this.stage.addChild(entity);
     }
 
     /**
@@ -233,14 +255,7 @@ export class InterfaceComponent implements AfterViewInit {
         }
 
         // place sprites on top of the tiles
-        e.players.forEach(p => {
-            let entity = this.assets.createEntity(p.sprite);
-            entity.setAnimation(`walk-${p.dir}`);
-            entity.position.set(p.x, p.y);
-
-            this.entities[p.id] = entity;
-            this.stage.addChild(entity);
-        });
+        e.players.forEach(p => this.addEntity(p));
     }
 
     /**
@@ -251,7 +266,14 @@ export class InterfaceComponent implements AfterViewInit {
     private processGameState(e: GameStateEvent): void {
         // process any changed players
         e.players.forEach(p => {
-            this.entities[p.id].position.set(p.x, p.y);
+            let entity = this.entities[p.id];
+            if (entity) {
+                entity.position.set(p.x, p.y);
+            }
+
+            else {
+                console.warn(`No such entity with ID ${p.id}`);
+            }
         });
     }
 
@@ -264,11 +286,17 @@ export class InterfaceComponent implements AfterViewInit {
         let entity = this.entities[e.id];
 
         // set the entity's direction and start their animation
-        entity.lastFrame = 0;
-        entity.direction = e.dir;
-        entity.moving = true;
-        entity.setAnimation(`walk-${e.dir}`);
-        entity.animate();
+        if (entity) {
+            entity.lastFrame = 0;
+            entity.direction = e.dir;
+            entity.moving = true;
+            entity.setAnimation(`walk-${e.dir}`);
+            entity.animate();
+        }
+
+        else {
+            console.warn(`No such entity with ID ${e.id}`);
+        }
     }
 
     /**
@@ -279,7 +307,35 @@ export class InterfaceComponent implements AfterViewInit {
     private processMoveStop(e: MoveStopEvent): void {
         let entity = this.entities[e.id];
 
-        entity.moving = false;
-        entity.stopAnimating();
+        if (entity) {
+            entity.moving = false;
+            entity.stopAnimating();
+        }
+
+        else {
+            console.warn(`No such entity with ID ${e.id}`);
+        }
+    }
+
+    /**
+     * Processes a game event containing an entity that has appeared on the map.
+     *
+     * @param e The event.
+     */
+    private processEntityAppear(e: EntityAppearEvent): void {
+        this.addEntity(e.player);
+    }
+
+    /**
+     * Processes a game event containing an entity that has disappeared from the map.
+     *
+     * @param e The event.
+     */
+    private processEntityDisappear(e: EntityDisappearEvent): void {
+        let entity = this.entities[e.id];
+        if (entity) {
+            this.stage.removeChild(entity);
+            delete this.entities[e.id];
+        }
     }
 }

@@ -1,7 +1,7 @@
 import {Http, Response} from "@angular/http";
 import {Injectable} from "@angular/core";
 import {Entity} from "./entity";
-import {TilesetInfo, TileInfo, SpriteSheetInfo, SpriteInfo, BoxInfo} from "./metadata"
+import {TilesetInfo, SpriteSheetInfo} from "./metadata";
 
 @Injectable()
 export class AssetsService {
@@ -9,10 +9,14 @@ export class AssetsService {
     private loader: PIXI.loaders.Loader;
     private tileset: PIXI.Texture;
     private spriteSheet: PIXI.Texture;
-    private entities: Map<string, Entity>;
-    private tileTextures: Map<number, PIXI.Texture>;
     private pendingLoad = 2;
     private loaded = false;
+
+    // map of entity names to their animations, keyed by animation name to list of frame textures
+    private entityTextures: Map<string, Map<string, Array<PIXI.Texture>>>;
+
+    // map of tile IDs to their textures
+    private tileTextures: Map<number, PIXI.Texture>;
 
     public constructor(private http: Http) {
         this.loader = PIXI.loader;
@@ -65,7 +69,23 @@ export class AssetsService {
      * @returns {Entity} An entity with that name.
      */
     public createEntity(name: string): Entity {
-        return this.entities[name];
+        let descriptor = this.entityTextures[name];
+        if (descriptor) {
+            let entity = new Entity();
+
+            for (let key in descriptor) {
+                if (descriptor.hasOwnProperty(key)) {
+                    entity.addAnimation(key, new PIXI.extras.AnimatedSprite(descriptor[key]));
+                }
+            }
+
+            return entity;
+        }
+
+        else {
+            console.warn(`Missing entity for sprite name ${name}`);
+            return null;
+        }
     }
 
     /**
@@ -136,18 +156,19 @@ export class AssetsService {
         this.spriteSheet = this.loader.resources['char1'].texture;
 
         // process each sprite and create animated entities from them
-        this.entities = new Map<string, Entity>();
+        this.entityTextures = new Map<string, Map<string, Array<PIXI.Texture>>>();
         sheet.sprites.forEach(s => {
-            let entity = new Entity();
+            let anim = new Map<string, Array<PIXI.Texture>>();
 
             s.animations.forEach(a => {
                 let textures = a.frames.map(f => new PIXI.Texture(this.spriteSheet.baseTexture,
                     new PIXI.Rectangle(f.x, f.y, f.w, f.h)));
 
-                entity.addAnimation(a.name, new PIXI.extras.AnimatedSprite(textures));
+                anim[a.name] = textures;
             });
 
-            this.entities[s.name] = entity;
+
+            this.entityTextures[s.name] = anim;
         });
     }
 }

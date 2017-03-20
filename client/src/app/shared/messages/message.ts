@@ -9,6 +9,8 @@ export class MessageHeader {
     public static get GAME_STATE():string { return "gameState"; }
     public static get MOVE_START():string { return "moveStart"; }
     public static get MOVE_STOP():string { return "moveStop"; }
+    public static get ENTITY_APPEAR():string { return "entityAppear"; }
+    public static get ENTITY_DISAPPEAR():string { return "entityDisappear"; }
 }
 
 /**
