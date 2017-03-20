@@ -140,9 +140,11 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
      */
     public synchronized void movePlayer(String sessionId, Direction direction) {
         Player player = players.get(sessionId);
+        long now = System.currentTimeMillis();
 
-        // have the player start moving if they aren't already
-        if (!player.isMoving()) {
+        // have the player start moving if they aren't already, and if they haven't moved "recently"
+        if (!player.isMoving() && now - player.getLastMovement() >= settings.getPlayerWalkDelay()) {
+            player.setLastMovement(now);
             player.setMoving(true);
             player.setDirection(direction);
 
@@ -153,7 +155,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
             area.sendToAll(new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
             area.unlock();
 
-            // schedule the player's next movement
+            // schedule the movement immediately
             scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
         }
     }
@@ -209,6 +211,8 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
     private void onMovePlayer(Player player) {
         // attempt to move the player, and if successful, schedule their next movement afterwards
         if (player.isMoving()) {
+            player.setLastMovement(System.currentTimeMillis());
+
             MapArea area = map.getMapArea(player.getMapArea());
             area.lock();
 
@@ -237,8 +241,17 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         MapArea area = map.getMapArea(player.getMapArea());
 
         area.lock();
-        area.sendToAll(new EntityMoveStopResponse(player.getId()));
+        area.sendToAll(new EntityMoveStopResponse(player.getId(), player.getX(), player.getY()));
         area.unlock();
+    }
+
+    /**
+     * Convenience method to schedule a task that will be executed as soon as possible.
+     *
+     * @param task The task to schedule.
+     */
+    private void scheduleNow(Runnable task) {
+        scheduler.schedule(task, Date.from(Instant.now()));
     }
 
     /**

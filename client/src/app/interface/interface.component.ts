@@ -307,8 +307,10 @@ export class InterfaceComponent implements AfterViewInit {
     private processMoveStop(e: MoveStopEvent): void {
         let entity = this.entities[e.id];
 
+        // stop the entity from moving, update their final position and also end any animations
         if (entity) {
             entity.moving = false;
+            entity.position.set(e.x, e.y);
             entity.stopAnimating();
         }
 

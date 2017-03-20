@@ -91,11 +91,15 @@ export class MoveStartEvent extends GameEvent {
 export class MoveStopEvent extends GameEvent {
 
     id: number;
+    x: number;
+    y: number;
 
-    public constructor(id: number) {
+    public constructor(id: number, x: number, y: number) {
         super(GameEventType.MOVE_STOP);
 
         this.id = id;
+        this.x = x;
+        this.y = y;
     }
 }
 

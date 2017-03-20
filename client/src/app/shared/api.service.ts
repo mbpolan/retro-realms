@@ -197,7 +197,7 @@ export class ApiService {
      * @param message The message.
      */
     private processMoveStop(message: MoveStopResponse): void {
-        this.events.next(new MoveStopEvent(message.id));
+        this.events.next(new MoveStopEvent(message.id, message.x, message.y));
     }
 
     /**
