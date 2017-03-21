@@ -8,6 +8,7 @@ node_js: '7'
 
 # make gradlew executable
 before_install:
+ - nvm install 7
  - chmod +x gradlew
 
 script:
