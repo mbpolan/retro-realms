@@ -4,6 +4,8 @@ language: java
 jdk:
   - oraclejdk8
 
+node_js: '7'
+
 # make gradlew executable
 before_install:
  - chmod +x gradlew
