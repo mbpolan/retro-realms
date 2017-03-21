@@ -10,7 +10,6 @@ node_js: '7'
 before_install:
  - nvm install 7
  - chmod +x gradlew
- - npm --version
 
 script:
   - gradle build

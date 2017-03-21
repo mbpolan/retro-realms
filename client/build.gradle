@@ -4,6 +4,6 @@ task build(type: Exec) {
     }
 
     else {
-        commandLine 'sh', 'npm install && npm run build'
+        commandLine 'sh', '-c', 'npm install && npm run build'
     }
 }
