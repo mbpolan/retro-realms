@@ -8,6 +8,9 @@ jdk:
 before_install:
  - chmod +x gradlew
 
+script:
+  - gradle build
+
 # avoid uploading dependency caches that gradle generates
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock

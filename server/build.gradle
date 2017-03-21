@@ -11,8 +11,16 @@ buildscript {
 group 'com.mbpolan.retrorealms'
 version '1.0.0-SNAPSHOT'
 
-apply plugin: 'spring-boot'
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
 
+sourceSets {
+    main {
+        resources {
+            srcDir "${project.projectDir}/../client/dist"
+        }
+    }
+}
 repositories {
     mavenCentral()
 }

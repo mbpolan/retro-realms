@@ -14,6 +14,7 @@ import {InterfaceComponent} from "./interface/interface.component";
 import {AssetsService} from "./interface/gfx/assets.service";
 import {UserInfoService} from "./shared/user-info.service";
 import {KeyboardService} from "./interface/keyboard/keyboard.service";
+import {AppService} from "./shared/app.service";
 
 @NgModule({
     imports: [
@@ -28,6 +29,7 @@ import {KeyboardService} from "./interface/keyboard/keyboard.service";
         InterfaceComponent
     ],
     providers: [
+        AppService,
         AssetsService,
         ApiService,
         KeyboardService,

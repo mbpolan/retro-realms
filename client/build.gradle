@@ -1,0 +1,9 @@
+task build(type: Exec) {
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'npm install && npm run build'
+    }
+
+    else {
+        commandLine 'sh', 'npm install && npm run build'
+    }
+}

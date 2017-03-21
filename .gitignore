@@ -3,4 +3,5 @@
 build
 *.iml
 **/npm-debug.log
+client/dist
 client/node_modules

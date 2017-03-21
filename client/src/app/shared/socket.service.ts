@@ -2,6 +2,7 @@ import {Observable, Subject, Observer} from "rxjs/Rx";
 import {Injectable} from "@angular/core";
 import {ISubscription} from "rxjs/Subscription";
 import {Message} from "./messages/message";
+import {AppService} from "./app.service";
 
 declare var Stomp: any;
 declare var SockJS: any;
@@ -18,7 +19,7 @@ export class SocketService {
   private state: SocketState;
   private stateSubject: Subject<SocketState>;
 
-  public constructor() {
+  public constructor(private app: AppService) {
     this.state = SocketState.DISCONNECTED;
     this.stateSubject = new Subject<SocketState>();
   }
@@ -33,7 +34,7 @@ export class SocketService {
 
     let observable = Observable.create((obs: Observer<Message>) => {
       console.log('stomp client...');
-      self.client = Stomp.over(new SockJS('http://localhost:9000/client'));
+      self.client = Stomp.over(new SockJS(`${this.app.contextPath()}/client`));
 
       // establish a connection to the server and subscribe for game events
       self.client.connect({}, () => {

@@ -18,6 +18,9 @@ var isTestWatch = ENV === 'test-watch';
 var isTest = ENV === 'test' || isTestWatch;
 var isProd = ENV === 'build';
 
+// define parameters specific to the environment in question
+var baseServerUrl = isProd ? '' : 'http://localhost:9000';
+
 module.exports = function makeWebpackConfig() {
   /**
    * Config
@@ -58,7 +61,7 @@ module.exports = function makeWebpackConfig() {
    * Reference: http://webpack.github.io/docs/configuration.html#output
    */
   config.output = isTest ? {} : {
-    path: root('dist'),
+    path: root('dist/static'),
     publicPath: isProd ? '/' : 'http://localhost:8080/',
     filename: isProd ? 'js/[name].[hash].js' : 'js/[name].js',
     chunkFilename: isProd ? '[id].[hash].chunk.js' : '[id].chunk.js'
@@ -70,7 +73,7 @@ module.exports = function makeWebpackConfig() {
    */
   config.resolve = {
     // only discover files that have those extensions
-    extensions: ['.ts', '.js', '.json', '.css', '.scss', '.html'],
+    extensions: ['.ts', '.js', '.json', '.css', '.scss', '.html']
   };
 
   var atlOptions = '';
@@ -162,7 +165,8 @@ module.exports = function makeWebpackConfig() {
     new webpack.DefinePlugin({
       // Environment helpers
       'process.env': {
-        ENV: JSON.stringify(ENV)
+        ENV: JSON.stringify(ENV),
+        BASE_URL: JSON.stringify(baseServerUrl)
       }
     }),
 
