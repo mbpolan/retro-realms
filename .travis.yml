@@ -1,16 +1,27 @@
 language: java
+
+# sudo is required to install NodeJS
 sudo: required
 
+# we require JDK 1.8 or newer
 jdk:
   - oraclejdk8
 
+# grab H2, install NodeJS with npm, and finally make gradlew executable
 before_install:
+  - wget http://www.h2database.com/h2-2017-03-10.zip -O h2.zip; unzip h2
   - nvm install 7
   - chmod +x gradlew
+
+# invoke the Gradle build task to build the client and server code
 script:
   - gradle build
+
+# remove node_modules to keep archive size small, and create the initial database under the server directory
 after_success:
   - rm -rf client/node_modules
+  - java -cp h2/bin/h2*.jar org.h2.tools.RunScript -url "jdbc:h2:./server/server" -script server/sql/schema.sql
+  - java -cp h2/bin/h2*.jar org.h2.tools.RunScript -url "jdbc:h2:./server/server" -script server/sql/init.sql
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -21,6 +32,7 @@ cache:
     - "$HOME/.gradle/caches/"
     - "$HOME/.gradle/wrapper/"
 
+# deploy our combined application to Heroku
 deploy:
   provider: heroku
   skip_cleanup: "true"
