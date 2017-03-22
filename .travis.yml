@@ -4,8 +4,6 @@ language: java
 jdk:
   - oraclejdk8
 
-node_js: '7'
-
 # make gradlew executable
 before_install:
  - nvm install 7
@@ -20,5 +18,6 @@ before_cache:
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
+    - client/node_modules
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
