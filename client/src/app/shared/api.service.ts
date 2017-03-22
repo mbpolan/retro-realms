@@ -11,7 +11,7 @@ import {
     MoveStartEvent,
     MoveStopEvent,
     EntityAppearEvent,
-    EntityDisappearEvent
+    EntityDisappearEvent, LoginResult
 } from "./game-event";
 import {Message, MessageHeader} from "./messages/message";
 import {LoginRequest} from "./messages/outgoing/login-request";
@@ -153,13 +153,28 @@ export class ApiService {
      * @param message The message.
      */
     private processLogin(message: LoginResponse): void {
-        console.log(`login result: ${message.success}`);
+        console.log(`login result: ${message.result}`);
+        let failure = false;
 
-        if (message.success) {
-            this.events.next(new LoginEvent(message.id, message.success));
+        // login was successful
+        if (message.result == LoginResponse.SUCCESS) {
+            this.events.next(new LoginEvent(message.id, LoginResult.SUCCESS));
         }
 
-        else {
+        // the user's credentials are incorrect
+        else if (message.result == LoginResponse.INVALID_LOGIN) {
+            failure = true;
+            this.events.next(new LoginEvent(message.id, LoginResult.INVALID_LOGIN));
+        }
+
+        // some other kind of error happened
+        else if (message.result == LoginResponse.SERVER_ERROR) {
+            failure = true;
+            this.events.next(new LoginEvent(message.id, LoginResult.SERVER_ERROR));
+        }
+
+        // if login failed, disconnect from the server
+        if (failure) {
             this.socketService.disconnect();
         }
     }

@@ -1,6 +1,7 @@
 package com.mbpolan.retrorealms.controllers;
 
 import com.mbpolan.retrorealms.beans.requests.*;
+import com.mbpolan.retrorealms.repositories.entities.UserAccount;
 import com.mbpolan.retrorealms.services.AuthService;
 import com.mbpolan.retrorealms.services.GameService;
 import com.mbpolan.retrorealms.services.beans.Direction;
@@ -12,7 +13,7 @@ import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 @Controller
 public class GameController {
@@ -62,8 +63,15 @@ public class GameController {
      * @param request The request payload.
      */
     private void handleLogin(String sessionId, LoginRequest request) {
-        if (authService.authenticate(request.getUsername(), request.getPassword())) {
-            gameService.addPlayer(sessionId, request.getUsername());
+        UserAccount account = authService.authenticate(request.getUsername(), request.getPassword());
+        if (account != null) {
+            if (gameService.addPlayer(sessionId, account)) {
+                authService.updateLastLogin(account);
+            }
+        }
+
+        else {
+            gameService.rejectPlayer(sessionId);
         }
     }
 

@@ -1,3 +1,5 @@
+// TODO: this file needs to be split into individual ones
+
 export enum GameEventType {
     LOGGED_IN,
     LOGGED_OUT,
@@ -7,6 +9,12 @@ export enum GameEventType {
     MOVE_STOP,
     ENTITY_APPEAR,
     ENTITY_DISAPPEAR
+}
+
+export enum LoginResult {
+    SUCCESS,
+    INVALID_LOGIN,
+    SERVER_ERROR
 }
 
 export abstract class GameEvent {
@@ -21,13 +29,13 @@ export abstract class GameEvent {
 export class LoginEvent extends GameEvent {
 
     id: number;
-    success: boolean;
+    result: LoginResult;
 
-    public constructor(id: number, success: boolean) {
+    public constructor(id: number, result: LoginResult) {
         super(GameEventType.LOGGED_IN);
 
         this.id = id;
-        this.success = success;
+        this.result = result;
     }
 }
 

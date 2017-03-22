@@ -5,7 +5,7 @@ import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
 import java.util.List;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 public class GameStateResponse extends AbstractResponse {
 

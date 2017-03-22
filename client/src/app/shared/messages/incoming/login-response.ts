@@ -6,6 +6,10 @@
  */
 export class LoginResponse {
 
+    public static get SUCCESS(): string { return 'success' };
+    public static get INVALID_LOGIN(): string { return 'invalidLogin' };
+    public static get SERVER_ERROR(): string { return 'serverError' };
+
     id: number;
-    success: boolean;
+    result: string;
 }

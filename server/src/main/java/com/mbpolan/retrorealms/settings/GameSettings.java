@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.settings;
 /**
  * Settings for how the game server functions.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class GameSettings {
 

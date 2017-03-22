@@ -1,4 +1,6 @@
 # Retro Realms
+[![Build Status](https://travis-ci.org/mbpolan/retro-realms.svg?branch=master)](https://travis-ci.org/mbpolan/retro-realms)
+[![Heroku](https://heroku-badge.herokuapp.com/?app=heroku-badge)]
 
 This is a simple project that makes use of WebGL and WebSockets.
 

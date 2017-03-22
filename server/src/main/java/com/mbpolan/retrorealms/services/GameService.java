@@ -1,7 +1,9 @@
 package com.mbpolan.retrorealms.services;
 
 import com.mbpolan.retrorealms.beans.responses.*;
+import com.mbpolan.retrorealms.beans.responses.data.LoginResult;
 import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
+import com.mbpolan.retrorealms.repositories.entities.UserAccount;
 import com.mbpolan.retrorealms.services.beans.Direction;
 import com.mbpolan.retrorealms.services.beans.GameState;
 import com.mbpolan.retrorealms.services.beans.MapArea;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Core service that manages the state of the game.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @Service
 public class GameService implements ApplicationListener<SessionDisconnectEvent> {
@@ -84,22 +86,36 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
     }
 
     /**
+     * Rejects a player from the game.
+     *
+     * @param sessionId The session ID of the player.
+     */
+    public void rejectPlayer(String sessionId) {
+        new Player(0, sessionId, null, null, Direction.DOWN, socket)
+                .send(LoginResponse.createFailure(LoginResult.INVALID_LOGIN));
+    }
+
+    /**
      * Adds a player to the game.
      *
      * @param sessionId The player's websocket session ID.
-     * @param username The player's username.
+     * @param account Data about the user's account.
+     * @return true if the player was successfully added to the game, false otherwise.
      */
-    public synchronized void addPlayer(String sessionId, String username) {
+    public synchronized boolean addPlayer(String sessionId, UserAccount account) {
         if (players.containsKey(sessionId)) {
-            throw new IllegalStateException(String.format("Player already exists: %s", sessionId));
+            LOG.error("Player session already exists: {}");
+            return false;
         }
 
         // create a new player and put them in the global player map
-        Player player = new Player(lastPlayerId++, sessionId, username, "char1", Direction.DOWN, socket);
+        Player player = new Player(lastPlayerId++, sessionId, account.getUsername(), account.getSprite(),
+                Direction.fromValue(account.getDirection()), socket);
+        player.setAbsolutePosition(account.getMapArea(), account.getX(), account.getY());
         players.put(sessionId, player);
 
         // tell the player their login was successful
-        player.send(new LoginResponse(player.getId(), true));
+        player.send(LoginResponse.createSuccess(player.getId()));
 
         // add the player to the map area
         MapArea area = map.getMapArea(player.getMapArea());
@@ -130,6 +146,8 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 player.getDirection().getValue())), player);
 
         area.unlock();
+
+        return true;
     }
 
     /**

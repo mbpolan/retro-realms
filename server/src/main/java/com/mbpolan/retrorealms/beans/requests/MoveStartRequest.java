@@ -1,7 +1,7 @@
 package com.mbpolan.retrorealms.beans.requests;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 public class MoveStartRequest extends AbstractRequest {
 

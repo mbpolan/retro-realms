@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.beans.responses.data;
 /**
  * Bean that contains information about a player on the map.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class PlayerInfo {
 

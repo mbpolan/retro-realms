@@ -1,7 +1,7 @@
 package com.mbpolan.retrorealms.beans.responses;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 public abstract class AbstractResponse {
 

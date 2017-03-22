@@ -8,7 +8,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 /**
  * Representation of a player that's logged into the game.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class Player {
 
@@ -41,13 +41,11 @@ public class Player {
         this.username = username;
         this.sprite = sprite;
         this.socket = socket;
-        this.mapArea = 0;
-        this.x = 0;
-        this.y = 0;
         this.speed = 8;
         this.moving = false;
         this.lastMovement = 0;
         this.direction = direction;
+        this.setAbsolutePosition(0, 0, 0);
     }
 
     public int getId() {
@@ -68,6 +66,12 @@ public class Player {
 
     public int getMapArea() {
         return mapArea;
+    }
+
+    public void setAbsolutePosition(int mapArea, int x, int y) {
+        this.mapArea = mapArea;
+        this.x = x;
+        this.y = y;
     }
 
     public void setPositionDelta(int dx, int dy) {

@@ -9,7 +9,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 /**
  * Configuration for web socket support.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @Configuration
 @EnableWebSocketMessageBroker

@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Class that models a resource that requires synchronization.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public abstract class Lockable {
 

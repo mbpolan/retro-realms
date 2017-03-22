@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * Entry point into the application.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @SpringBootApplication
 @EnableScheduling

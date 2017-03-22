@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Service that manages various administrator-configurable settings.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @Service
 public class SettingsService {

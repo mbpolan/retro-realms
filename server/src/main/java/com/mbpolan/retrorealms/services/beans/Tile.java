@@ -1,7 +1,7 @@
 package com.mbpolan.retrorealms.services.beans;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 public class Tile {
 
