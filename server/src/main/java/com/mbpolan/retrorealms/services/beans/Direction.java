@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.services.beans;
 /**
  * Enumeration of possible directions.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public enum Direction {
     UP    ("up"),

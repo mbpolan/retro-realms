@@ -8,7 +8,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 /**
  * Representation of a player that's logged into the game.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class Player {
 

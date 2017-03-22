@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Bean that contains a snapshot of the state of the game.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class GameState {
 

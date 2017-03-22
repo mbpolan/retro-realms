@@ -12,7 +12,7 @@ import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 @Controller
 public class GameController {

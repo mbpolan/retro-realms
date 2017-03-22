@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Core service that manages the state of the game.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @Service
 public class GameService implements ApplicationListener<SessionDisconnectEvent> {

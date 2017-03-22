@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.settings;
 /**
  * Bean that contains general information about the map.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class MapSettings {
 

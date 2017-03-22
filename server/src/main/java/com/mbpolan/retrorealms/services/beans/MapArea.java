@@ -12,7 +12,7 @@ import java.util.List;
  * "game state", which describes the current conditions in that area. The tiles are represented as a rectangle,
  * in row-major order.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class MapArea extends Lockable {
 

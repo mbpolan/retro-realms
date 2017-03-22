@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.beans.requests;
 /**
  * Message that contains a user's login request.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class LoginRequest extends AbstractRequest {
 

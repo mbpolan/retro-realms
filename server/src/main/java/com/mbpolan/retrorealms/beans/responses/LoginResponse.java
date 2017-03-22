@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.beans.responses;
 /**
  * Bean that contains a response for a login request.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class LoginResponse extends AbstractResponse {
 

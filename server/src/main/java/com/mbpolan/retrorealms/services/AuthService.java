@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 /**
  * Service that handles incoming authentication requests from clients.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @Service
 public class AuthService {

@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.beans.responses;
 import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
 
 /**
- * @author Mike Polan
+ * @author mbpolan
  */
 public class EntityAppearResponse extends AbstractResponse {
 

@@ -3,7 +3,7 @@ package com.mbpolan.retrorealms.settings;
 /**
  * Settings specific to how players are handled in-game.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 public class PlayerSettings {
 

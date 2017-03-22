@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Service that manages various areas of the game map.
  *
- * @author Mike Polan
+ * @author mbpolan
  */
 @Service
 public class MapService {
