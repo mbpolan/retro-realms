@@ -3,5 +3,5 @@ subprojects {
 }
 
 task stage(type: Exec) {
-    commandLine 'sh', '-c', 'ls -l'
+    commandLine 'sh', '-c', 'ls -l server'
 }

@@ -1,13 +1,17 @@
 language: java
 sudo: required
+
 jdk:
   - oraclejdk8
+
 before_install:
-  - wget -qO- https://toolbelt.heroku.com/install.sh | sh
   - nvm install 7
   - chmod +x gradlew
 script:
   - gradle clean
+after_success:
+  - rm -rf client/node_modules
+
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -rf $HOME/.gradle/caches/*/plugin-resolution/
@@ -16,6 +20,7 @@ cache:
     - client/node_modules
     - "$HOME/.gradle/caches/"
     - "$HOME/.gradle/wrapper/"
+
 deploy:
   provider: heroku
   skip_cleanup: "true"
