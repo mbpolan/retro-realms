@@ -1,3 +1,7 @@
 subprojects {
     version = '1.0.0'
 }
+
+task stage(type: Exec) {
+    commandLine 'sh', '-c', 'ls -l server'
+}

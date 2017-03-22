@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar server/build/libs/server-1.0.0-SNAPSHOT.jar
+web: sh -c 'cd server && java -Dserver.port=$PORT -jar build/libs/server-1.0.0-SNAPSHOT.jar'
