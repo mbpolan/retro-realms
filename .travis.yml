@@ -8,7 +8,7 @@ before_install:
   - nvm install 7
   - chmod +x gradlew
 script:
-  - gradle clean
+  - gradle build
 after_success:
   - rm -rf client/node_modules
 
