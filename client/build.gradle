@@ -7,3 +7,7 @@ task build(type: Exec) {
         commandLine 'sh', '-c', 'npm install && npm run build'
     }
 }
+
+task stage {
+    dependsOn build
+}
