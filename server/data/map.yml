@@ -3,3 +3,9 @@ map:
   height: 20
   tileSize: 32
   file: data/map.csv
+  tileset:
+    path: /assets/tileset1.json
+    resource: /assets/tileset1.png
+  sprites:
+    path: /assets/char1.json
+    resource: /assets/char1.png

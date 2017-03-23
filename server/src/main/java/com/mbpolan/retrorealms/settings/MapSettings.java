@@ -1,5 +1,7 @@
 package com.mbpolan.retrorealms.settings;
 
+import java.io.File;
+
 /**
  * Bean that contains general information about the map.
  *
@@ -11,36 +13,28 @@ public class MapSettings {
     private int height;
     private int tileSize;
     private String file;
+    private AssetSettings tilesetSettings;
+    private AssetSettings spritesSettings;
 
-    public MapSettings(int width, int height, int tileSize, String file) {
+    public MapSettings(int width, int height, int tileSize, String file, AssetSettings tilesetSettings, AssetSettings spritesSettings) {
         this.width = width;
         this.height = height;
         this.tileSize = tileSize;
         this.file = file;
+        this.tilesetSettings = tilesetSettings;
+        this.spritesSettings = spritesSettings;
     }
 
     public int getWidth() {
         return width;
     }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
     public int getHeight() {
         return height;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
     public int getTileSize() {
         return tileSize;
-    }
-
-    public void setTileSize(int tileSize) {
-        this.tileSize = tileSize;
     }
 
     public String getFile() {
@@ -49,5 +43,13 @@ public class MapSettings {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public AssetSettings getTilesetSettings() {
+        return tilesetSettings;
+    }
+
+    public AssetSettings getSpritesSettings() {
+        return spritesSettings;
     }
 }

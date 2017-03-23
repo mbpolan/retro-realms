@@ -7,5 +7,7 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-
-spring.jpa.hibernate.ddl-auto: none
+  jpa:
+    hibernate.ddl-auto: none
+  resources:
+    staticLocations: file:./data/assets

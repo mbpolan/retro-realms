@@ -1,5 +1,6 @@
 package com.mbpolan.retrorealms.services;
 
+import com.mbpolan.retrorealms.settings.AssetSettings;
 import com.mbpolan.retrorealms.settings.GameSettings;
 import com.mbpolan.retrorealms.settings.MapSettings;
 import com.mbpolan.retrorealms.settings.PlayerSettings;
@@ -35,12 +36,16 @@ public class SettingsService {
         // load the map settings file and create a bean from it
         Map<String, Object> mapSettingsRoot = (Map<String, Object>) new Yaml().load(new FileInputStream(mapSettingsFile));
         Map<String, Object> map = (Map<String, Object>) mapSettingsRoot.get("map");
+        Map<String, Object> tileset = (Map<String, Object>) map.get("tileset");
+        Map<String, Object> sprites = (Map<String, Object>) map.get("sprites");
 
         this.mapSettings = new MapSettings(
                 Integer.parseInt(map.get("width").toString()),
                 Integer.parseInt(map.get("height").toString()),
                 Integer.parseInt(map.get("tileSize").toString()),
-                map.get("file").toString());
+                map.get("file").toString(),
+                new AssetSettings(tileset.get("path").toString(), tileset.get("resource").toString()),
+                new AssetSettings(sprites.get("path").toString(), sprites.get("resource").toString()));
 
         File gameSettingsFile = new File("./data/server.yml");
         if (!gameSettingsFile.exists()) {
@@ -74,6 +79,42 @@ public class SettingsService {
      */
     public MapSettings getMapSettings() {
         return mapSettings;
+    }
+
+    /**
+     * Returns the path to the tileset metadata resource.
+     *
+     * @return The path to the tileset metadata, relative to the server root.
+     */
+    public String getTilesetPath() {
+        return this.mapSettings.getTilesetSettings().getPath();
+    }
+
+    /**
+     * Returns the path to the actual tileset resource.
+     *
+     * @return The path to the tileset resource, relative to the server root.
+     */
+    public String getTilesetResource() {
+        return this.mapSettings.getTilesetSettings().getResource();
+    }
+
+    /**
+     * Returns the path to the sprites metadata resource.
+     *
+     * @return The resource path.
+     */
+    public String getSpritesPath() {
+        return this.mapSettings.getSpritesSettings().getPath();
+    }
+
+    /**
+     * Returns the path to the actual sprites resource.
+     *
+     * @return The path to the sprites resource, relative to the server root.
+     */
+    public String getSpritesResource() {
+        return this.mapSettings.getSpritesSettings().getResource();
     }
 
     /**
