@@ -2,6 +2,9 @@ import {Http, Response} from "@angular/http";
 import {Injectable} from "@angular/core";
 import {Entity} from "./entity";
 import {TilesetInfo, SpriteSheetInfo} from "./metadata";
+import {ServerInfoService} from "../../shared/server-info.service";
+import {ServerInfo} from "../../shared/server/server-info";
+import {AppService} from "../../shared/app.service";
 
 @Injectable()
 export class AssetsService {
@@ -18,7 +21,7 @@ export class AssetsService {
     // map of tile IDs to their textures
     private tileTextures: Map<number, PIXI.Texture>;
 
-    public constructor(private http: Http) {
+    public constructor(private app: AppService, private http: Http, private serverInfo: ServerInfoService) {
         this.loader = PIXI.loader;
     }
 
@@ -37,9 +40,12 @@ export class AssetsService {
         }
 
         else {
-            this.loader.add('tileset1', `/assets/tileset1.png`);
-            this.loader.add('char1', `/assets/char1.png`);
-            this.loader.load((loader, resource) => this.loadDescriptors(loader, resource, done));
+            this.serverInfo.getServerInfo().subscribe(info => {
+                this.loader.add(info.tileset.name, `${this.app.contextPath()}${info.tileset.resource}`);
+                this.loader.add(info.sprites.name, `${this.app.contextPath()}${info.sprites.resource}`);
+
+                this.loader.load((loader, resource) => this.loadDescriptors(loader, resource, info, done));
+            });
         }
     }
 
@@ -107,10 +113,12 @@ export class AssetsService {
      *
      * @param loader The loader associated with the image.
      * @param resource Resources loaded for the texture.
+     * @param info Information about the server's assets.
      * @param done Callback to invoke once processing is done.
      */
-    private loadDescriptors(loader: any, resource: any, done: () => void): void {
-        this.http.get(`/assets/tileset1.json`)
+    private loadDescriptors(loader: any, resource: any, info: ServerInfo, done: () => void): void {
+        // load the metadata for the tileset
+        this.http.get(`${this.app.contextPath()}${info.tileset.path}`)
             .map((res: Response) => res.json())
             .subscribe(data => {
                 this.loadTileset(<TilesetInfo> data);
@@ -119,7 +127,8 @@ export class AssetsService {
                 this.notifyIfDone(done);
             });
 
-        this.http.get(`/assets/char1.json`)
+        // load the metadata for the sprite sheet
+        this.http.get(`${this.app.contextPath()}${info.sprites.path}`)
             .map((res: Response) => res.json())
             .subscribe(data => {
                 this.loadSprites(<SpriteSheetInfo> data);
@@ -142,7 +151,7 @@ export class AssetsService {
 
         tileset.tiles.forEach(t => {
             // compute the frame of the tile based on its metadata rectangle
-            let rect = new PIXI.Rectangle(t.box.x, t.box.y, t.box.w, t.box.h);
+            let rect = new PIXI.Rectangle(t.frame.x, t.frame.y, t.frame.w, t.frame.h);
             this.tileTextures[t.id] = new PIXI.Texture(this.tileset.baseTexture, rect);
         });
     }

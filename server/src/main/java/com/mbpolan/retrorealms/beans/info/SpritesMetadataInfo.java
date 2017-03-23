@@ -7,12 +7,18 @@ package com.mbpolan.retrorealms.beans.info;
  */
 public class SpritesMetadataInfo {
 
+    private String name;
     private String path;
     private String resource;
 
-    public SpritesMetadataInfo(String path, String resource) {
+    public SpritesMetadataInfo(String name, String path, String resource) {
+        this.name = name;
         this.path = path;
         this.resource = resource;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getPath() {

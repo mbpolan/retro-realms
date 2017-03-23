@@ -7,12 +7,18 @@ package com.mbpolan.retrorealms.settings;
  */
 public class AssetSettings {
 
+    private String name;
     private String path;
     private String resource;
 
-    public AssetSettings(String path, String resource) {
+    public AssetSettings(String name, String path, String resource) {
+        this.name = name;
         this.path = path;
         this.resource = resource;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getPath() {

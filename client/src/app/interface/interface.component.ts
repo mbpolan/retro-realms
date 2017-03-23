@@ -31,7 +31,8 @@ export class InterfaceComponent implements AfterViewInit {
     private pendingEvents: Array<GameEvent> = [];
     private keyEventSub: ISubscription;
 
-    public constructor(private api: ApiService, private assets: AssetsService, private keyboard: KeyboardService) {
+    public constructor(private api: ApiService, private assets: AssetsService,
+                       private keyboard: KeyboardService) {
         this.api.subscribe(this.processEvent.bind(this));
     }
 

@@ -44,8 +44,14 @@ public class SettingsService {
                 Integer.parseInt(map.get("height").toString()),
                 Integer.parseInt(map.get("tileSize").toString()),
                 map.get("file").toString(),
-                new AssetSettings(tileset.get("path").toString(), tileset.get("resource").toString()),
-                new AssetSettings(sprites.get("path").toString(), sprites.get("resource").toString()));
+                new AssetSettings(
+                        tileset.get("name").toString(),
+                        tileset.get("path").toString(),
+                        tileset.get("resource").toString()),
+                new AssetSettings(
+                        sprites.get("name").toString(),
+                        sprites.get("path").toString(),
+                        sprites.get("resource").toString()));
 
         File gameSettingsFile = new File("./data/server.yml");
         if (!gameSettingsFile.exists()) {

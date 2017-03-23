@@ -42,7 +42,8 @@ export class SpriteSheetInfo {
 export class TileInfo {
 
     id: number;
-    box: BoxInfo;
+    frame: BoxInfo;
+    bbox: BoxInfo;
 }
 
 /**

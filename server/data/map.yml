@@ -4,8 +4,10 @@ map:
   tileSize: 32
   file: data/map.csv
   tileset:
+    name: tileset1
     path: /assets/tileset1.json
     resource: /assets/tileset1.png
   sprites:
+    name: char1
     path: /assets/char1.json
     resource: /assets/char1.png

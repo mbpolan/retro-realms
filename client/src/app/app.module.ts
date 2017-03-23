@@ -15,6 +15,7 @@ import {AssetsService} from "./interface/gfx/assets.service";
 import {UserInfoService} from "./shared/user-info.service";
 import {KeyboardService} from "./interface/keyboard/keyboard.service";
 import {AppService} from "./shared/app.service";
+import {ServerInfoService} from "./shared/server-info.service";
 
 @NgModule({
     imports: [
@@ -33,6 +34,7 @@ import {AppService} from "./shared/app.service";
         AssetsService,
         ApiService,
         KeyboardService,
+        ServerInfoService,
         SocketService,
         UserInfoService
     ],
