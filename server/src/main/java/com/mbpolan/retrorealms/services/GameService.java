@@ -162,19 +162,27 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
 
         // have the player start moving if they aren't already, and if they haven't moved "recently"
         if (!player.isMoving() && now - player.getLastMovement() >= settings.getPlayerWalkDelay()) {
-            player.setLastMovement(now);
-            player.setMoving(true);
-            player.setDirection(direction);
-
-            // notify all spectators
             MapArea area = map.getMapArea(player.getMapArea());
 
+            // test if the player can move, and if so, schedule their next movement
             area.lock();
-            area.sendToAll(new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
-            area.unlock();
+            if (area.canPlayerMove(player, direction)) {
+                player.setLastMovement(now);
+                player.setMoving(true);
+                player.setDirection(direction);
 
-            // schedule the movement immediately
-            scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
+                // notify all spectators
+                area.sendToAll(new EntityMoveStartResponse(player.getId(), player.getDirection().getValue()));
+
+                // schedule the movement immediately
+                scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
+            }
+
+            else {
+                onStopPlayerInArea(player, area);
+            }
+
+            area.unlock();
         }
     }
 
@@ -238,6 +246,10 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
             }
 
+            else {
+                onStopPlayerInArea(player, area);
+            }
+
             area.unlock();
         }
 
@@ -253,14 +265,25 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
      * @param player The player to stop moving.
      */
     private void onStopPlayer(Player player) {
-        player.setMoving(false);
-
         // notify spectators that this player is no longer moving
         MapArea area = map.getMapArea(player.getMapArea());
 
         area.lock();
-        area.sendToAll(new EntityMoveStopResponse(player.getId(), player.plane().getX1(), player.plane().getY1()));
+        onStopPlayerInArea(player, area);
         area.unlock();
+    }
+
+    /**
+     * Stops a moving player in a given area from further movements.
+     *
+     * It is assumed that the {@link MapArea} is locked before this method is invoked.
+     *
+     * @param player The player to stop moving.
+     * @param area The map area in which the player is moving.
+     */
+    private void onStopPlayerInArea(Player player, MapArea area) {
+        player.setMoving(false);
+        area.sendToAll(new EntityMoveStopResponse(player.getId(), player.plane().getX1(), player.plane().getY1()));
     }
 
     /**

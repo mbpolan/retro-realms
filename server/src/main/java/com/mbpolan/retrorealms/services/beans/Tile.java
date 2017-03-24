@@ -1,7 +1,5 @@
 package com.mbpolan.retrorealms.services.beans;
 
-import java.util.List;
-
 /**
  * @author mbpolan
  */

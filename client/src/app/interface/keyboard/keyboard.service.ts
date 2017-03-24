@@ -35,6 +35,13 @@ export class KeyboardService {
     }
 
     /**
+     * Clears any currently pressed keys and ignores their subsequent keyup events.
+     */
+    public clearKeys(): void {
+        this._activeKeys = [];
+    }
+
+    /**
      * Subscribes for keyboard events.
      *
      * @param cb The callback to invoke when an event is available.
@@ -70,10 +77,11 @@ export class KeyboardService {
     private onKeyUp(e: ExtendedKeyboardEvent, key: Key): void {
         this.suppressEvent(e);
 
-        // remove the key from the active key list
-        this._activeKeys = this._activeKeys.filter(k => k != key);
-
-        this.events.next(new KeyEvent(key, false));
+        // remove the key from the active key list, if it exists
+        if (this._activeKeys.indexOf(key) > -1) {
+            this._activeKeys = this._activeKeys.filter(k => k != key);
+            this.events.next(new KeyEvent(key, false));
+        }
     }
 
     /**

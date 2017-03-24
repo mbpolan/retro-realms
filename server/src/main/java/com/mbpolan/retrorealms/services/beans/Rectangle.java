@@ -22,6 +22,10 @@ public class Rectangle {
         this.y2 = y2;
     }
 
+    public Rectangle copy() {
+        return new Rectangle(x1, y1, x2, y2);
+    }
+
     public int getX1() {
         return x1;
     }

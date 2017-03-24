@@ -11,6 +11,7 @@ import {ISubscription} from "rxjs/Subscription";
 import {Direction} from "../shared/direction";
 import {Key} from "./keyboard/key";
 import {Entity} from "./gfx/entity";
+import {UserInfoService} from "../shared/user-info.service";
 
 declare let PIXI:any;
 
@@ -32,7 +33,7 @@ export class InterfaceComponent implements AfterViewInit {
     private keyEventSub: ISubscription;
 
     public constructor(private api: ApiService, private assets: AssetsService,
-                       private keyboard: KeyboardService) {
+                       private keyboard: KeyboardService, private user: UserInfoService) {
         this.api.subscribe(this.processEvent.bind(this));
     }
 
@@ -313,6 +314,11 @@ export class InterfaceComponent implements AfterViewInit {
             entity.moving = false;
             entity.position.set(e.x, e.y);
             entity.stopAnimating();
+
+            // if this entity is us, make sure to clear any pending movement keys
+            if (e.id == this.user.getPlayerId()) {
+                this.keyboard.clearKeys();
+            }
         }
 
         else {

@@ -4,6 +4,7 @@ import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Represents a single area of the map that contains tiles, players and other entities.
@@ -48,13 +49,22 @@ public class MapArea extends Lockable {
         this.height = height;
         this.tileSize = tileSize;
         this.state = new GameState();
+        this.planes = new ArrayList<>();
 
         // compute our initial collision planes using the tiles that have bounding boxes
-        this.planes = tiles.stream()
-                .flatMap(r -> r.stream()
-                        .filter(Tile::hasBoundingBox)
-                        .map(Tile::getBoundingBox))
-                .collect(Collectors.toList());
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Tile tile = tiles.get(y).get(x);
+
+                if (tile.hasBoundingBox()) {
+                    // the tile's collision plane will be its position on the map
+                    Rectangle plane = tile.getBoundingBox().copy();
+                    plane.translate(x * tileSize, y * tileSize);
+
+                    this.planes.add(plane);
+                }
+            }
+        }
     }
 
     /**
@@ -160,14 +170,38 @@ public class MapArea extends Lockable {
     }
 
     /**
+     * Tests if a player can move in a given direction.
+     *
+     * @param player The moving player.
+     * @param direction The direction in which the player intends to move.
+     * @return true if the move can be done, false if not.
+     */
+    public boolean canPlayerMove(Player player, Direction direction) {
+        return computePlayerMovement(player, direction, false);
+    }
+
+    /**
      * Computes a player movement and updates their position if needed.
      *
      * @param player The moving player.
+     * @return true if the player was moved, false if not.
      */
     public boolean movePlayer(Player player) {
+        return computePlayerMovement(player, player.getDirection(), true);
+    }
+
+    /**
+     * Attempts to move a player in their current direction, and optionally commits the change.
+     *
+     * @param player The moving player.
+     * @param direction The direction in which to move the player.
+     * @param commit true to commit the movement, false to rollback if successful.
+     * @return true if the movement succeeded, false if not.
+     */
+    private boolean computePlayerMovement(Player player, Direction direction, boolean commit) {
         // compute a delta movement vector
         int dx = 0, dy = 0;
-        switch (player.getDirection()) {
+        switch (direction) {
             case UP:
                 dy = -player.getSpeed();
                 break;
@@ -196,7 +230,15 @@ public class MapArea extends Lockable {
             return false;
         }
 
-        state.addChangedPlayer(player);
+        // should we commit the movement change?
+        if (!commit) {
+            rect.translate(-dx, -dy);
+        }
+
+        else {
+            state.addChangedPlayer(player);
+        }
+
         return true;
     }
 }
