@@ -11,13 +11,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class TileAsset {
 
     private Integer id;
-    private Rectangle bbox;
+    private BoundingBox bbox;
 
     public Integer getId() {
         return id;
     }
 
-    public Rectangle getBbox() {
+    public BoundingBox getBbox() {
         return bbox;
     }
 }

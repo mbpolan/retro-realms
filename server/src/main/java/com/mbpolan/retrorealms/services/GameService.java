@@ -74,11 +74,11 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 // compute an updated game state for this area
                 GameStateResponse gameState = new GameStateResponse(
                         state.getPlayers().stream()
-                                .map(p -> new PlayerInfo(p.getId(), null, null, p.getX(), p.getY(), null))
+                                .map(p -> new PlayerInfo(p.getId(), null, null, p.plane().getX1(), p.plane().getY1(), null))
                                 .collect(Collectors.toList()));
 
                 // if the state has changed, notify all the players in that area only
-                a.getPlayers().forEach(p -> p.send(gameState));
+                a.sendToAll(gameState);
             }
 
             a.unlock();
@@ -129,8 +129,8 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                         p.getId(),
                         p.getUsername(),
                         p.getSprite(),
-                        p.getX(),
-                        p.getY(),
+                        p.plane().getX1(),
+                        p.plane().getY2(),
                         p.getDirection().getValue()))
                 .collect(Collectors.toList());
 
@@ -141,8 +141,8 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
                 player.getId(),
                 player.getUsername(),
                 player.getSprite(),
-                player.getX(),
-                player.getY(),
+                player.plane().getX1(),
+                player.plane().getY1(),
                 player.getDirection().getValue())), player);
 
         area.unlock();
@@ -259,7 +259,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         MapArea area = map.getMapArea(player.getMapArea());
 
         area.lock();
-        area.sendToAll(new EntityMoveStopResponse(player.getId(), player.getX(), player.getY()));
+        area.sendToAll(new EntityMoveStopResponse(player.getId(), player.plane().getX1(), player.plane().getY1()));
         area.unlock();
     }
 

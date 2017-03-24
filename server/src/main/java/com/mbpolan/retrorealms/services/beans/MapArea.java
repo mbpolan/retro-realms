@@ -2,8 +2,8 @@ package com.mbpolan.retrorealms.services.beans;
 
 import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a single area of the map that contains tiles, players and other entities.
@@ -16,8 +16,16 @@ import java.util.List;
  */
 public class MapArea extends Lockable {
 
+    // list of players currently in this area
     private List<Player> players;
+
+    // matrix of static tiles in this area, in row-major order
     private List<List<Tile>> tiles;
+
+    // list of static and dynamic collision planes in this area
+    private List<Rectangle> planes;
+
+    // map area dimensions and current state
     private int width;
     private int height;
     private int tileSize;
@@ -40,6 +48,13 @@ public class MapArea extends Lockable {
         this.height = height;
         this.tileSize = tileSize;
         this.state = new GameState();
+
+        // compute our initial collision planes using the tiles that have bounding boxes
+        this.planes = tiles.stream()
+                .flatMap(r -> r.stream()
+                        .filter(Tile::hasBoundingBox)
+                        .map(Tile::getBoundingBox))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -64,7 +79,7 @@ public class MapArea extends Lockable {
     /**
      * Returns a list of all players currently on this map area.
      *
-     * @return The list of players.
+     * @return The set of players.
      */
     public List<Player> getPlayers() {
         return players;
@@ -167,13 +182,17 @@ public class MapArea extends Lockable {
                 break;
         }
 
-        // check bounds prior to committing to move the player
-        player.setPositionDelta(dx, dy);
-        if ((player.getX() < 0 || player.getX() > width * this.tileSize) ||
-                (player.getY() < 0 || player.getY() > height * this.tileSize)) {
+        // move the player to their new position
+        Rectangle rect = player.plane();
+        rect.translate(dx, dy);
+
+        // has the player went outside the bounds of the map area or collided with something?
+        if ((rect.getX1() < 0 || rect.getX2() > width * this.tileSize) ||
+                (rect.getY1() < 0 || rect.getY2() > height * this.tileSize) ||
+                this.planes.stream().filter(p -> p.overlaps(rect)).findAny().isPresent()) {
 
             // rollback the movement
-            player.setPositionDelta(dx * -1, dy * -1);
+            rect.translate(-dx, -dy);
             return false;
         }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mbpolan.retrorealms.services.assets.TileAsset;
 import com.mbpolan.retrorealms.services.assets.TilesetAsset;
 import com.mbpolan.retrorealms.services.beans.MapArea;
+import com.mbpolan.retrorealms.services.beans.Rectangle;
 import com.mbpolan.retrorealms.services.beans.Tile;
 import com.mbpolan.retrorealms.settings.MapSettings;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public class MapService {
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private MapArea area;
-    private Map<Integer, TileAsset> tileMetadata;
+    private Map<Integer, Tile> tiles;
 
     @PostConstruct
     public void init() throws IOException {
@@ -64,7 +65,7 @@ public class MapService {
 
             while ((line = reader.readLine()) != null) {
                 List<Tile> row = Arrays.stream(line.split(","))
-                        .map(s -> new Tile(Integer.parseInt(s.trim())))
+                        .map(s -> this.tiles.get(Integer.parseInt(s.trim())))
                         .collect(Collectors.toList());
 
                 tiles.add(row);
@@ -107,9 +108,12 @@ public class MapService {
         TilesetAsset asset = jsonMapper.readValue(in, TilesetAsset.class);
 
         // create a look-up for tiles based on their ID numbers
-        this.tileMetadata = asset.getTiles().stream()
-                .collect(Collectors.toMap(TileAsset::getId, Function.identity()));
+        this.tiles = asset.getTiles().stream()
+                .map(a -> new Tile(a.getId(), Optional.ofNullable(a.getBbox())
+                        .map(bb -> new Rectangle(bb.getX(), bb.getY(), bb.getX() + bb.getW(), bb.getY() + bb.getH()))
+                        .orElse(null)))
+                .collect(Collectors.toMap(Tile::getId, Function.identity()));
 
-        LOG.info("Processed {} tiles in tileset '{}'", tileMetadata.size(), asset.getName());
+        LOG.info("Processed {} tiles in tileset '{}'", tiles.size(), asset.getName());
     }
 }

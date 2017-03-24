@@ -17,8 +17,7 @@ public class Player {
     private String username;
     private String sprite;
     private int mapArea;
-    private int x;
-    private int y;
+    private Rectangle plane;
     private int speed;
     private boolean moving;
     private long lastMovement;
@@ -45,6 +44,7 @@ public class Player {
         this.moving = false;
         this.lastMovement = 0;
         this.direction = direction;
+        this.plane = new Rectangle();
         this.setAbsolutePosition(0, 0, 0);
     }
 
@@ -70,21 +70,18 @@ public class Player {
 
     public void setAbsolutePosition(int mapArea, int x, int y) {
         this.mapArea = mapArea;
-        this.x = x;
-        this.y = y;
+        this.plane.setX1(x);
+        this.plane.setX2(x + 32); // FIXME
+        this.plane.setY1(y);
+        this.plane.setY2(y + 32); // FIXME
     }
 
     public void setPositionDelta(int dx, int dy) {
-        this.x += dx;
-        this.y += dy;
+        this.plane.translate(dx, dy);
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
+    public Rectangle plane() {
+        return plane;
     }
 
     public int getSpeed() {
@@ -129,30 +126,5 @@ public class Player {
         headers.setLeaveMutable(true);
 
         socket.convertAndSendToUser(sessionId, "/queue/game", message, headers.getMessageHeaders());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Player player = (Player) o;
-
-        if (mapArea != player.mapArea) return false;
-        if (x != player.x) return false;
-        if (y != player.y) return false;
-        if (!sessionId.equals(player.sessionId)) return false;
-        return username.equals(player.username);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = sessionId.hashCode();
-        result = 31 * result + username.hashCode();
-        result = 31 * result + mapArea;
-        result = 31 * result + x;
-        result = 31 * result + y;
-        return result;
     }
 }

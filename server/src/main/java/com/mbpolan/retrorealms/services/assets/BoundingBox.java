@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author mbpolan
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Rectangle {
+public class BoundingBox {
 
     private int x;
     private int y;
