@@ -74,6 +74,7 @@ public class MapArea extends Lockable {
      */
     public void addPlayer(Player player) {
         this.players.add(player);
+        this.planes.add(player.plane());
         this.state.addChangedPlayer(player);
     }
 
@@ -84,6 +85,7 @@ public class MapArea extends Lockable {
      */
     public void removePlayer(Player player) {
         this.players.remove(player);
+        this.planes.remove(player.plane());
     }
 
     /**
@@ -222,8 +224,7 @@ public class MapArea extends Lockable {
 
         // has the player went outside the bounds of the map area or collided with something?
         if ((rect.getX1() < 0 || rect.getX2() > width * this.tileSize) ||
-                (rect.getY1() < 0 || rect.getY2() > height * this.tileSize) ||
-                this.planes.stream().filter(p -> p.overlaps(rect)).findAny().isPresent()) {
+                (rect.getY1() < 0 || rect.getY2() > height * this.tileSize) || findCollision(rect)) {
 
             // rollback the movement
             rect.translate(-dx, -dy);
@@ -240,5 +241,18 @@ public class MapArea extends Lockable {
         }
 
         return true;
+    }
+
+    /**
+     * Detects is a given rectangle overlaps with any other collision plane in the area.
+     *
+     * @param rect The rectangle to test.
+     * @return true if there is a collision, false if not.
+     */
+    private boolean findCollision(Rectangle rect) {
+        return this.planes.stream()
+                .filter(p -> p != rect && p.overlaps(rect))
+                .findAny()
+                .isPresent();
     }
 }
