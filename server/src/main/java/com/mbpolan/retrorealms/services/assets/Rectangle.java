@@ -1,10 +1,13 @@
 package com.mbpolan.retrorealms.services.assets;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Descriptor for a frame or box defined by an asset.
  *
  * @author mbpolan
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Rectangle {
 
     private int x;

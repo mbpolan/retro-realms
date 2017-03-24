@@ -1,5 +1,7 @@
 package com.mbpolan.retrorealms.services.assets;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
 /**
@@ -7,9 +9,15 @@ import java.util.List;
  *
  * @author mbpolan
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TilesetAsset {
 
+    private String name;
     private List<TileAsset> tiles;
+
+    public String getName() {
+        return name;
+    }
 
     public List<TileAsset> getTiles() {
         return tiles;

@@ -1,5 +1,8 @@
 package com.mbpolan.retrorealms.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mbpolan.retrorealms.services.assets.TileAsset;
+import com.mbpolan.retrorealms.services.assets.TilesetAsset;
 import com.mbpolan.retrorealms.services.beans.MapArea;
 import com.mbpolan.retrorealms.services.beans.Tile;
 import com.mbpolan.retrorealms.settings.MapSettings;
@@ -9,14 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -29,25 +30,36 @@ public class MapService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MapService.class);
 
-    private MapArea area;
-
     @Autowired
     private SettingsService settings;
+
+    private final ObjectMapper jsonMapper = new ObjectMapper();
+    private MapArea area;
+    private Map<Integer, TileAsset> tileMetadata;
 
     @PostConstruct
     public void init() throws IOException {
         MapSettings mapSettings = settings.getMapSettings();
 
+        // process tileset metadata before loading the map
+        Path assetPath = Paths.get(".", "data", mapSettings.getTilesetSettings().getPath());
+        if (Files.notExists(assetPath)) {
+            throw new IllegalStateException(String.format("Cannot find tileset metadata: %s",
+                    assetPath.toAbsolutePath()));
+        }
+
+        readTilesetMetadata(new FileInputStream(assetPath.toFile()));
+
         // make sure the map file exists
-        File mapFile = new File(mapSettings.getFile());
-        if (!mapFile.exists()) {
+        Path mapPath = Paths.get(mapSettings.getFile());
+        if (Files.notExists(mapPath)) {
             throw new IllegalStateException(String.format("Cannot find map file: %s",
-                    mapFile.getAbsolutePath()));
+                    mapPath.toAbsolutePath()));
         }
 
         // load the map data itself
         List<List<Tile>> tiles = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(mapFile))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(mapPath.toFile()))) {
             String line;
 
             while ((line = reader.readLine()) != null) {
@@ -83,5 +95,21 @@ public class MapService {
      */
     public MapArea getMapArea(int area) {
         return this.area;
+    }
+
+    /**
+     * Processes metadata associated with the tileset into internal data structures.
+     *
+     * @param in The stream to read JSON metata from.
+     * @throws IOException If the metadata cannot be completely processed.
+     */
+    private void readTilesetMetadata(InputStream in) throws IOException {
+        TilesetAsset asset = jsonMapper.readValue(in, TilesetAsset.class);
+
+        // create a look-up for tiles based on their ID numbers
+        this.tileMetadata = asset.getTiles().stream()
+                .collect(Collectors.toMap(TileAsset::getId, Function.identity()));
+
+        LOG.info("Processed {} tiles in tileset '{}'", tileMetadata.size(), asset.getName());
     }
 }

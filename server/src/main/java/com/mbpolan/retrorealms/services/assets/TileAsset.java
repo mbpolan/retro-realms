@@ -1,16 +1,19 @@
 package com.mbpolan.retrorealms.services.assets;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Assets that describes a single tile.
  *
  * @author mbpolan
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TileAsset {
 
-    private int id;
+    private Integer id;
     private Rectangle bbox;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
