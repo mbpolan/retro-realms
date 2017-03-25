@@ -6,6 +6,15 @@ import {ServerInfoService} from "../../shared/server-info.service";
 import {ServerInfo} from "../../shared/server/server-info";
 import {AppService} from "../../shared/app.service";
 
+/**
+ * Contains template information about a sprite.
+ */
+class SpriteDef {
+
+    bbox: PIXI.Rectangle;
+    anims: Map<string, Array<PIXI.Texture>>;
+}
+
 @Injectable()
 export class AssetsService {
 
@@ -16,7 +25,7 @@ export class AssetsService {
     private loaded = false;
 
     // map of entity names to their animations, keyed by animation name to list of frame textures
-    private entityTextures: Map<string, Map<string, Array<PIXI.Texture>>>;
+    private entityTextures: Map<string, SpriteDef>;
 
     // map of tile IDs to their textures
     private tileTextures: Map<number, PIXI.Texture>;
@@ -77,11 +86,11 @@ export class AssetsService {
     public createEntity(name: string): Entity {
         let descriptor = this.entityTextures[name];
         if (descriptor) {
-            let entity = new Entity();
+            let entity = new Entity(descriptor.bbox);
 
-            for (let key in descriptor) {
-                if (descriptor.hasOwnProperty(key)) {
-                    entity.addAnimation(key, new PIXI.extras.AnimatedSprite(descriptor[key]));
+            for (let key in descriptor.anims) {
+                if (descriptor.anims.hasOwnProperty(key)) {
+                    entity.addAnimation(key, new PIXI.extras.AnimatedSprite(descriptor.anims[key]));
                 }
             }
 
@@ -165,7 +174,7 @@ export class AssetsService {
         this.spriteSheet = this.loader.resources['char1'].texture;
 
         // process each sprite and create animated entities from them
-        this.entityTextures = new Map<string, Map<string, Array<PIXI.Texture>>>();
+        this.entityTextures = new Map<string, SpriteDef>();
         sheet.sprites.forEach(s => {
             let anim = new Map<string, Array<PIXI.Texture>>();
 
@@ -176,8 +185,10 @@ export class AssetsService {
                 anim[a.name] = textures;
             });
 
-
-            this.entityTextures[s.name] = anim;
+            this.entityTextures[s.name] = {
+                bbox: new PIXI.Rectangle(s.bbox.x, s.bbox.y, s.bbox.w, s.bbox.h),
+                anims: anim
+            };
         });
     }
 }

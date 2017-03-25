@@ -24,6 +24,7 @@ export class AnimInfo {
 export class SpriteInfo {
 
     name: string;
+    bbox: BoxInfo;
     animations: Array<AnimInfo>;
 }
 

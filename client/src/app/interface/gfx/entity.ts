@@ -12,7 +12,7 @@ export class Entity extends PIXI.Container {
     private currentAnim: string;
     private anim: Map<string, PIXI.extras.AnimatedSprite>;
 
-    public constructor() {
+    public constructor(private bbox: PIXI.Rectangle) {
         super();
 
         this.anim = new Map<string, PIXI.extras.AnimatedSprite>();
@@ -41,7 +41,13 @@ export class Entity extends PIXI.Container {
 
         // remove any previous animations and add the new one
         this.removeChildren();
-        this.addChild(this.anim[name]);
+
+        // adjust the frame to account for the bounding box by shifting the sprite so it aligns
+        // at the origin
+        let anim = this.anim[name];
+        anim.position.set(-this.bbox.x, -this.bbox.y);
+
+        this.addChild(anim);
     }
 
     /**
