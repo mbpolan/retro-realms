@@ -9,6 +9,7 @@ export class Entity extends PIXI.Container {
     private _lastFrame: number;
     private _moving: boolean;
     private _direction: string;
+    private displayName: PIXI.Text;
     private currentAnim: string;
     private anim: Map<string, PIXI.extras.AnimatedSprite>;
 
@@ -17,6 +18,34 @@ export class Entity extends PIXI.Container {
 
         this.anim = new Map<string, PIXI.extras.AnimatedSprite>();
         this._moving = false;
+    }
+
+    /**
+     * Sets the display name for this entity.
+     *
+     * This will recompute and reposition the text above the entity.
+     *
+     * @param value The name of the entity.
+     */
+    public set name(value: string) {
+        // remove any previous name text
+        if (this.displayName) {
+            this.removeChild(this.displayName);
+        }
+
+        // create a container for the text
+        this.displayName = new PIXI.Text(value, new PIXI.TextStyle({
+            fontFamily: 'Arial',
+            fontSize: 12,
+            fontWeight: 'bold',
+            fill: '#0F4',
+            miterLimit: 4,
+            stroke: '#000',
+            strokeThickness: 3
+        }));
+
+        this.addChild(this.displayName);
+        this.repositionDisplayName();
     }
 
     /**
@@ -48,6 +77,12 @@ export class Entity extends PIXI.Container {
         anim.position.set(-this.bbox.x, -this.bbox.y);
 
         this.addChild(anim);
+
+        // add the entity's name text on top
+        if (this.displayName) {
+            this.addChild(this.displayName);
+            this.repositionDisplayName();
+        }
     }
 
     /**
@@ -128,5 +163,17 @@ export class Entity extends PIXI.Container {
      */
     private getAnimation(): PIXI.extras.AnimatedSprite {
         return this.anim[this.currentAnim];
+    }
+
+    /**
+     * Positions the entity's display name.
+     */
+    private repositionDisplayName(): void {
+        // position the text to appear just above the entity's bounding box
+        let rect = this.displayName.getBounds(false);
+        let x = (this.bbox.width / 2) - (rect.width / 2);
+        let y = -(this.bbox.y + rect.height);
+
+        this.displayName.position.set(x, y);
     }
 }

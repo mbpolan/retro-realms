@@ -224,6 +224,7 @@ export class InterfaceComponent implements AfterViewInit {
      */
     private addEntity(p: PlayerInfo): void {
         let entity = this.assets.createEntity(p.sprite);
+        entity.name = p.username;
         entity.setAnimation(`walk-${p.dir}`);
         entity.position.set(p.x, p.y);
 
