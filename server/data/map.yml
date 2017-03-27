@@ -2,11 +2,11 @@ map:
   width: 30
   height: 20
   tileSize: 32
-  file: data/map.csv
+  file: data/base.tmx
   tileset:
     name: tileset1
-    path: /assets/tileset1.json
-    resource: /assets/tileset1.png
+    path: /assets/base.json
+    resource: /assets/base.png
   sprites:
     name: char1
     path: /assets/char1.json

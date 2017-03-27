@@ -6,6 +6,7 @@ import com.mbpolan.retrorealms.services.assets.TilesetAsset;
 import com.mbpolan.retrorealms.services.beans.MapArea;
 import com.mbpolan.retrorealms.services.beans.Rectangle;
 import com.mbpolan.retrorealms.services.beans.Tile;
+import com.mbpolan.retrorealms.services.support.TmxMapLoader;
 import com.mbpolan.retrorealms.settings.MapSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,25 +59,29 @@ public class MapService {
                     mapPath.toAbsolutePath()));
         }
 
+        TmxMapLoader loader = new TmxMapLoader();
+        loader.load(new FileInputStream(mapPath.toFile()));
+
         // load the map data itself
-        List<List<Tile>> tiles = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(mapPath.toFile()))) {
-            String line;
 
-            while ((line = reader.readLine()) != null) {
-                List<Tile> row = Arrays.stream(line.split(","))
-                        .map(s -> this.tiles.get(Integer.parseInt(s.trim())))
-                        .collect(Collectors.toList());
-
-                tiles.add(row);
-            }
-        }
-
-        // add the area to the map
-        this.area = new MapArea(tiles, mapSettings.getWidth(), mapSettings.getHeight(), mapSettings.getTileSize());
-
-        LOG.info("Loaded map of dimensions {}x{} tiles, with tile size {}",
-                mapSettings.getWidth(), mapSettings.getHeight(), mapSettings.getTileSize());
+//        List<List<Tile>> tiles = new ArrayList<>();
+//        try (BufferedReader reader = new BufferedReader(new FileReader(mapPath.toFile()))) {
+//            String line;
+//
+//            while ((line = reader.readLine()) != null) {
+//                List<Tile> row = Arrays.stream(line.split(","))
+//                        .map(s -> this.tiles.get(Integer.parseInt(s.trim())))
+//                        .collect(Collectors.toList());
+//
+//                tiles.add(row);
+//            }
+//        }
+//
+//        // add the area to the map
+//        this.area = new MapArea(tiles, mapSettings.getWidth(), mapSettings.getHeight(), mapSettings.getTileSize());
+//
+//        LOG.info("Loaded map of dimensions {}x{} tiles, with tile size {}",
+//                mapSettings.getWidth(), mapSettings.getHeight(), mapSettings.getTileSize());
     }
 
     /**
@@ -109,7 +114,7 @@ public class MapService {
 
         // create a look-up for tiles based on their ID numbers
         this.tiles = asset.getTiles().stream()
-                .map(a -> new Tile(a.getId(), Optional.ofNullable(a.getBbox())
+                .map(a -> new Tile(a.getId(), Optional.ofNullable(a.getFrame())
                         .map(bb -> new Rectangle(bb.getX(), bb.getY(), bb.getX() + bb.getW(), bb.getY() + bb.getH()))
                         .orElse(null)))
                 .collect(Collectors.toMap(Tile::getId, Function.identity()));
