@@ -35,7 +35,7 @@ public class AssetLoader {
 
         // create a look-up for tiles based on their ID numbers
         Map<Integer, Tile> tiles = asset.getTiles().stream()
-                .map(a -> new Tile(a.getId(), Optional.ofNullable(a.getFrame())
+                .map(a -> new Tile(a.getId(), Optional.ofNullable(a.getBbox())
                         .map(bb -> new Rectangle(bb.getX(), bb.getY(), bb.getX() + bb.getW(), bb.getY() + bb.getH()))
                         .orElse(null)))
                 .collect(Collectors.toMap(Tile::getId, Function.identity()));

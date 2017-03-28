@@ -12,6 +12,7 @@ public class TileAsset {
 
     private Integer id;
     private BoundingBox frame;
+    private BoundingBox bbox;
 
     public Integer getId() {
         return id;
@@ -19,5 +20,9 @@ public class TileAsset {
 
     public BoundingBox getFrame() {
         return frame;
+    }
+
+    public BoundingBox getBbox() {
+        return bbox;
     }
 }

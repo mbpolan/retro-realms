@@ -119,7 +119,7 @@ public class TmxMapLoader {
         String relResourcePath = String.format("/%s", dataPath.relativize(tilesetMetadata).toString().replace("\\", "/"));
 
         TilesetMetadata tilesMetadata = assetLoader.loadTilesetMetadata(new FileInputStream(tilesetMetadata.toFile()));
-        return new TilesetData(new AssetSettings(tileset.getName(), relImagePath, relResourcePath), tilesMetadata);
+        return new TilesetData(new AssetSettings(tileset.getName(), relResourcePath, relImagePath), tilesMetadata);
     }
 
     private List<Layer> parseLayers(com.mbpolan.retrorealms.tmx.Map mapType, TilesetMetadata tileMetadata) throws IOException {

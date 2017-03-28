@@ -125,7 +125,7 @@ public class MapArea extends Lockable {
      */
     public List<Integer> getTileIds() {
         List<Integer> ids = new ArrayList<>();
-        this.tiles.forEach(row -> row.forEach(col -> ids.add(col.getId())));
+        this.tiles.forEach(row -> row.forEach(col -> ids.add(col == null ? 0 : col.getId())));
 
         return ids;
     }

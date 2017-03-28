@@ -1,15 +1,14 @@
 export enum Level {
-    GROUND,
-    OVERLAY
+    BASE
 }
 
 export class World extends PIXI.Container {
 
     private ground: PIXI.Container;
-    private overlay: PIXI.Container;
 
     public constructor() {
+        super();
+
         this.addChild(this.ground);
-        this.addChild(this.overlay);
     }
 }

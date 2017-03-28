@@ -153,7 +153,7 @@ export class AssetsService {
      */
     private loadTileset(tileset: TilesetInfo): void {
         // load the base texture for the tileset
-        this.tileset = this.loader.resources['tileset1'].texture;
+        this.tileset = this.loader.resources[tileset.name].texture;
 
         // create a look-up of tile IDs to their locations on the base texture
         this.tileTextures = new Map<number, PIXI.Texture>();
