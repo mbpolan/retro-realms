@@ -45,10 +45,6 @@ public class SettingsService {
                 Integer.parseInt(map.get("tileSize").toString()),
                 map.get("file").toString(),
                 new AssetSettings(
-                        tileset.get("name").toString(),
-                        tileset.get("path").toString(),
-                        tileset.get("resource").toString()),
-                new AssetSettings(
                         sprites.get("name").toString(),
                         sprites.get("path").toString(),
                         sprites.get("resource").toString()));
@@ -81,28 +77,10 @@ public class SettingsService {
     /**
      * Returns settings related to the map and world.
      *
-     * @return Map settings.
+     * @return MapDescriptor settings.
      */
     public MapSettings getMapSettings() {
         return mapSettings;
-    }
-
-    /**
-     * Returns the path to the tileset metadata resource.
-     *
-     * @return The path to the tileset metadata, relative to the server root.
-     */
-    public String getTilesetPath() {
-        return this.mapSettings.getTilesetSettings().getPath();
-    }
-
-    /**
-     * Returns the path to the actual tileset resource.
-     *
-     * @return The path to the tileset resource, relative to the server root.
-     */
-    public String getTilesetResource() {
-        return this.mapSettings.getTilesetSettings().getResource();
     }
 
     /**

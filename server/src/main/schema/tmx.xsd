@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-            xmlns:tmx="http://mapeditor.org/xml/ns/tmx"
-            jxb:version="2.0"
-            targetNamespace="http://mapeditor.org/xml/ns/tmx">
+            jxb:version="2.0">
 
     <xsd:simpleType name="OrientationType">
         <xsd:restriction base="xsd:string">
@@ -21,21 +19,21 @@
     </xsd:simpleType>
 
     <xsd:complexType name="ImageType">
-        <xsd:attribute name="source" type="xsd:string"/>
-        <xsd:attribute name="width" type="xsd:integer"/>
-        <xsd:attribute name="height" type="xsd:integer"/>
+        <xsd:attribute name="source" type="xsd:string" use="required"/>
+        <xsd:attribute name="width" type="xsd:int" use="required"/>
+        <xsd:attribute name="height" type="xsd:int" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="TilesetType">
         <xsd:all>
-            <xsd:element name="image" type="tmx:ImageType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="image" type="ImageType" minOccurs="1" maxOccurs="1"/>
         </xsd:all>
-        <xsd:attribute name="name" type="xsd:string"/>
-        <xsd:attribute name="firstgid" type="xsd:integer"/>
-        <xsd:attribute name="tilewidth" type="xsd:integer"/>
-        <xsd:attribute name="tileheight" type="xsd:integer"/>
-        <xsd:attribute name="tilecount" type="xsd:integer"/>
-        <xsd:attribute name="columns" type="xsd:integer"/>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="firstgid" type="xsd:int" use="required"/>
+        <xsd:attribute name="tilewidth" type="xsd:int" use="required"/>
+        <xsd:attribute name="tileheight" type="xsd:int" use="required"/>
+        <xsd:attribute name="tilecount" type="xsd:int" use="required"/>
+        <xsd:attribute name="columns" type="xsd:int" use="required"/>
     </xsd:complexType>
 
     <xsd:simpleType name="EncodingType">
@@ -47,34 +45,34 @@
     <xsd:complexType name="DataType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
-                <xsd:attribute name="encoding" type="tmx:EncodingType"/>
+                <xsd:attribute name="encoding" type="EncodingType" use="required"/>
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
 
     <xsd:complexType name="LayerType">
         <xsd:sequence>
-            <xsd:element name="data" type="tmx:DataType"/>
+            <xsd:element name="data" type="DataType"/>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string"/>
-        <xsd:attribute name="width" type="xsd:integer"/>
-        <xsd:attribute name="height" type="xsd:integer"/>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="width" type="xsd:int" use="required"/>
+        <xsd:attribute name="height" type="xsd:int" use="required"/>
     </xsd:complexType>
 
     <xsd:element name="map">
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element name="tileset" type="tmx:TilesetType" minOccurs="1"/>
-                <xsd:element name="layer" type="tmx:LayerType" minOccurs="1"/>
+                <xsd:element name="tileset" type="TilesetType" minOccurs="1"/>
+                <xsd:element name="layer" type="LayerType" minOccurs="1" maxOccurs="unbounded"/>
             </xsd:sequence>
-            <xsd:attribute name="version" type="xsd:string"/>
-            <xsd:attribute name="width" type="xsd:integer"/>
-            <xsd:attribute name="height" type="xsd:integer"/>
-            <xsd:attribute name="tilewidth" type="xsd:integer"/>
-            <xsd:attribute name="tileheight" type="xsd:integer"/>
-            <xsd:attribute name="orientation" type="tmx:OrientationType"/>
-            <xsd:attribute name="renderorder" type="tmx:RenderOrderType"/>
-            <xsd:attribute name="nextobjectid" type="xsd:integer"/>
+            <xsd:attribute name="version" type="xsd:string" use="required"/>
+            <xsd:attribute name="width" type="xsd:int" use="required"/>
+            <xsd:attribute name="height" type="xsd:int" use="required"/>
+            <xsd:attribute name="tilewidth" type="xsd:int" use="required"/>
+            <xsd:attribute name="tileheight" type="xsd:int" use="required"/>
+            <xsd:attribute name="orientation" type="OrientationType" use="required"/>
+            <xsd:attribute name="renderorder" type="RenderOrderType" use="required"/>
+            <xsd:attribute name="nextobjectid" type="xsd:int" use="required"/>
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>

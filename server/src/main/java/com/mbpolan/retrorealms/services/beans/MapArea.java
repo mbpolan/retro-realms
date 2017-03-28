@@ -1,10 +1,10 @@
 package com.mbpolan.retrorealms.services.beans;
 
 import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
+import com.mbpolan.retrorealms.services.map.Tile;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a single area of the map that contains tiles, players and other entities.
@@ -56,7 +56,7 @@ public class MapArea extends Lockable {
             for (int x = 0; x < width; x++) {
                 Tile tile = tiles.get(y).get(x);
 
-                if (tile.hasBoundingBox()) {
+                if (tile != null && tile.hasBoundingBox()) {
                     // the tile's collision plane will be its position on the map
                     Rectangle plane = tile.getBoundingBox().copy();
                     plane.translate(x * tileSize, y * tileSize);

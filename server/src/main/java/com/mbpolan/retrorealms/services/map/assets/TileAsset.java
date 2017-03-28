@@ -1,4 +1,4 @@
-package com.mbpolan.retrorealms.services.assets;
+package com.mbpolan.retrorealms.services.map.assets;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

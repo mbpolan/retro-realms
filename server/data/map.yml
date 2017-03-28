@@ -3,10 +3,6 @@ map:
   height: 20
   tileSize: 32
   file: data/base.tmx
-  tileset:
-    name: tileset1
-    path: /assets/base.json
-    resource: /assets/base.png
   sprites:
     name: char1
     path: /assets/char1.json

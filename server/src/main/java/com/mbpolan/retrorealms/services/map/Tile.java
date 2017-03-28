@@ -1,6 +1,10 @@
-package com.mbpolan.retrorealms.services.beans;
+package com.mbpolan.retrorealms.services.map;
+
+import com.mbpolan.retrorealms.services.beans.Rectangle;
 
 /**
+ * Descriptor for a single tile on the map.
+ *
  * @author mbpolan
  */
 public class Tile {

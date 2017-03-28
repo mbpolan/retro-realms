@@ -1,12 +1,10 @@
 package com.mbpolan.retrorealms.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mbpolan.retrorealms.services.assets.TileAsset;
-import com.mbpolan.retrorealms.services.assets.TilesetAsset;
 import com.mbpolan.retrorealms.services.beans.MapArea;
-import com.mbpolan.retrorealms.services.beans.Rectangle;
-import com.mbpolan.retrorealms.services.beans.Tile;
-import com.mbpolan.retrorealms.services.support.TmxMapLoader;
+import com.mbpolan.retrorealms.services.map.AssetLoader;
+import com.mbpolan.retrorealms.services.map.GameMap;
+import com.mbpolan.retrorealms.services.map.TmxMapLoader;
+import com.mbpolan.retrorealms.settings.AssetSettings;
 import com.mbpolan.retrorealms.settings.MapSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,13 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Service that manages various areas of the game map.
@@ -35,22 +33,12 @@ public class MapService {
     @Autowired
     private SettingsService settings;
 
-    private final ObjectMapper jsonMapper = new ObjectMapper();
     private MapArea area;
-    private Map<Integer, Tile> tiles;
+    private GameMap map;
 
     @PostConstruct
     public void init() throws IOException {
         MapSettings mapSettings = settings.getMapSettings();
-
-        // process tileset metadata before loading the map
-        Path assetPath = Paths.get(".", "data", mapSettings.getTilesetSettings().getPath());
-        if (Files.notExists(assetPath)) {
-            throw new IllegalStateException(String.format("Cannot find tileset metadata: %s",
-                    assetPath.toAbsolutePath()));
-        }
-
-        readTilesetMetadata(new FileInputStream(assetPath.toFile()));
 
         // make sure the map file exists
         Path mapPath = Paths.get(mapSettings.getFile());
@@ -59,29 +47,20 @@ public class MapService {
                     mapPath.toAbsolutePath()));
         }
 
-        TmxMapLoader loader = new TmxMapLoader();
-        loader.load(new FileInputStream(mapPath.toFile()));
+        // we only support maps saved in the TMX file format
+        if (!ServiceUtils.getExtension(mapPath.toString()).equalsIgnoreCase("tmx")) {
+            throw new IllegalStateException("Only TMX map file formats are supported");
+        }
 
-        // load the map data itself
+        // load the map data
+        TmxMapLoader loader = new TmxMapLoader(new AssetLoader());
+        this.map = loader.load(new FileInputStream(mapPath.toFile()));
 
-//        List<List<Tile>> tiles = new ArrayList<>();
-//        try (BufferedReader reader = new BufferedReader(new FileReader(mapPath.toFile()))) {
-//            String line;
-//
-//            while ((line = reader.readLine()) != null) {
-//                List<Tile> row = Arrays.stream(line.split(","))
-//                        .map(s -> this.tiles.get(Integer.parseInt(s.trim())))
-//                        .collect(Collectors.toList());
-//
-//                tiles.add(row);
-//            }
-//        }
-//
-//        // add the area to the map
-//        this.area = new MapArea(tiles, mapSettings.getWidth(), mapSettings.getHeight(), mapSettings.getTileSize());
-//
-//        LOG.info("Loaded map of dimensions {}x{} tiles, with tile size {}",
-//                mapSettings.getWidth(), mapSettings.getHeight(), mapSettings.getTileSize());
+        LOG.info("Successfully parsed map data");
+
+        // create the initial map area from the base layer
+        this.area = new MapArea(this.map.getBaseLayer().getTiles(), this.map.getWidth(),
+                this.map.getHeight(), this.map.getTileSize());
     }
 
     /**
@@ -104,21 +83,11 @@ public class MapService {
     }
 
     /**
-     * Processes metadata associated with the tileset into internal data structures.
+     * Returns information about the tileset for the map.
      *
-     * @param in The stream to read JSON metata from.
-     * @throws IOException If the metadata cannot be completely processed.
+     * @return Settings information about the tileset.
      */
-    private void readTilesetMetadata(InputStream in) throws IOException {
-        TilesetAsset asset = jsonMapper.readValue(in, TilesetAsset.class);
-
-        // create a look-up for tiles based on their ID numbers
-        this.tiles = asset.getTiles().stream()
-                .map(a -> new Tile(a.getId(), Optional.ofNullable(a.getFrame())
-                        .map(bb -> new Rectangle(bb.getX(), bb.getY(), bb.getX() + bb.getW(), bb.getY() + bb.getH()))
-                        .orElse(null)))
-                .collect(Collectors.toMap(Tile::getId, Function.identity()));
-
-        LOG.info("Processed {} tiles in tileset '{}'", tiles.size(), asset.getName());
+    public AssetSettings getTilesetSettings() {
+        return this.map.getTilesetSettings();
     }
 }

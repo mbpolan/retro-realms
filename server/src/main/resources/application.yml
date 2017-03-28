@@ -1,6 +1,10 @@
 server:
   port: 9000
 
+logging:
+  level:
+    com.mbpolan.retrorealms: DEBUG
+
 spring:
   datasource:
     url: jdbc:h2:./db/server

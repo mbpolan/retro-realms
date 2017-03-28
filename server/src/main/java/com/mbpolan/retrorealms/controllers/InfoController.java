@@ -3,6 +3,7 @@ package com.mbpolan.retrorealms.controllers;
 import com.mbpolan.retrorealms.beans.info.ServerInfo;
 import com.mbpolan.retrorealms.beans.info.SpritesMetadataInfo;
 import com.mbpolan.retrorealms.beans.info.TilesetMetadataInfo;
+import com.mbpolan.retrorealms.services.MapService;
 import com.mbpolan.retrorealms.services.SettingsService;
 import com.mbpolan.retrorealms.settings.AssetSettings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +24,17 @@ public class InfoController {
 
     @Autowired
     private SettingsService settings;
+
+    @Autowired
+    private MapService map;
+
     private AssetSettings tileset;
     private AssetSettings sprites;
 
     @PostConstruct
     public void init() {
-        tileset = settings.getMapSettings().getTilesetSettings();
-        sprites = settings.getMapSettings().getSpritesSettings();
+        this.sprites = settings.getMapSettings().getSpritesSettings();
+        this.tileset = map.getTilesetSettings();
     }
 
     @GetMapping
