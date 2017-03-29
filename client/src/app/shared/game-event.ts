@@ -59,15 +59,15 @@ export class MapInfoEvent extends GameEvent {
 
     width: number;
     height: number;
-    tiles: Array<number>;
+    layers: Array<Array<number>>;
     players: Array<PlayerInfo>;
 
-    public constructor(width: number, height: number, tiles: Array<number>, players: Array<PlayerInfo>) {
+    public constructor(width: number, height: number, layers: Array<Array<number>>, players: Array<PlayerInfo>) {
         super(GameEventType.MAP_INFO);
 
         this.width = width;
         this.height = height;
-        this.tiles = tiles;
+        this.layers = layers;
         this.players = players;
     }
 }

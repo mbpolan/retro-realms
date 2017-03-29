@@ -244,18 +244,20 @@ export class InterfaceComponent implements AfterViewInit {
         console.log(`map: ${e.width} x ${e.height} tiles`);
 
         // place new tiles on the stage instead
-        for (let x = 0; x < e.width; x++) {
-            for (let y = 0; y < e.height; y++) {
-                let id = e.tiles[y * e.width + x];
-                let tile = this.assets.createTile(id);
+        e.layers.forEach(layer => {
+            for (let x = 0; x < e.width; x++) {
+                for (let y = 0; y < e.height; y++) {
+                    let id = layer[y * e.width + x];
+                    let tile = this.assets.createTile(id);
 
-                if (tile) {
-                    // position the tile accordingly, then add it to the stage
-                    tile.position.set(x * tile.width, y * tile.height);
-                    this.stage.addChild(tile);
+                    if (tile) {
+                        // position the tile accordingly, then add it to the stage
+                        tile.position.set(x * tile.width, y * tile.height);
+                        this.stage.addChild(tile);
+                    }
                 }
             }
-        }
+        });
 
         // place sprites on top of the tiles
         e.players.forEach(p => this.addEntity(p));

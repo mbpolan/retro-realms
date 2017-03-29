@@ -1,10 +1,12 @@
 package com.mbpolan.retrorealms.services.beans;
 
 import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
+import com.mbpolan.retrorealms.services.map.Layer;
 import com.mbpolan.retrorealms.services.map.Tile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents a single area of the map that contains tiles, players and other entities.
@@ -21,7 +23,7 @@ public class MapArea extends Lockable {
     private List<Player> players;
 
     // matrix of static tiles in this area, in row-major order
-    private List<List<Tile>> tiles;
+    private List<Layer> layers;
 
     // list of static and dynamic collision planes in this area
     private List<Rectangle> planes;
@@ -37,34 +39,22 @@ public class MapArea extends Lockable {
      *
      * The initial game state contains no players.
      *
-     * @param tiles The rectangle of tiles in this area, in row-major order.
+     * @param layers The list of rectangles of tiles in this area.
      * @param width The width of the map area, in tiles.
      * @param height The height of the map area, in tiles.
      * @param tileSize The size (width and height) of a single, square tile.
      */
-    public MapArea(List<List<Tile>> tiles, int width, int height, int tileSize) {
+    public MapArea(List<Layer> layers, int width, int height, int tileSize) {
         this.players = new ArrayList<>();
-        this.tiles = tiles;
+        this.layers = layers;
         this.width = width;
         this.height = height;
         this.tileSize = tileSize;
         this.state = new GameState();
         this.planes = new ArrayList<>();
 
-        // compute our initial collision planes using the tiles that have bounding boxes
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Tile tile = tiles.get(y).get(x);
-
-                if (tile != null && tile.hasBoundingBox()) {
-                    // the tile's collision plane will be its position on the map
-                    Rectangle plane = tile.getBoundingBox().copy();
-                    plane.translate(x * tileSize, y * tileSize);
-
-                    this.planes.add(plane);
-                }
-            }
-        }
+        // compute the initial collection of collision planes
+        computePlanes();
     }
 
     /**
@@ -121,13 +111,15 @@ public class MapArea extends Lockable {
     /**
      * Returns a geometry of this area represented by tiles.
      *
-     * @return A rectangle of tiles, in row-major order.
+     * @return A list of rectangles of tiles in each layer, in row-major order..
      */
-    public List<Integer> getTileIds() {
-        List<Integer> ids = new ArrayList<>();
-        this.tiles.forEach(row -> row.forEach(col -> ids.add(col == null ? 0 : col.getId())));
-
-        return ids;
+    public List<List<Integer>> getTileIds() {
+        return this.layers.stream()
+                .map(l -> l.getTiles().stream()
+                        .flatMap(List::stream)
+                        .map(col -> col == null ? 0 : col.getId())
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -190,6 +182,28 @@ public class MapArea extends Lockable {
      */
     public boolean movePlayer(Player player) {
         return computePlayerMovement(player, player.getDirection(), true);
+    }
+
+    /**
+     * Recomputes the collection of collision planes based on the layers of tiles in the area.
+     */
+    private void computePlanes() {
+        this.layers.forEach(layer -> {
+            // compute collision planes using the tiles that have bounding boxes
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    Tile tile = layer.getTiles().get(y).get(x);
+
+                    if (tile != null && tile.hasBoundingBox()) {
+                        // the tile's collision plane will be its position on the map
+                        Rectangle plane = tile.getBoundingBox().copy();
+                        plane.translate(x * tileSize, y * tileSize);
+
+                        this.planes.add(plane);
+                    }
+                }
+            }
+        });
     }
 
     /**

@@ -3,6 +3,7 @@ package com.mbpolan.retrorealms.services;
 import com.mbpolan.retrorealms.services.beans.MapArea;
 import com.mbpolan.retrorealms.services.map.AssetLoader;
 import com.mbpolan.retrorealms.services.map.GameMap;
+import com.mbpolan.retrorealms.services.map.Layer;
 import com.mbpolan.retrorealms.services.map.TmxMapLoader;
 import com.mbpolan.retrorealms.settings.AssetSettings;
 import com.mbpolan.retrorealms.settings.MapSettings;
@@ -58,8 +59,8 @@ public class MapService {
 
         LOG.info("Successfully parsed map data");
 
-        // create the initial map area from the base layer
-        this.area = new MapArea(this.map.getBaseLayer().getTiles(), this.map.getWidth(),
+        // create the initial map area
+        this.area = new MapArea(map.getLayers(), this.map.getWidth(),
                 this.map.getHeight(), this.map.getTileSize());
     }
 

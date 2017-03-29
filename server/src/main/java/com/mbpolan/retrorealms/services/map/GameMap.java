@@ -46,11 +46,7 @@ public class GameMap {
         return tilesetSettings;
     }
 
-    public Layer getBaseLayer() {
-        if (this.layers.isEmpty()) {
-            throw new IllegalStateException("Map contains no layers!");
-        }
-
-        return this.layers.get(0);
+    public List<Layer> getLayers() {
+        return layers;
     }
 }

@@ -10,6 +10,6 @@ export class MapInfoResponse {
 
     width: number;
     height: number;
-    tiles: Array<number>;
+    layers: Array<Array<number>>;
     players: Array<MapPlayerInfo>
 }

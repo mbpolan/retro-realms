@@ -37,10 +37,6 @@ sourceSets {
             srcDir "${project.projectDir}/../client/dist"
         }
     }
-
-//    generated {
-//        java.srcDir "${buildDir}/generated-sources/jaxb"
-//    }
 }
 
 repositories {
@@ -65,6 +61,8 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
+
+compileJava.dependsOn 'xjc'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.9'

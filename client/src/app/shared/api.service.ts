@@ -185,7 +185,7 @@ export class ApiService {
      * @param message The message.
      */
     private processMapInfo(message: MapInfoResponse): void {
-        this.events.next(new MapInfoEvent(message.width, message.height, message.tiles, message.players));
+        this.events.next(new MapInfoEvent(message.width, message.height, message.layers, message.players));
     }
 
     /**

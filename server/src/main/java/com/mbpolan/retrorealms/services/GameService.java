@@ -123,7 +123,7 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         area.addPlayer(player);
 
         // and send the player their initial map update
-        List<Integer> tileIds = area.getTileIds();
+        List<List<Integer>> tileIds = area.getTileIds();
         List<PlayerInfo> playerInfos = area.getPlayers().stream()
                 .map(p -> new PlayerInfo(
                         p.getId(),
