@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE"
-        classpath 'com.github.jacobono:gradle-jaxb-plugin:1.3.6'
+        classpath 'gradle.plugin.org.openrepose:gradle-jaxb-plugin:2.2.3'
     }
 }
 
@@ -16,10 +16,10 @@ version '1.0.0-SNAPSHOT'
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
-apply plugin: 'com.github.jacobono.jaxb'
+apply plugin: 'org.openrepose.gradle.plugins.jaxb'
 
 jaxb {
-    xsdDir = "src/main/schema"
+    xsdDir = "${project.projectDir}/src/main/schema"
 
     xjc {
         destinationDir = 'build/generated-sources/jaxb'
@@ -30,7 +30,7 @@ jaxb {
 sourceSets {
     main {
         java {
-            srcDirs = ["${projectDir}/src/main/java", "${buildDir}/generated-sources/jaxb"]
+            srcDirs = ["${project.projectDir}/src/main/java", "${buildDir}/generated-sources/jaxb"]
         }
         resources {
             // package the client distributable files
