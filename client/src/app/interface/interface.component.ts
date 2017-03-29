@@ -12,6 +12,8 @@ import {Direction} from "../shared/direction";
 import {Key} from "./keyboard/key";
 import {Entity} from "./gfx/entity";
 import {UserInfoService} from "../shared/user-info.service";
+import {World} from "./gfx/world";
+import {Layer} from "./gfx/layer";
 
 declare let PIXI:any;
 
@@ -27,6 +29,7 @@ export class InterfaceComponent implements AfterViewInit {
 
     private renderer: PIXI.CanvasRenderer;
     private stage: PIXI.Container;
+    private world: World;
     private entities: Map<number, Entity>;
     private loaded = false;
     private pendingEvents: Array<GameEvent> = [];
@@ -34,6 +37,7 @@ export class InterfaceComponent implements AfterViewInit {
 
     public constructor(private api: ApiService, private assets: AssetsService,
                        private keyboard: KeyboardService, private user: UserInfoService) {
+
         this.api.subscribe(this.processEvent.bind(this));
     }
 
@@ -44,7 +48,10 @@ export class InterfaceComponent implements AfterViewInit {
         this.renderer = PIXI.autoDetectRenderer(960, 640);
         this.content.nativeElement.appendChild(this.renderer.view);
 
+        // create the stage and world
         this.stage = new PIXI.Container();
+        this.world = new World();
+        this.stage.addChild(this.world);
         this.renderer.render(this.stage);
 
         this.assets.load(() => {
@@ -229,7 +236,7 @@ export class InterfaceComponent implements AfterViewInit {
         entity.position.set(p.x, p.y);
 
         this.entities[p.id] = entity;
-        this.stage.addChild(entity);
+        this.world.addEntity(entity);
     }
 
     /**
@@ -238,13 +245,17 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processMapInfo(e: MapInfoEvent): void {
-        // clear out the stage entirely
+        // clear out the stage entirely and add the world back to it
         this.stage.removeChildren();
+        this.world.reset();
+        this.stage.addChild(this.world);
 
-        console.log(`map: ${e.width} x ${e.height} tiles`);
+        console.log(`map: ${e.width} x ${e.height} tiles and ${e.layers.length} layers`);
 
-        // place new tiles on the stage instead
-        e.layers.forEach(layer => {
+        // transform the raw map data into tiles and form layers for the world
+        let layers = e.layers.map(layer => {
+            let layerTiles = [];
+
             for (let x = 0; x < e.width; x++) {
                 for (let y = 0; y < e.height; y++) {
                     let id = layer[y * e.width + x];
@@ -253,11 +264,15 @@ export class InterfaceComponent implements AfterViewInit {
                     if (tile) {
                         // position the tile accordingly, then add it to the stage
                         tile.position.set(x * tile.width, y * tile.height);
-                        this.stage.addChild(tile);
+                        layerTiles.push(tile);
                     }
                 }
             }
+
+            return new Layer(layerTiles);
         });
+
+        this.world.addLayers(layers);
 
         // place sprites on top of the tiles
         e.players.forEach(p => this.addEntity(p));
