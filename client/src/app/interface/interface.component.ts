@@ -2,15 +2,21 @@ import {Component, ViewChild, ElementRef, AfterViewInit} from "@angular/core";
 import {AssetsService} from "./gfx/assets.service";
 import {ApiService} from "../shared/api.service";
 import {
-    GameEvent, GameEventType, MapInfoEvent, GameStateEvent, MoveStartEvent,
-    MoveStopEvent, EntityAppearEvent, EntityDisappearEvent, PlayerInfo
+    GameEvent,
+    GameEventType,
+    MapInfoEvent,
+    GameStateEvent,
+    MoveStartEvent,
+    MoveStopEvent,
+    EntityAppearEvent,
+    EntityDisappearEvent,
+    PlayerInfo
 } from "../shared/game-event";
 import {KeyboardService} from "./keyboard/keyboard.service";
 import {KeyEvent} from "./keyboard/key-event";
 import {ISubscription} from "rxjs/Subscription";
 import {Direction} from "../shared/direction";
 import {Key} from "./keyboard/key";
-import {Entity} from "./gfx/entity";
 import {UserInfoService} from "../shared/user-info.service";
 import {World} from "./gfx/world";
 import {Layer} from "./gfx/layer";
@@ -27,10 +33,12 @@ export class InterfaceComponent implements AfterViewInit {
     @ViewChild('content')
     private content: ElementRef;
 
+    readonly SCENE_WIDTH = 640;
+    readonly SCENE_HEIGHT = 480;
+
     private renderer: PIXI.CanvasRenderer;
     private stage: PIXI.Container;
     private world: World;
-    private entities: Map<number, Entity>;
     private loaded = false;
     private pendingEvents: Array<GameEvent> = [];
     private keyEventSub: ISubscription;
@@ -45,21 +53,19 @@ export class InterfaceComponent implements AfterViewInit {
      * Handler invoked when the view is initialized.
      */
     public ngAfterViewInit() {
-        this.renderer = PIXI.autoDetectRenderer(960, 640);
+        this.renderer = PIXI.autoDetectRenderer(this.SCENE_WIDTH, this.SCENE_HEIGHT);
         this.content.nativeElement.appendChild(this.renderer.view);
 
         // create the stage and world
         this.stage = new PIXI.Container();
-        this.world = new World();
-        this.stage.addChild(this.world);
         this.renderer.render(this.stage);
 
         this.assets.load(() => {
             console.log('ready');
             this.loaded = true;
 
-            // initialize data structures
-            this.entities = new Map<number, Entity>();
+            // create the world renderer for the given tile size
+            this.world = new World(this.SCENE_WIDTH, this.SCENE_HEIGHT, this.assets.tileSize);
 
             // flush all pending events
             this.pendingEvents.forEach(e => this.processEvent(e));
@@ -125,61 +131,10 @@ export class InterfaceComponent implements AfterViewInit {
     private gameLoop = () => {
         requestAnimationFrame(this.gameLoop);
 
-        this.updateElements();
+        this.world.update();
 
         this.renderer.render(this.stage);
     };
-
-    /**
-     * Updates elements on the stage for the next rendering frame.
-     */
-    private updateElements(): void {
-        let now = Date.now();
-
-        for (let id in this.entities) {
-            if (this.entities.hasOwnProperty(id)) {
-                let entity = this.entities[id];
-
-                if (entity.moving) {
-                    // only animate the entity if this is not their very first frame
-                    if (entity.lastFrame > 0) {
-                        // compute how long its been since we last rendered this entity
-                        let deltaT = now - entity.lastFrame;
-
-                        // we should move S units every D ms, where S is the entity's speed and D is the walk delay
-                        // so we need to move ((now - last) / D) * S units on each frame of motion
-                        // FIXME: get this info from the server
-                        // TODO: compensate for lag
-                        let span = (deltaT / 100) * 8;
-
-                        // compute the velocity vector based on the entity's direction of motion
-                        let dx = 0, dy = 0;
-                        switch (entity.direction) {
-                            case Direction.UP:
-                                dy = -1;
-                                break;
-                            case Direction.DOWN:
-                                dy = 1;
-                                break;
-                            case Direction.LEFT:
-                                dx = -1;
-                                break;
-                            case Direction.RIGHT:
-                                dx = 1;
-                                break;
-                        }
-
-                        // reposition the entity
-                        entity.x += span * dx;
-                        entity.y += span * dy;
-                    }
-
-                    // mark this as the last frame where the entity was rendered
-                    entity.lastFrame = now;
-                }
-            }
-        }
-    }
 
     /**
      * Processes a game-related event from the server.
@@ -235,8 +190,12 @@ export class InterfaceComponent implements AfterViewInit {
         entity.setAnimation(`walk-${p.dir}`);
         entity.position.set(p.x, p.y);
 
-        this.entities[p.id] = entity;
-        this.world.addEntity(entity);
+        this.world.addEntity(p.id, entity);
+
+        // tell the world that this entity represents us (the local player)
+        if (p.id === this.user.getPlayerId()) {
+            this.world.primaryEntity = entity;
+        }
     }
 
     /**
@@ -247,7 +206,7 @@ export class InterfaceComponent implements AfterViewInit {
     private processMapInfo(e: MapInfoEvent): void {
         // clear out the stage entirely and add the world back to it
         this.stage.removeChildren();
-        this.world.reset();
+        this.world.reset(e.width, e.height);
         this.stage.addChild(this.world);
 
         console.log(`map: ${e.width} x ${e.height} tiles and ${e.layers.length} layers`);
@@ -286,7 +245,7 @@ export class InterfaceComponent implements AfterViewInit {
     private processGameState(e: GameStateEvent): void {
         // process any changed players
         e.players.forEach(p => {
-            let entity = this.entities[p.id];
+            let entity = this.world.getEntityById(p.id);
             if (entity) {
                 entity.position.set(p.x, p.y);
             }
@@ -303,7 +262,7 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processMoveStart(e: MoveStartEvent): void {
-        let entity = this.entities[e.id];
+        let entity = this.world.getEntityById(e.id);
 
         // set the entity's direction and start their animation
         if (entity) {
@@ -325,7 +284,7 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processMoveStop(e: MoveStopEvent): void {
-        let entity = this.entities[e.id];
+        let entity = this.world.getEntityById(e.id);
 
         // stop the entity from moving, update their final position and also end any animations
         if (entity) {
@@ -359,10 +318,6 @@ export class InterfaceComponent implements AfterViewInit {
      * @param e The event.
      */
     private processEntityDisappear(e: EntityDisappearEvent): void {
-        let entity = this.entities[e.id];
-        if (entity) {
-            this.stage.removeChild(entity);
-            delete this.entities[e.id];
-        }
+        this.world.removeEntityById(e.id);
     }
 }

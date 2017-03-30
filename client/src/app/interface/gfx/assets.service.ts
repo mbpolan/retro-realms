@@ -19,6 +19,7 @@ class SpriteDef {
 export class AssetsService {
 
     private loader: PIXI.loaders.Loader;
+    private _tileSize: number;
     private tileset: PIXI.Texture;
     private spriteSheet: PIXI.Texture;
     private pendingLoad = 2;
@@ -32,6 +33,15 @@ export class AssetsService {
 
     public constructor(private app: AppService, private http: Http, private serverInfo: ServerInfoService) {
         this.loader = PIXI.loader;
+    }
+
+    /**
+     * Returns the square size of a tile.
+     *
+     * @returns {number} The size of a tile, in pixels.
+     */
+    public get tileSize(): number {
+        return this._tileSize;
     }
 
     /**
@@ -50,6 +60,8 @@ export class AssetsService {
 
         else {
             this.serverInfo.getServerInfo().subscribe(info => {
+                this._tileSize = info.tileSize;
+
                 this.loader.add(info.tileset.name, `${this.app.contextPath()}${info.tileset.resource}`);
                 this.loader.add(info.sprites.name, `${this.app.contextPath()}${info.sprites.resource}`);
 

@@ -6,6 +6,7 @@ import {TilesetInfo} from "./tileset-info";
  */
 export class ServerInfo {
 
+    tileSize: number;
     tileset: TilesetInfo;
     sprites: SpritesInfo;
 }

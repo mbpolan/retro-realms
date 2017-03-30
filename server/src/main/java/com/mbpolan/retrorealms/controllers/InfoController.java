@@ -39,7 +39,7 @@ public class InfoController {
 
     @GetMapping
     private ServerInfo getServerInfo() {
-        return new ServerInfo(
+        return new ServerInfo(map.getTileSize(),
                 new TilesetMetadataInfo(tileset.getName(), tileset.getPath(), tileset.getResource()),
                 new SpritesMetadataInfo(sprites.getName(), sprites.getPath(), sprites.getResource()));
     }

@@ -91,4 +91,13 @@ public class MapService {
     public AssetSettings getTilesetSettings() {
         return this.map.getTilesetSettings();
     }
+
+    /**
+     * Returns the square size of a tile.
+     *
+     * @return The size of a single tile, in pixels.
+     */
+    public int getTileSize() {
+        return this.map.getTileSize();
+    }
 }
