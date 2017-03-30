@@ -62,8 +62,14 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-compileJava.dependsOn 'xjc'
+// creates the output directory for the output from xjc
+task prepareXjc(group: 'Other') {
+    mkdir jaxb.xjc.destinationDir
+}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.9'
 }
+
+xjc.dependsOn 'prepareXjc'
+compileJava.dependsOn 'xjc'
