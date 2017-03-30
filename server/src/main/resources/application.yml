@@ -14,4 +14,4 @@ spring:
   jpa:
     hibernate.ddl-auto: none
   resources:
-    staticLocations: file:./data/assets
+    staticLocations: file:./data/assets,classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
