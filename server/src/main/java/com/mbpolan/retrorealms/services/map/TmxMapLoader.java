@@ -1,6 +1,7 @@
 package com.mbpolan.retrorealms.services.map;
 
 import com.mbpolan.retrorealms.services.ServiceUtils;
+import com.mbpolan.retrorealms.services.beans.Rectangle;
 import com.mbpolan.retrorealms.settings.AssetSettings;
 import com.mbpolan.retrorealms.tmx.*;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +31,9 @@ import java.util.stream.Collectors;
 public class TmxMapLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(TmxMapLoader.class);
+
+    private static final String MAP_AREA_PROP_REGEX = "^area_([0-9]+)$";
+    private static final String MAP_AREA_VALUE_REGEX = "^([0-9]+),([0-9]+);([0-9]+),([0-9]+)$";
 
     private Path dataPath = Paths.get(".", "data");
     private AssetLoader assetLoader;
@@ -61,14 +67,28 @@ public class TmxMapLoader {
                 throw new IOException(String.format("Only square tile sizes are supported (found: %dx%d", mapType.getTilewidth(), mapType.getTileheight()));
             }
 
+            // parse the areas on the map
+            List<Area> areas = parseAreas(mapType);
+
             // parse the tilesets associated with this map and extract the tileset metadata path
             TilesetData tilesetData = parseTileset(mapType);
 
             // process each layer of the map
             List<Layer> layers = parseLayers(mapType, tilesetData.metadata);
 
-            return new GameMap(mapType.getWidth(), mapType.getHeight(), mapType.getTilewidth(),
-                    tilesetData.settings, tilesetData.metadata, layers);
+            // parse all doors on the map
+            List<Door> doors = parseDoors(mapType);
+
+            return GameMap.builder()
+                    .areas(areas)
+                    .doors(doors)
+                    .height(mapType.getHeight())
+                    .layers(layers)
+                    .tileMetadata(tilesetData.metadata)
+                    .tilesetSettings(tilesetData.settings)
+                    .tileSize(mapType.getTilewidth())
+                    .width(mapType.getWidth())
+                    .build();
         }
 
         catch (JAXBException ex) {
@@ -88,6 +108,64 @@ public class TmxMapLoader {
         }
     }
 
+    /**
+     * Parses metadata that describes distinct areas of the map.
+     *
+     * @param mapType The TMX map to parse.
+     * @return A list of {@link Area} subsections in the map.
+     * @throws IOException If an error occurs while parsing.
+     */
+    private List<Area> parseAreas(com.mbpolan.retrorealms.tmx.Map mapType) throws IOException {
+        final Pattern areaPattern = Pattern.compile(MAP_AREA_PROP_REGEX);
+        final Pattern areaValuePattern = Pattern.compile(MAP_AREA_VALUE_REGEX);
+
+        List<Area> areas = new ArrayList<>();
+
+        PropertiesType props = mapType.getProperties();
+        if (props != null) {
+            for (PropertyType prop : props.getProperty()) {
+                LOG.debug("Parsing map property with name {}", prop.getName());
+
+                // property defining a map area
+                Matcher areaMatcher = areaPattern.matcher(prop.getName());
+                if (areaMatcher.find()) {
+                    LOG.debug("Processing map area property");
+                    int id = Integer.parseInt(areaMatcher.group(1));
+
+                    // match the value of the property
+                    Matcher valueMatcher = areaValuePattern.matcher(prop.getValue());
+                    if (valueMatcher.find()) {
+                        int x1 = Integer.parseInt(valueMatcher.group(1));
+                        int y1 = Integer.parseInt(valueMatcher.group(2));
+                        int x2 = Integer.parseInt(valueMatcher.group(3));
+                        int y2 = Integer.parseInt(valueMatcher.group(4));
+
+                        LOG.debug("Extracted area {} from ({},{} -> {}, {})", id, x1, y1, x2, y2);
+                        areas.add(new Area(id, new Rectangle(x1, y1, x2 - x1, y2 - y1)));
+                    }
+
+                    else {
+                        throw new IOException(String.format("Map area value doesn't match pattern: %s", prop.getValue()));
+                    }
+                }
+
+                else {
+                    LOG.warn("Skipping unknown map property: {}", prop.getName());
+                }
+            }
+        }
+
+        LOG.info("Parsed {} map areas", areas.size());
+        return areas;
+    }
+
+    /**
+     * Parses the list of tilesets that are used on the map.
+     *
+     * @param mapType The TMX map to parse.
+     * @return A {@link TilesetData} describing tilesets in use.
+     * @throws IOException If an error occurs while parsing.
+     */
     private TilesetData parseTileset(com.mbpolan.retrorealms.tmx.Map mapType) throws IOException {
         // parse and valiadate map tilesets
         TilesetType tileset = mapType.getTileset();
@@ -122,6 +200,14 @@ public class TmxMapLoader {
         return new TilesetData(new AssetSettings(tileset.getName(), relResourcePath, relImagePath), tilesMetadata);
     }
 
+    /**
+     * Parses the various layers of the map.
+     *
+     * @param mapType The TMX map to parse.
+     * @param tileMetadata Metadata for the tilesets used in the map.
+     * @return A list of {@link Layer}s describing each map layer.
+     * @throws IOException If an error occurs while parsing.
+     */
     private List<Layer> parseLayers(com.mbpolan.retrorealms.tmx.Map mapType, TilesetMetadata tileMetadata) throws IOException {
         List<Layer> layers = new ArrayList<>();
 
@@ -146,7 +232,62 @@ public class TmxMapLoader {
             layers.add(new Layer(tiles));
         }
 
-        LOG.debug("Parsed {} layers", layers.size());
+        LOG.info("Parsed {} layers", layers.size());
         return layers;
+    }
+
+    /**
+     * Parses the collection of doors that are defined on the map.
+     *
+     * @param mapType The TMX map to parse.
+     * @return A list of {@link Door}s on the map.
+     * @throws IOException If an error occurs while parsing.
+     */
+    private List<Door> parseDoors(com.mbpolan.retrorealms.tmx.Map mapType) throws IOException {
+        List<Door> doors = new ArrayList<>();
+
+        for (ObjectGroupType group : mapType.getObjectgroup()) {
+            LOG.debug("Parsing object group with name {}", group.getName());
+
+            // doors should be placed under a "doors" group
+            if (group.getName().equals("doors")) {
+                for (ObjectType obj : group.getObject()) {
+                    // doors are expected to have properties defined
+                    PropertiesType props = obj.getProperties();
+                    if (props == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): no properties", obj.getX(), obj.getY()));
+                    }
+
+                    // required properties are "id" and "connectsToId"
+                    Integer id = null, connectsToId = null;
+                    for (PropertyType prop : props.getProperty()) {
+                        switch (prop.getName()) {
+                            case "doorId":
+                                id = Integer.parseInt(prop.getValue());
+                                break;
+                            case "connectsTo":
+                                connectsToId = Integer.parseInt(prop.getValue());
+                                break;
+                            default:
+                                LOG.warn("Skipping unknown door property: {}", prop.getName());
+                        }
+                    }
+
+                    if (id == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): missing 'doorId'", obj.getX(), obj.getY()));
+                    }
+
+                    if (connectsToId == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): missing 'connectsTo'", obj.getX(), obj.getY()));
+                    }
+
+                    // if all's good, add the door to the collection and define its area
+                    doors.add(new Door(id, connectsToId, new Rectangle(obj.getX(), obj.getY(), obj.getWidth(), obj.getHeight())));
+                }
+            }
+        }
+
+        LOG.info("Parsed {} doors", doors.size());
+        return doors;
     }
 }

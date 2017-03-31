@@ -3,6 +3,17 @@
             xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
             jxb:version="2.0">
 
+    <xsd:complexType name="PropertyType">
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="value" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="PropertiesType">
+        <xsd:sequence>
+            <xsd:element name="property" type="PropertyType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:simpleType name="OrientationType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="orthogonal"/>
@@ -59,11 +70,33 @@
         <xsd:attribute name="height" type="xsd:int" use="required"/>
     </xsd:complexType>
 
+    <xsd:complexType name="ObjectType">
+        <xsd:all>
+            <xsd:element name="properties" type="PropertiesType" minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="id" type="xsd:int" use="required"/>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+        <xsd:attribute name="gid" type="xsd:int" use="required"/>
+        <xsd:attribute name="x" type="xsd:int" use="required"/>
+        <xsd:attribute name="y" type="xsd:int" use="required"/>
+        <xsd:attribute name="width" type="xsd:int" use="required"/>
+        <xsd:attribute name="height" type="xsd:int" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectGroupType">
+        <xsd:sequence>
+            <xsd:element name="object" type="ObjectType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
     <xsd:element name="map">
         <xsd:complexType>
             <xsd:sequence>
+                <xsd:element name="properties" type="PropertiesType" minOccurs="0" maxOccurs="1"/>
                 <xsd:element name="tileset" type="TilesetType" minOccurs="1"/>
                 <xsd:element name="layer" type="LayerType" minOccurs="1" maxOccurs="unbounded"/>
+                <xsd:element name="objectgroup" type="ObjectGroupType" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
             <xsd:attribute name="version" type="xsd:string" use="required"/>
             <xsd:attribute name="width" type="xsd:int" use="required"/>

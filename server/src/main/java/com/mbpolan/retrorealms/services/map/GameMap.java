@@ -3,7 +3,6 @@ package com.mbpolan.retrorealms.services.map;
 import com.mbpolan.retrorealms.settings.AssetSettings;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Descriptor for the entire game map.
@@ -18,16 +17,11 @@ public class GameMap {
     private AssetSettings tilesetSettings;
     private TilesetMetadata tileMetadata;
     private List<Layer> layers;
+    private List<Area> areas;
+    private List<Door> doors;
 
-    public GameMap(int width, int height, int tileSize, AssetSettings tilesetSettings,
-                   TilesetMetadata tileMetadata, List<Layer> layers) {
-
-        this.width = width;
-        this.height = height;
-        this.tileSize = tileSize;
-        this.tilesetSettings = tilesetSettings;
-        this.tileMetadata = tileMetadata;
-        this.layers = layers;
+    public static Builder builder() {
+        return new Builder();
     }
 
     public int getWidth() {
@@ -46,7 +40,90 @@ public class GameMap {
         return tilesetSettings;
     }
 
+    public TilesetMetadata getTileMetadata() {
+        return tileMetadata;
+    }
+
     public List<Layer> getLayers() {
         return layers;
+    }
+
+    public List<Area> getAreas() {
+        return areas;
+    }
+
+    public List<Door> getDoors() {
+        return doors;
+    }
+
+    public static final class Builder {
+        private int width;
+        private int height;
+        private int tileSize;
+        private AssetSettings tilesetSettings;
+        private TilesetMetadata tileMetadata;
+        private List<Layer> layers;
+        private List<Area> areas;
+        private List<Door> doors;
+
+        private Builder() {
+        }
+
+        public static Builder aGameMap() {
+            return new Builder();
+        }
+
+        public Builder width(int width) {
+            this.width = width;
+            return this;
+        }
+
+        public Builder height(int height) {
+            this.height = height;
+            return this;
+        }
+
+        public Builder tileSize(int tileSize) {
+            this.tileSize = tileSize;
+            return this;
+        }
+
+        public Builder tilesetSettings(AssetSettings tilesetSettings) {
+            this.tilesetSettings = tilesetSettings;
+            return this;
+        }
+
+        public Builder tileMetadata(TilesetMetadata tileMetadata) {
+            this.tileMetadata = tileMetadata;
+            return this;
+        }
+
+        public Builder layers(List<Layer> layers) {
+            this.layers = layers;
+            return this;
+        }
+
+        public Builder areas(List<Area> areas) {
+            this.areas = areas;
+            return this;
+        }
+
+        public Builder doors(List<Door> doors) {
+            this.doors = doors;
+            return this;
+        }
+
+        public GameMap build() {
+            GameMap gameMap = new GameMap();
+            gameMap.width = this.width;
+            gameMap.tilesetSettings = this.tilesetSettings;
+            gameMap.height = this.height;
+            gameMap.tileSize = this.tileSize;
+            gameMap.tileMetadata = this.tileMetadata;
+            gameMap.doors = this.doors;
+            gameMap.layers = this.layers;
+            gameMap.areas = this.areas;
+            return gameMap;
+        }
     }
 }
