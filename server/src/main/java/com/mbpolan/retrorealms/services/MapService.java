@@ -1,10 +1,8 @@
 package com.mbpolan.retrorealms.services;
 
 import com.mbpolan.retrorealms.services.beans.MapArea;
-import com.mbpolan.retrorealms.services.map.AssetLoader;
-import com.mbpolan.retrorealms.services.map.GameMap;
-import com.mbpolan.retrorealms.services.map.Layer;
-import com.mbpolan.retrorealms.services.map.TmxMapLoader;
+import com.mbpolan.retrorealms.services.beans.Rectangle;
+import com.mbpolan.retrorealms.services.map.*;
 import com.mbpolan.retrorealms.settings.AssetSettings;
 import com.mbpolan.retrorealms.settings.MapSettings;
 import org.slf4j.Logger;
@@ -18,8 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Service that manages various areas of the game map.
@@ -34,7 +31,7 @@ public class MapService {
     @Autowired
     private SettingsService settings;
 
-    private MapArea area;
+    private Map<Integer, MapArea> areas;
     private GameMap map;
 
     @PostConstruct
@@ -59,9 +56,8 @@ public class MapService {
 
         LOG.info("Successfully parsed map data");
 
-        // create the initial map area
-        this.area = new MapArea(map.getLayers(), this.map.getWidth(),
-                this.map.getHeight(), this.map.getTileSize());
+        // generate the world based on the data we loaded from the map
+        generateWorld();
     }
 
     /**
@@ -69,8 +65,8 @@ public class MapService {
      *
      * @return An immutable list of {@link MapArea} beans.
      */
-    public List<MapArea> getMapAreas() {
-        return Collections.singletonList(area);
+    public Collection<MapArea> getMapAreas() {
+        return this.areas.values();
     }
 
     /**
@@ -80,7 +76,7 @@ public class MapService {
      * @return A {@link MapArea} bean.
      */
     public MapArea getMapArea(int area) {
-        return this.area;
+        return this.areas.get(area);
     }
 
     /**
@@ -99,5 +95,58 @@ public class MapService {
      */
     public int getTileSize() {
         return this.map.getTileSize();
+    }
+
+    /**
+     * Generates the various map areas and other constructs for the game world.
+     */
+    private void generateWorld() {
+        this.areas = new HashMap<>();
+
+        LOG.info("Generating world...");
+        long start = System.currentTimeMillis();
+
+        // based on the areas that are defined, we need to partition the entire rectangle of tiles that make up the
+        // map into individual areas
+        map.getAreas().forEach(a -> {
+            Rectangle bounds = a.getBounds();
+            List<Layer> areaLayers = new ArrayList<>();
+
+            // compute the tiles that belong to this map area
+            map.getLayers().forEach(l -> {
+                List<List<Tile>> tiles = new ArrayList<>();
+
+                for (int y = 0; y < map.getHeight(); y++) {
+
+                    // does this row fall into the area occupied by this area?
+                    if (y >= bounds.getY1() && y <= bounds.getY2()) {
+                        List<Tile> row = new ArrayList<>();
+
+                        for (int x = 0; x < map.getWidth(); x++) {
+                            // does this column fall into the area occupied by this area?
+                            if (x >= bounds.getX1() && x <= bounds.getX2()) {
+                                row.add(l.getTiles().get(y).get(x));
+                            }
+                        }
+
+                        tiles.add(row);
+                    }
+                }
+
+                areaLayers.add(new Layer(tiles));
+            });
+
+            // compute the dimensions of the area and add it to the world
+            int areaWidth = bounds.getX2() - bounds.getX1() + 1;
+            int areaHeight = bounds.getY2() - bounds.getY1() + 1;
+
+            LOG.debug("Added map area {} over ({},{} -> {},{}) {}x{}",
+                    a.getId(), bounds.getX1(), bounds.getY1(), bounds.getX2(), bounds.getY2(),
+                    areaWidth, areaHeight);
+
+            areas.put(a.getId(), new MapArea(areaLayers, areaWidth, areaHeight, map.getTileSize()));
+        });
+
+        LOG.info("World generated in {} ms", System.currentTimeMillis() - start);
     }
 }

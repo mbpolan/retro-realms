@@ -102,7 +102,7 @@ public class TmxMapLoader {
         AssetSettings settings;
         TilesetMetadata metadata;
 
-        public TilesetData(AssetSettings settings, TilesetMetadata metadata) {
+        TilesetData(AssetSettings settings, TilesetMetadata metadata) {
             this.settings = settings;
             this.metadata = metadata;
         }
@@ -140,8 +140,8 @@ public class TmxMapLoader {
                         int x2 = Integer.parseInt(valueMatcher.group(3));
                         int y2 = Integer.parseInt(valueMatcher.group(4));
 
-                        LOG.debug("Extracted area {} from ({},{} -> {}, {})", id, x1, y1, x2, y2);
-                        areas.add(new Area(id, new Rectangle(x1, y1, x2 - x1, y2 - y1)));
+                        LOG.debug("Extracted area {} from ({},{} -> {},{})", id, x1, y1, x2, y2);
+                        areas.add(new Area(id, new Rectangle(x1, y1, x2, y2)));
                     }
 
                     else {
@@ -197,6 +197,7 @@ public class TmxMapLoader {
         String relResourcePath = String.format("/%s", dataPath.relativize(tilesetMetadata).toString().replace("\\", "/"));
 
         TilesetMetadata tilesMetadata = assetLoader.loadTilesetMetadata(new FileInputStream(tilesetMetadata.toFile()));
+        tilesMetadata.setFirstId(tileset.getFirstgid());
         return new TilesetData(new AssetSettings(tileset.getName(), relResourcePath, relImagePath), tilesMetadata);
     }
 

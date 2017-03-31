@@ -44,6 +44,10 @@ public class GameMap {
         return tileMetadata;
     }
 
+    public Tile createEmptyTile() {
+        return new Tile(tileMetadata.getFirstId() - 1, null);
+    }
+
     public List<Layer> getLayers() {
         return layers;
     }

@@ -65,6 +65,10 @@ public class Rectangle {
         this.y2 += dy;
     }
 
+    public boolean contains(int x, int y) {
+        return ((x >= x1 && x <= x2) && (y >= y1 && y <= y2));
+    }
+
     public boolean overlaps(Rectangle that) {
         return this.x1 < that.x2 && this.x2 > that.x1 && this.y1 < that.y2 && this.y2 > that.y1;
     }
