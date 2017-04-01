@@ -67,6 +67,8 @@ public class TmxMapLoader {
                 throw new IOException(String.format("Only square tile sizes are supported (found: %dx%d", mapType.getTilewidth(), mapType.getTileheight()));
             }
 
+            final int tileSize = mapType.getTilewidth();
+
             // parse the areas on the map
             List<Area> areas = parseAreas(mapType);
 
@@ -77,7 +79,7 @@ public class TmxMapLoader {
             List<Layer> layers = parseLayers(mapType, tilesetData.metadata);
 
             // parse all doors on the map
-            List<Door> doors = parseDoors(mapType);
+            List<Door> doors = parseDoors(mapType, areas, tileSize);
 
             return GameMap.builder()
                     .areas(areas)
@@ -86,7 +88,7 @@ public class TmxMapLoader {
                     .layers(layers)
                     .tileMetadata(tilesetData.metadata)
                     .tilesetSettings(tilesetData.settings)
-                    .tileSize(mapType.getTilewidth())
+                    .tileSize(tileSize)
                     .width(mapType.getWidth())
                     .build();
         }
@@ -241,10 +243,12 @@ public class TmxMapLoader {
      * Parses the collection of doors that are defined on the map.
      *
      * @param mapType The TMX map to parse.
+     * @param areas The list of areas on the map.
+     * @param tileSize The square size of a single tile, in pixels.
      * @return A list of {@link Door}s on the map.
      * @throws IOException If an error occurs while parsing.
      */
-    private List<Door> parseDoors(com.mbpolan.retrorealms.tmx.Map mapType) throws IOException {
+    private List<Door> parseDoors(com.mbpolan.retrorealms.tmx.Map mapType, List<Area> areas, int tileSize) throws IOException {
         List<Door> doors = new ArrayList<>();
 
         for (ObjectGroupType group : mapType.getObjectgroup()) {
@@ -259,15 +263,28 @@ public class TmxMapLoader {
                         throw new IOException(String.format("Invalid door at (%d,%d): no properties", obj.getX(), obj.getY()));
                     }
 
-                    // required properties are "id" and "connectsToId"
-                    Integer id = null, connectsToId = null;
+                    // define the pixel region and tile bounds of this door
+                    // the origin needs to be adjusted from its bottom-left position to the top-left instead
+                    int originY = obj.getY() - obj.getHeight();
+                    Rectangle region = new Rectangle(obj.getX(), originY, obj.getX() + obj.getWidth(), originY + obj.getHeight());
+                    Rectangle bounds = new Rectangle(
+                            region.getX1() / tileSize,
+                            region.getY1() / tileSize,
+                            (region.getX2() / tileSize) - 1,
+                            (region.getY2() / tileSize) - 1);
+
+                    // required properties are "id", "toTileX" and "toTileY"
+                    Integer id = null, toTileX = null, toTileY = null;
                     for (PropertyType prop : props.getProperty()) {
                         switch (prop.getName()) {
                             case "doorId":
                                 id = Integer.parseInt(prop.getValue());
                                 break;
-                            case "connectsTo":
-                                connectsToId = Integer.parseInt(prop.getValue());
+                            case "toTileX":
+                                toTileX = Integer.parseInt(prop.getValue());
+                                break;
+                            case "toTileY":
+                                toTileY = Integer.parseInt(prop.getValue());
                                 break;
                             default:
                                 LOG.warn("Skipping unknown door property: {}", prop.getName());
@@ -278,12 +295,47 @@ public class TmxMapLoader {
                         throw new IOException(String.format("Invalid door at (%d,%d): missing 'doorId'", obj.getX(), obj.getY()));
                     }
 
-                    if (connectsToId == null) {
-                        throw new IOException(String.format("Invalid door at (%d,%d): missing 'connectsTo'", obj.getX(), obj.getY()));
+                    if (toTileX == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): missing 'toTileX'", obj.getX(), obj.getY()));
                     }
 
+
+                    if (toTileY == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): missing 'toTileY'", obj.getX(), obj.getY()));
+                    }
+
+                    // find the map areas where this door is placed and where leads to
+                    Area source = null, target = null;
+                    for (Area area : areas) {
+                        if (area.getBounds().contains(bounds)) {
+                            source = area;
+                        }
+
+                        if (area.getBounds().contains(toTileX, toTileY)) {
+                            target = area;
+                        }
+                    }
+
+                    // make sure this door actually leads somewhere meaningful
+                    if (source == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): source is out of bounds", obj.getX(), obj.getY()));
+                    }
+
+                    if (target == null) {
+                        throw new IOException(String.format("Invalid door at (%d,%d): target is out of bounds", obj.getX(), obj.getY()));
+                    }
+
+                    // transform the target tile coordinates to pixel coordinates relative to the origin of the target area
+                    int dstX = (toTileX - target.getBounds().getX1()) * tileSize;
+                    int dstY = (toTileY - target.getBounds().getY1()) * tileSize;
+
+                    // transform the door's pixel region to be relative to the origin of the source area
+                    Rectangle relBounds = region.relativeTo(source.getBounds().multiply(tileSize, tileSize));
+
+                    LOG.debug("Extracted door in area {} to area {} ({},{})", source.getId(), target.getId(), dstX, dstY);
+
                     // if all's good, add the door to the collection and define its area
-                    doors.add(new Door(id, connectsToId, new Rectangle(obj.getX(), obj.getY(), obj.getWidth(), obj.getHeight())));
+                    doors.add(new Door(id, source.getId(), target.getId(), dstX, dstY, relBounds));
                 }
             }
         }

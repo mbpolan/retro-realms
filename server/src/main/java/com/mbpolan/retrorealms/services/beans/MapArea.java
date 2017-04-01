@@ -1,6 +1,7 @@
 package com.mbpolan.retrorealms.services.beans;
 
 import com.mbpolan.retrorealms.beans.responses.AbstractResponse;
+import com.mbpolan.retrorealms.services.map.Door;
 import com.mbpolan.retrorealms.services.map.Layer;
 import com.mbpolan.retrorealms.services.map.Tile;
 
@@ -25,6 +26,9 @@ public class MapArea extends Lockable {
     // matrix of static tiles in this area, in row-major order
     private List<Layer> layers;
 
+    // list of doors found in this map area
+    private List<Door> doors;
+
     // list of static and dynamic collision planes in this area
     private List<Rectangle> planes;
 
@@ -39,17 +43,19 @@ public class MapArea extends Lockable {
      *
      * The initial game state contains no players.
      *
-     * @param layers The list of rectangles of tiles in this area.
      * @param width The width of the map area, in tiles.
      * @param height The height of the map area, in tiles.
      * @param tileSize The size (width and height) of a single, square tile.
+     * @param layers The list of rectangles of tiles in this area.
+     * @param doors The list of doors in this area.
      */
-    public MapArea(List<Layer> layers, int width, int height, int tileSize) {
+    public MapArea(int width, int height, int tileSize, List<Layer> layers, List<Door> doors) {
         this.players = new ArrayList<>();
-        this.layers = layers;
         this.width = width;
         this.height = height;
         this.tileSize = tileSize;
+        this.layers = layers;
+        this.doors = doors;
         this.state = new GameState();
         this.planes = new ArrayList<>();
 
@@ -171,21 +177,22 @@ public class MapArea extends Lockable {
      * @return true if the move can be done, false if not.
      */
     public boolean canPlayerMove(Player player, Direction direction) {
-        return computePlayerMovement(player, direction, false);
+        return computePlayerMovement(player, direction, false).isValid();
     }
 
     /**
      * Computes a player movement and updates their position if needed.
      *
      * @param player The moving player.
-     * @return true if the player was moved, false if not.
+     * @return The action that resulted from the movement.
      */
-    public boolean movePlayer(Player player) {
+    public MoveAction movePlayer(Player player) {
         return computePlayerMovement(player, player.getDirection(), true);
     }
 
     /**
      * Recomputes the collection of collision planes based on the layers of tiles in the area.
+     *
      */
     private void computePlanes() {
         this.layers.forEach(layer -> {
@@ -212,9 +219,9 @@ public class MapArea extends Lockable {
      * @param player The moving player.
      * @param direction The direction in which to move the player.
      * @param commit true to commit the movement, false to rollback if successful.
-     * @return true if the movement succeeded, false if not.
+     * @return The action that resulted from the movement.
      */
-    private boolean computePlayerMovement(Player player, Direction direction, boolean commit) {
+    private MoveAction computePlayerMovement(Player player, Direction direction, boolean commit) {
         // compute a delta movement vector
         int dx = 0, dy = 0;
         switch (direction) {
@@ -242,7 +249,7 @@ public class MapArea extends Lockable {
 
             // rollback the movement
             rect.translate(-dx, -dy);
-            return false;
+            return MoveAction.collision();
         }
 
         // should we commit the movement change?
@@ -252,9 +259,15 @@ public class MapArea extends Lockable {
 
         else {
             state.addChangedPlayer(player);
+
+            // has the player reached a door?
+            Door door = findDoorCollision(rect);
+            if (door != null) {
+                return MoveAction.moveToDoor(door);
+            }
         }
 
-        return true;
+        return MoveAction.move();
     }
 
     /**
@@ -268,5 +281,18 @@ public class MapArea extends Lockable {
                 .filter(p -> p != rect && p.overlaps(rect))
                 .findAny()
                 .isPresent();
+    }
+
+    /**
+     * Detects if a given rectangle overlaps with any door plane in the area.
+     *
+     * @param rect The rectangle to test.
+     * @return The first {@link Door} that the rectangle collides with, or null if none.
+     */
+    private Door findDoorCollision(Rectangle rect) {
+        return this.doors.stream()
+                .filter(d -> d.getBounds().overlaps(rect))
+                .findFirst()
+                .orElse(null);
     }
 }

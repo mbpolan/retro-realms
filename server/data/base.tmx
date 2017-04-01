@@ -98,14 +98,16 @@
  <objectgroup name="doors">
   <object id="25" type="door" gid="60" x="800" y="672" width="128" height="32">
    <properties>
-    <property name="connectsTo" type="int" value="1"/>
     <property name="doorId" type="int" value="0"/>
+    <property name="toTileX" type="int" value="26"/>
+    <property name="toTileY" type="int" value="18"/>
    </properties>
   </object>
   <object id="26" type="door" gid="60" x="800" y="640" width="128" height="32">
    <properties>
-    <property name="connectsTo" type="int" value="0"/>
     <property name="doorId" type="int" value="1"/>
+    <property name="toTileX" type="int" value="26"/>
+    <property name="toTileY" type="int" value="21"/>
    </properties>
   </object>
  </objectgroup>

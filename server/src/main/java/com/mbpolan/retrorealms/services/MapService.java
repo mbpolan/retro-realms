@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service that manages various areas of the game map.
@@ -136,15 +137,20 @@ public class MapService {
                 areaLayers.add(new Layer(tiles));
             });
 
+            // find all doors that belong to this area
+            List<Door> areaDoors = map.getDoors().stream()
+                    .filter(d -> d.getSrcAreaId() == a.getId())
+                    .collect(Collectors.toList());
+
             // compute the dimensions of the area and add it to the world
             int areaWidth = bounds.getX2() - bounds.getX1() + 1;
             int areaHeight = bounds.getY2() - bounds.getY1() + 1;
 
-            LOG.debug("Added map area {} over ({},{} -> {},{}) {}x{}",
+            LOG.debug("Added map area {} over ({},{} -> {},{}) {}x{} with {} doors",
                     a.getId(), bounds.getX1(), bounds.getY1(), bounds.getX2(), bounds.getY2(),
-                    areaWidth, areaHeight);
+                    areaWidth, areaHeight, areaDoors.size());
 
-            areas.put(a.getId(), new MapArea(areaLayers, areaWidth, areaHeight, map.getTileSize()));
+            areas.put(a.getId(), new MapArea(areaWidth, areaHeight, map.getTileSize(), areaLayers, areaDoors));
         });
 
         LOG.info("World generated in {} ms", System.currentTimeMillis() - start);

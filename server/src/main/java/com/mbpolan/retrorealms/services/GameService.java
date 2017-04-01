@@ -4,10 +4,8 @@ import com.mbpolan.retrorealms.beans.responses.*;
 import com.mbpolan.retrorealms.beans.responses.data.LoginResult;
 import com.mbpolan.retrorealms.beans.responses.data.PlayerInfo;
 import com.mbpolan.retrorealms.repositories.entities.UserAccount;
-import com.mbpolan.retrorealms.services.beans.Direction;
-import com.mbpolan.retrorealms.services.beans.GameState;
-import com.mbpolan.retrorealms.services.beans.MapArea;
-import com.mbpolan.retrorealms.services.beans.Player;
+import com.mbpolan.retrorealms.services.beans.*;
+import com.mbpolan.retrorealms.services.map.Door;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,27 +121,10 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         area.addPlayer(player);
 
         // and send the player their initial map update
-        List<List<Integer>> tileIds = area.getTileIds();
-        List<PlayerInfo> playerInfos = area.getPlayers().stream()
-                .map(p -> new PlayerInfo(
-                        p.getId(),
-                        p.getUsername(),
-                        p.getSprite(),
-                        p.plane().getX1(),
-                        p.plane().getY2(),
-                        p.getDirection().getValue()))
-                .collect(Collectors.toList());
-
-        player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tileIds, playerInfos));
+        sendMapInfoTo(player, area);
 
         // notify spectators that this player has appeared
-        area.sendToAll(new EntityAppearResponse(new PlayerInfo(
-                player.getId(),
-                player.getUsername(),
-                player.getSprite(),
-                player.plane().getX1(),
-                player.plane().getY1(),
-                player.getDirection().getValue())), player);
+        area.sendToAll(new EntityAppearResponse(createPlayerInfo(player)), player);
 
         area.unlock();
 
@@ -230,6 +211,37 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
     }
 
     /**
+     * Convenience method to transform a {@link Player} object to {@link PlayerInfo} bean.
+     *
+     * @param player The player to summarize.
+     * @return A {@link PlayerInfo} bean.
+     */
+    private static PlayerInfo createPlayerInfo(Player player) {
+        return new PlayerInfo(
+                player.getId(),
+                player.getUsername(),
+                player.getSprite(),
+                player.plane().getX1(),
+                player.plane().getY2(),
+                player.getDirection().getValue());
+    }
+
+    /**
+     * Convenience method to send map information to a single player.
+     *
+     * @param player The player.
+     * @param area The map area to serialize and send to the player.
+     */
+    private static void sendMapInfoTo(Player player, MapArea area) {
+        List<List<Integer>> tileIds = area.getTileIds();
+        List<PlayerInfo> playerInfos = area.getPlayers().stream()
+                .map(GameService::createPlayerInfo)
+                .collect(Collectors.toList());
+
+        player.send(new MapInfoResponse(area.getWidth(), area.getHeight(), tileIds, playerInfos));
+    }
+
+    /**
      * Scheduled task for moving a player to another position.
      *
      * @param player The moving player.
@@ -242,12 +254,23 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
             MapArea area = map.getMapArea(player.getMapArea());
             area.lock();
 
-            if (area.movePlayer(player)) {
-                scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
-            }
+            // attempt to move the player
+            MoveAction action = area.movePlayer(player);
+            switch (action.getAction()) {
+                // the movement was successful - schedule his next movement
+                case MOVED:
+                    scheduleWithDelay(() -> onMovePlayer(player), settings.getPlayerWalkDelay());
+                    break;
 
-            else {
-                onStopPlayerInArea(player, area);
+                // the player has reached a door - transport him to a new map area
+                case RELOCATE_TO_DOOR:
+                    onRelocatePlayer(player, area, action.getDoor());
+                    break;
+
+                // the player has collided with something - stop moving him immediately
+                case COLLISION:
+                    onStopPlayerInArea(player, area);
+                    break;
             }
 
             area.unlock();
@@ -256,6 +279,45 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
         // otherwise stop moving the player and notify spectators
         else {
             onStopPlayer(player);
+        }
+    }
+
+    /**
+     * Reassigns a player from one map area to another.
+     *
+     * It is assumed that the source {@link MapArea} is locked before this method is invoked.
+     *
+     * @param player The player to relocate.
+     * @param srcArea The area in which the player is currently.
+     * @param door The door that the player triggered.
+     */
+    private void onRelocatePlayer(Player player, MapArea srcArea, Door door) {
+        MapArea dstArea = map.getMapArea(door.getToAreaId());
+
+        // if the area doesn't exist for any reason, stop the player's movement
+        if (dstArea == null) {
+            LOG.error("Cannot find target area ID {} for door {} to relocate player", door.getId(), door.getToAreaId());
+            onStopPlayerInArea(player, srcArea);
+        }
+
+        else {
+            dstArea.lock();
+
+            // remove the player from the source area and move him to the destination area
+            srcArea.removePlayer(player);
+            dstArea.addPlayer(player);
+
+            // update the player's coordinates
+            player.setAbsolutePosition(door.getToAreaId(), door.getToX(), door.getToY());
+
+            // notify spectators in both areas
+            srcArea.sendToAll(new EntityDisappearResponse(player.getId()), player);
+            srcArea.sendToAll(new EntityAppearResponse(createPlayerInfo(player)), player);
+
+            // send the moving player a map update for the new area
+            sendMapInfoTo(player, dstArea);
+
+            dstArea.unlock();
         }
     }
 
@@ -284,15 +346,6 @@ public class GameService implements ApplicationListener<SessionDisconnectEvent> 
     private void onStopPlayerInArea(Player player, MapArea area) {
         player.setMoving(false);
         area.sendToAll(new EntityMoveStopResponse(player.getId(), player.plane().getX1(), player.plane().getY1()));
-    }
-
-    /**
-     * Convenience method to schedule a task that will be executed as soon as possible.
-     *
-     * @param task The task to schedule.
-     */
-    private void scheduleNow(Runnable task) {
-        scheduler.schedule(task, Date.from(Instant.now()));
     }
 
     /**
