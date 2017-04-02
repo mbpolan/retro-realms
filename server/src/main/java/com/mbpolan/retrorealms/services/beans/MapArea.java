@@ -206,8 +206,8 @@ public class MapArea extends Lockable {
                         for (Rectangle bbox : tile.getBoundingBoxes()) {
                             Rectangle plane = bbox.copy();
 
-                            // the plane's position relative to the tile's position on the map
-                            plane.translate((x + plane.getX1()) * tileSize, (y + plane.getY1()) * tileSize);
+                            // the plane's position relative to the tile's position on the map)
+                            plane.translate((x * tileSize) + plane.getX1(), (y * tileSize) + plane.getY1());
                             this.planes.add(plane);
                         }
                     }
