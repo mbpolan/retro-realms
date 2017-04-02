@@ -1,10 +1,11 @@
 import {Http, Response} from "@angular/http";
 import {Injectable} from "@angular/core";
 import {Entity} from "./entity";
-import {TilesetInfo, SpriteSheetInfo} from "./metadata";
+import {SpriteSheetInfo} from "./metadata";
 import {ServerInfoService} from "../../shared/server-info.service";
 import {ServerInfo} from "../../shared/server/server-info";
 import {AppService} from "../../shared/app.service";
+import {TilesetInfo} from "../../shared/server/tileset-info";
 
 /**
  * Contains template information about a sprite.
@@ -22,7 +23,7 @@ export class AssetsService {
     private _tileSize: number;
     private tileset: PIXI.Texture;
     private spriteSheet: PIXI.Texture;
-    private pendingLoad = 2;
+    private pendingLoad = 1;
     private loaded = false;
 
     // map of entity names to their animations, keyed by animation name to list of frame textures
@@ -138,15 +139,8 @@ export class AssetsService {
      * @param done Callback to invoke once processing is done.
      */
     private loadDescriptors(loader: any, resource: any, info: ServerInfo, done: () => void): void {
-        // load the metadata for the tileset
-        this.http.get(`${this.app.contextPath()}${info.tileset.path}`)
-            .map((res: Response) => res.json())
-            .subscribe(data => {
-                this.loadTileset(<TilesetInfo> data);
-                console.log('tileset loaded');
-
-                this.notifyIfDone(done);
-            });
+        // process the metadata from the server about tilesets
+        this.loadTileset(info.tileset);
 
         // load the metadata for the sprite sheet
         this.http.get(`${this.app.contextPath()}${info.sprites.path}`)

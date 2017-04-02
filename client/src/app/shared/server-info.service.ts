@@ -7,7 +7,10 @@ import {AppService} from "./app.service";
 @Injectable()
 export class ServerInfoService {
 
+    private cachedInfo: Observable<ServerInfo>;
+
     public constructor(private app: AppService, private http: Http) {
+        this.cachedInfo = null;
     }
 
     /**
@@ -16,16 +19,20 @@ export class ServerInfoService {
      * @returns {Observable<ServerInfo>} Information about the server.
      */
     public getServerInfo(): Observable<ServerInfo> {
-        return this.http.get(`${this.app.contextPath()}/info`)
-            .map(res => <ServerInfo> res.json())
-            .catch(this.handleError);
+        if (!this.cachedInfo) {
+            this.cachedInfo =  this.http.get(`${this.app.contextPath()}/info`)
+                .map(res => <ServerInfo> res.json())
+                .catch(this.handleError);
+        }
+
+        return this.cachedInfo;
     }
 
     /**
      * Processes an error response from the server.
      *
      * @param e The response.
-     * @returns {ErrorObservable<T>} An error to propagate up the chain.
+     * @returns {ErrorObservable<ServerInfo>} An error to propagate up the chain.
      */
     private handleError(e: Response | any): Observable<ServerInfo> {
         let message = e.message ? e.message : e.toString();

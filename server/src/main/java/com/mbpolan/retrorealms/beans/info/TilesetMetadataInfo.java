@@ -10,12 +10,12 @@ import java.util.List;
 public class TilesetMetadataInfo {
 
     private String name;
-    private String path;
+    private String resource;
     private List<TileMetadataInfo> tiles;
 
-    public TilesetMetadataInfo(String name, String path, List<TileMetadataInfo> tiles) {
+    public TilesetMetadataInfo(String name, String resource, List<TileMetadataInfo> tiles) {
         this.name = name;
-        this.path = path;
+        this.resource = resource;
         this.tiles = tiles;
     }
 
@@ -23,8 +23,8 @@ public class TilesetMetadataInfo {
         return name;
     }
 
-    public String getPath() {
-        return path;
+    public String getResource() {
+        return resource;
     }
 
     public List<TileMetadataInfo> getTiles() {

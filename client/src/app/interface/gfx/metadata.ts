@@ -36,22 +36,3 @@ export class SpriteSheetInfo {
     name: string;
     sprites: Array<SpriteInfo>;
 }
-
-/**
- * Class that describes a tile.
- */
-export class TileInfo {
-
-    id: number;
-    frame: BoxInfo;
-    bbox: BoxInfo;
-}
-
-/**
- * Class that describes a tileset.
- */
-export class TilesetInfo {
-
-    name: string;
-    tiles: Array<TileInfo>;
-}
