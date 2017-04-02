@@ -1,7 +1,5 @@
 package com.mbpolan.retrorealms.services.map;
 
-import com.mbpolan.retrorealms.settings.AssetSettings;
-
 import java.util.List;
 
 /**
@@ -14,7 +12,6 @@ public class GameMap {
     private int width;
     private int height;
     private int tileSize;
-    private AssetSettings tilesetSettings;
     private TilesetMetadata tileMetadata;
     private List<Layer> layers;
     private List<Area> areas;
@@ -34,10 +31,6 @@ public class GameMap {
 
     public int getTileSize() {
         return tileSize;
-    }
-
-    public AssetSettings getTilesetSettings() {
-        return tilesetSettings;
     }
 
     public TilesetMetadata getTileMetadata() {
@@ -64,7 +57,6 @@ public class GameMap {
         private int width;
         private int height;
         private int tileSize;
-        private AssetSettings tilesetSettings;
         private TilesetMetadata tileMetadata;
         private List<Layer> layers;
         private List<Area> areas;
@@ -92,11 +84,6 @@ public class GameMap {
             return this;
         }
 
-        public Builder tilesetSettings(AssetSettings tilesetSettings) {
-            this.tilesetSettings = tilesetSettings;
-            return this;
-        }
-
         public Builder tileMetadata(TilesetMetadata tileMetadata) {
             this.tileMetadata = tileMetadata;
             return this;
@@ -120,7 +107,6 @@ public class GameMap {
         public GameMap build() {
             GameMap gameMap = new GameMap();
             gameMap.width = this.width;
-            gameMap.tilesetSettings = this.tilesetSettings;
             gameMap.height = this.height;
             gameMap.tileSize = this.tileSize;
             gameMap.tileMetadata = this.tileMetadata;

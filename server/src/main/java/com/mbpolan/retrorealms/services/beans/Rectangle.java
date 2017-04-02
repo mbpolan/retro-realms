@@ -1,7 +1,9 @@
 package com.mbpolan.retrorealms.services.beans;
 
 /**
- * A rectangle defined by Cartesian coordinates.
+ * A rectangle defined by two 2D points.
+ *
+ * Rectangles span the area enclosed by a top-left coordinate (x1,y1) to a bottom-right coordinate (x2,y2).
  *
  * @author mbpolan
  */
@@ -31,6 +33,24 @@ public class Rectangle {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+    }
+
+    /**
+     * Returns the width of the rectangle.
+     *
+     * @return The width.
+     */
+    public int getWidth() {
+        return this.x2 - this.x1;
+    }
+
+    /**
+     * Returns the height of the rectangle.
+     *
+     * @return The height.
+     */
+    public int getHeight() {
+        return this.y2 - this.y1;
     }
 
     /**

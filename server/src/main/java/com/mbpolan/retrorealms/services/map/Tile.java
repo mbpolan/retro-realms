@@ -2,6 +2,9 @@ package com.mbpolan.retrorealms.services.map;
 
 import com.mbpolan.retrorealms.services.beans.Rectangle;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Descriptor for a single tile on the map.
  *
@@ -10,22 +13,32 @@ import com.mbpolan.retrorealms.services.beans.Rectangle;
 public class Tile {
 
     private int id;
-    private Rectangle boundingBox;
+    private Rectangle frame;
+    private List<Rectangle> boundingBoxes;
 
-    public Tile(int id, Rectangle boundingBox) {
+    public Tile(int id, Rectangle frame) {
+        this(id, frame, new ArrayList<>());
+    }
+
+    public Tile(int id, Rectangle frame, List<Rectangle> boundingBoxes) {
         this.id = id;
-        this.boundingBox = boundingBox;
+        this.frame = frame;
+        this.boundingBoxes = boundingBoxes;
     }
 
     public int getId() {
         return id;
     }
 
-    public boolean hasBoundingBox() {
-        return boundingBox != null;
+    public Rectangle getFrame() {
+        return frame;
     }
 
-    public Rectangle getBoundingBox() {
-        return boundingBox;
+    public boolean hasBoundingBoxes() {
+        return !boundingBoxes.isEmpty();
+    }
+
+    public List<Rectangle> getBoundingBoxes() {
+        return boundingBoxes;
     }
 }

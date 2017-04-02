@@ -201,12 +201,15 @@ public class MapArea extends Lockable {
                 for (int x = 0; x < width; x++) {
                     Tile tile = layer.getTiles().get(y).get(x);
 
-                    if (tile != null && tile.hasBoundingBox()) {
-                        // the tile's collision plane will be its position on the map
-                        Rectangle plane = tile.getBoundingBox().copy();
-                        plane.translate(x * tileSize, y * tileSize);
+                    if (tile != null && tile.hasBoundingBoxes()) {
+                        // transform each bounding box into a collision plane
+                        for (Rectangle bbox : tile.getBoundingBoxes()) {
+                            Rectangle plane = bbox.copy();
 
-                        this.planes.add(plane);
+                            // the plane's position relative to the tile's position on the map
+                            plane.translate((x + plane.getX1()) * tileSize, (y + plane.getY1()) * tileSize);
+                            this.planes.add(plane);
+                        }
                     }
                 }
             }

@@ -4,6 +4,7 @@ import com.mbpolan.retrorealms.beans.info.ServerInfo;
 import com.mbpolan.retrorealms.beans.info.SpritesMetadataInfo;
 import com.mbpolan.retrorealms.beans.info.TilesetMetadataInfo;
 import com.mbpolan.retrorealms.services.MapService;
+import com.mbpolan.retrorealms.services.ServerInfoService;
 import com.mbpolan.retrorealms.services.SettingsService;
 import com.mbpolan.retrorealms.settings.AssetSettings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,24 +24,25 @@ import javax.annotation.PostConstruct;
 public class InfoController {
 
     @Autowired
+    private MapService map;
+
+    @Autowired
     private SettingsService settings;
 
     @Autowired
-    private MapService map;
+    private ServerInfoService infoService;
 
-    private AssetSettings tileset;
     private AssetSettings sprites;
 
     @PostConstruct
     public void init() {
         this.sprites = settings.getMapSettings().getSpritesSettings();
-        this.tileset = map.getTilesetSettings();
     }
 
     @GetMapping
     private ServerInfo getServerInfo() {
         return new ServerInfo(map.getTileSize(),
-                new TilesetMetadataInfo(tileset.getName(), tileset.getPath(), tileset.getResource()),
+                new TilesetMetadataInfo(infoService.getTilesetName(), infoService.getTilesetSource(), infoService.getTiles()),
                 new SpritesMetadataInfo(sprites.getName(), sprites.getPath(), sprites.getResource()));
     }
 }

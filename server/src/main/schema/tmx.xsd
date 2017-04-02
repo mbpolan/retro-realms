@@ -35,10 +35,18 @@
         <xsd:attribute name="height" type="xsd:int" use="required"/>
     </xsd:complexType>
 
+    <xsd:complexType name="TileType">
+        <xsd:sequence>
+            <xsd:element name="objectgroup" type="ObjectGroupType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:int" use="required"/>
+    </xsd:complexType>
+
     <xsd:complexType name="TilesetType">
-        <xsd:all>
+        <xsd:sequence>
             <xsd:element name="image" type="ImageType" minOccurs="1" maxOccurs="1"/>
-        </xsd:all>
+            <xsd:element name="tile" type="TileType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="firstgid" type="xsd:int" use="required"/>
         <xsd:attribute name="tilewidth" type="xsd:int" use="required"/>
@@ -87,7 +95,8 @@
         <xsd:sequence>
             <xsd:element name="object" type="ObjectType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="draworder" type="xsd:string"/>
     </xsd:complexType>
 
     <xsd:element name="map">

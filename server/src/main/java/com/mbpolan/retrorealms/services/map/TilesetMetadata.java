@@ -3,6 +3,8 @@ package com.mbpolan.retrorealms.services.map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -14,12 +16,42 @@ public class TilesetMetadata {
 
     private static final Logger LOG = LoggerFactory.getLogger(TilesetMetadata.class);
 
+    private String name;
+    private String imageSourcePath;
     private int firstId;
     private Map<Integer, Tile> tiles;
 
-    public TilesetMetadata(Map<Integer, Tile> tiles) {
-        this.firstId = 0;
+    /**
+     * Creates a new tileset metadata descriptor.
+     *
+     * @param name The name assigned to this tileset.
+     * @param imageSourcePath The static content path on the server where the image for the tileset is available.
+     * @param firstId The ID number of the first tile in this tileset.
+     * @param tiles A map of tile ID numbers to their descriptors.
+     */
+    public TilesetMetadata(String name, String imageSourcePath, int firstId, Map<Integer, Tile> tiles) {
+        this.name = name;
+        this.imageSourcePath = imageSourcePath;
+        this.firstId = firstId;
         this.tiles = tiles;
+    }
+
+    /**
+     * Returns the path on the server where the image for this tileset is available.
+     *
+     * @return The static content path for the tileset image.
+     */
+    public String getImageSourcePath() {
+        return imageSourcePath;
+    }
+
+    /**
+     * Returns the name for this tileset.
+     *
+     * @return The tileset name.
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -32,12 +64,12 @@ public class TilesetMetadata {
     }
 
     /**
-     * Sets the ID of the first tile in the tileset.
+     * Returns a read-only view of all tiles.
      *
-     * @param firstId The ID of the tile.
+     * @return Metadata for all tiles.
      */
-    public void setFirstId(int firstId) {
-        this.firstId = firstId;
+    public Collection<Tile> getTiles() {
+        return Collections.unmodifiableCollection(tiles.values());
     }
 
     /**

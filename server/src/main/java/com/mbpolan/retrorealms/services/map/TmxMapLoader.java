@@ -1,8 +1,7 @@
 package com.mbpolan.retrorealms.services.map;
 
-import com.mbpolan.retrorealms.services.ServiceUtils;
 import com.mbpolan.retrorealms.services.beans.Rectangle;
-import com.mbpolan.retrorealms.settings.AssetSettings;
+import com.mbpolan.retrorealms.settings.TilesetSettings;
 import com.mbpolan.retrorealms.tmx.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,15 +9,12 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -35,16 +31,15 @@ public class TmxMapLoader {
     private static final String MAP_AREA_PROP_REGEX = "^area_([0-9]+)$";
     private static final String MAP_AREA_VALUE_REGEX = "^([0-9]+),([0-9]+);([0-9]+),([0-9]+)$";
 
-    private Path dataPath = Paths.get(".", "data");
-    private AssetLoader assetLoader;
+    private Path dataPath;
 
     /**
      * Creates a new loader for TMX map files.
      *
-     * @param assetLoader A loader to use for reading tileset and sprite metadata.
+     * @param dataPath The path on the filesystem where server map data exists.
      */
-    public TmxMapLoader(AssetLoader assetLoader) {
-        this.assetLoader = assetLoader;
+    public TmxMapLoader(Path dataPath) {
+        this.dataPath = dataPath;
     }
 
     /**
@@ -73,10 +68,10 @@ public class TmxMapLoader {
             List<Area> areas = parseAreas(mapType);
 
             // parse the tilesets associated with this map and extract the tileset metadata path
-            TilesetData tilesetData = parseTileset(mapType);
+            TilesetMetadata metadata = parseTileset(mapType, tileSize);
 
             // process each layer of the map
-            List<Layer> layers = parseLayers(mapType, tilesetData.metadata);
+            List<Layer> layers = parseLayers(mapType, metadata);
 
             // parse all doors on the map
             List<Door> doors = parseDoors(mapType, areas, tileSize);
@@ -86,8 +81,7 @@ public class TmxMapLoader {
                     .doors(doors)
                     .height(mapType.getHeight())
                     .layers(layers)
-                    .tileMetadata(tilesetData.metadata)
-                    .tilesetSettings(tilesetData.settings)
+                    .tileMetadata(metadata)
                     .tileSize(tileSize)
                     .width(mapType.getWidth())
                     .build();
@@ -101,10 +95,10 @@ public class TmxMapLoader {
 
     private static class TilesetData {
 
-        AssetSettings settings;
+        TilesetSettings settings;
         TilesetMetadata metadata;
 
-        TilesetData(AssetSettings settings, TilesetMetadata metadata) {
+        TilesetData(TilesetSettings settings, TilesetMetadata metadata) {
             this.settings = settings;
             this.metadata = metadata;
         }
@@ -165,10 +159,11 @@ public class TmxMapLoader {
      * Parses the list of tilesets that are used on the map.
      *
      * @param mapType The TMX map to parse.
+     * @param tileSize The square size of a tile.
      * @return A {@link TilesetData} describing tilesets in use.
      * @throws IOException If an error occurs while parsing.
      */
-    private TilesetData parseTileset(com.mbpolan.retrorealms.tmx.Map mapType) throws IOException {
+    private TilesetMetadata parseTileset(com.mbpolan.retrorealms.tmx.Map mapType, int tileSize) throws IOException {
         // parse and valiadate map tilesets
         TilesetType tileset = mapType.getTileset();
 
@@ -184,23 +179,62 @@ public class TmxMapLoader {
         // the image must be located under the data/assets directory, relative to the server
         // TODO
 
-        // get the basename of the tileset image and form the path to the resource file
-        String baseName = ServiceUtils.getBasename(image.getSource());
-        String resourcePath = String.format("%s.json", baseName);
-
-        // the path to the tileset metadata must be in the same directory as the image
-        Path tilesetMetadata = dataPath.resolve(Paths.get(resourcePath));
-        if (!Files.exists(tilesetMetadata)) {
-            throw new IOException(String.format("Cannot find tileset metadata: %s", tilesetMetadata.toAbsolutePath()));
-        }
+        // parse the tiles that belong to this tileset
+        Map<Integer, Tile> tiles = parseTiles(tileset, tileSize);
 
         // make all paths relative to the data directory in the form of URL path components
         String relImagePath = String.format("/%s", dataPath.relativize(tilesetSource).toString().replace("\\", "/"));
-        String relResourcePath = String.format("/%s", dataPath.relativize(tilesetMetadata).toString().replace("\\", "/"));
 
-        TilesetMetadata tilesMetadata = assetLoader.loadTilesetMetadata(new FileInputStream(tilesetMetadata.toFile()));
-        tilesMetadata.setFirstId(tileset.getFirstgid());
-        return new TilesetData(new AssetSettings(tileset.getName(), relResourcePath, relImagePath), tilesMetadata);
+        return new TilesetMetadata(tileset.getName(), relImagePath, tileset.getFirstgid(), tiles);
+    }
+
+    /**
+     * Parses the collection of tiles that are defined for a tileset.
+     *
+     * @param tileset The tileset to parse.
+     * @param tileSize The square size of a tile.
+     * @return A map of tile ID numbers to their descriptors.
+     */
+    private Map<Integer, Tile> parseTiles(TilesetType tileset, int tileSize) {
+        List<TileType> tileTypes = tileset.getTile();
+        ListIterator<TileType> nextTile = tileTypes.listIterator();
+
+        // start with the first tile ID in the tileset
+        int gid = tileset.getFirstgid();
+
+        Map<Integer, Tile> tiles = new HashMap<>();
+
+        // iterate based on the count of tiles that should be in this tileset
+        // reason being that there might not be metadata for every single tile
+        for (int i = 0; i < tileset.getTilecount(); i++, gid++) {
+            Tile tile;
+
+            // compute the frame that encloses the tile on the base image
+            int x = (i % tileset.getColumns()) * tileSize;
+            int y = (i / tileset.getColumns()) * tileSize;
+            Rectangle frame = new Rectangle(x, y, x + tileset.getTilewidth(), y + tileset.getTileheight());
+
+            // does the local tile ID match the global tile ID?
+            if (nextTile.hasNext() && tileTypes.get(nextTile.nextIndex()).getId() + 1 == gid) {
+                TileType tileType = nextTile.next();
+
+                // compute bounding boxes for the tile based on the metadata
+                tile = new Tile(gid, frame, tileType.getObjectgroup().stream()
+                        .flatMap(g -> g.getObject().stream())
+                        .map(o -> new Rectangle(o.getX(), o.getY(), o.getX() + o.getWidth(), o.getY() + o.getHeight()))
+                        .collect(Collectors.toList()));
+            }
+
+            // if not then generate a tile without any metadata information
+            else {
+                tile = new Tile(gid, frame);
+            }
+
+            tiles.put(gid, tile);
+        }
+
+        LOG.info("Parsed {} tiles in tileset {}", tiles.size(), tileset.getName());
+        return tiles;
     }
 
     /**

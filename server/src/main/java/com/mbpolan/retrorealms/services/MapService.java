@@ -3,7 +3,6 @@ package com.mbpolan.retrorealms.services;
 import com.mbpolan.retrorealms.services.beans.MapArea;
 import com.mbpolan.retrorealms.services.beans.Rectangle;
 import com.mbpolan.retrorealms.services.map.*;
-import com.mbpolan.retrorealms.settings.AssetSettings;
 import com.mbpolan.retrorealms.settings.MapSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,9 @@ public class MapService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MapService.class);
 
+    // FIXME: externalize this
+    private static final Path DATA_DIR = Paths.get(".", "data");
+
     @Autowired
     private SettingsService settings;
 
@@ -52,13 +54,22 @@ public class MapService {
         }
 
         // load the map data
-        TmxMapLoader loader = new TmxMapLoader(new AssetLoader());
+        TmxMapLoader loader = new TmxMapLoader(DATA_DIR);
         this.map = loader.load(new FileInputStream(mapPath.toFile()));
 
         LOG.info("Successfully parsed map data");
 
         // generate the world based on the data we loaded from the map
         generateWorld();
+    }
+
+    /**
+     * Returns metadata about all tiles that are in use on the map.
+     *
+     * @return Metadata about tiles.
+     */
+    public TilesetMetadata getTilesetMetadata() {
+        return this.map.getTileMetadata();
     }
 
     /**
@@ -78,15 +89,6 @@ public class MapService {
      */
     public MapArea getMapArea(int area) {
         return this.areas.get(area);
-    }
-
-    /**
-     * Returns information about the tileset for the map.
-     *
-     * @return Settings information about the tileset.
-     */
-    public AssetSettings getTilesetSettings() {
-        return this.map.getTilesetSettings();
     }
 
     /**
