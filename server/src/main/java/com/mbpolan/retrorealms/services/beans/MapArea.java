@@ -7,6 +7,7 @@ import com.mbpolan.retrorealms.services.map.Tile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -195,6 +196,15 @@ public class MapArea extends Lockable {
      *
      */
     private void computePlanes() {
+        int pixelWidth = width * tileSize;
+        int pixelHeight = height * tileSize;
+
+        // create "virtual" planes that define the bounds of the map area itself - top, bottom, left, right
+        this.planes.add(new Rectangle(0, -tileSize, pixelWidth, 0));
+        this.planes.add(new Rectangle(0, pixelHeight + tileSize, pixelWidth, pixelHeight + tileSize));
+        this.planes.add(new Rectangle(-tileSize, 0, 0, pixelHeight));
+        this.planes.add(new Rectangle(pixelWidth, 0, pixelWidth + tileSize, pixelHeight));
+
         this.layers.forEach(layer -> {
             // compute collision planes using the tiles that have bounding boxes
             for (int y = 0; y < height; y++) {
@@ -246,10 +256,8 @@ public class MapArea extends Lockable {
         Rectangle rect = player.plane();
         rect.translate(dx, dy);
 
-        // has the player went outside the bounds of the map area or collided with something?
-        if ((rect.getX1() < 0 || rect.getX2() > width * this.tileSize) ||
-                (rect.getY1() < 0 || rect.getY2() > height * this.tileSize) || findCollision(rect)) {
-
+        // has the player went outside the bounds of the map area?
+        if (findCollision(rect).isPresent()) {
             // rollback the movement
             rect.translate(-dx, -dy);
             return MoveAction.collision();
@@ -279,11 +287,10 @@ public class MapArea extends Lockable {
      * @param rect The rectangle to test.
      * @return true if there is a collision, false if not.
      */
-    private boolean findCollision(Rectangle rect) {
+    private Optional<Rectangle> findCollision(Rectangle rect) {
         return this.planes.stream()
                 .filter(p -> p != rect && p.overlaps(rect))
-                .findAny()
-                .isPresent();
+                .findAny();
     }
 
     /**
