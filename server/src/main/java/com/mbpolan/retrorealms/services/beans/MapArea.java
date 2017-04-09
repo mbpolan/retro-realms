@@ -201,7 +201,7 @@ public class MapArea extends Lockable {
 
         // create "virtual" planes that define the bounds of the map area itself - top, bottom, left, right
         this.planes.add(new Rectangle(0, -tileSize, pixelWidth, 0));
-        this.planes.add(new Rectangle(0, pixelHeight + tileSize, pixelWidth, pixelHeight + tileSize));
+        this.planes.add(new Rectangle(0, pixelHeight, pixelWidth, pixelHeight + tileSize));
         this.planes.add(new Rectangle(-tileSize, 0, 0, pixelHeight));
         this.planes.add(new Rectangle(pixelWidth, 0, pixelWidth + tileSize, pixelHeight));
 
@@ -256,11 +256,37 @@ public class MapArea extends Lockable {
         Rectangle rect = player.plane();
         rect.translate(dx, dy);
 
-        // has the player went outside the bounds of the map area?
-        if (findCollision(rect).isPresent()) {
+        // has the player collided with another object on the map?
+        Rectangle other = findCollision(rect);
+        if (other != null) {
             // rollback the movement
             rect.translate(-dx, -dy);
-            return MoveAction.collision();
+
+            // determine if we can move partially
+            switch (direction) {
+                case UP:
+                    dy = other.getY2() - rect.getY1();
+                    break;
+                case DOWN:
+                    dy = other.getY1() - rect.getY2();
+                    break;
+                case LEFT:
+                    dx = other.getX2() - rect.getX1();
+                    break;
+                case RIGHT:
+                    dx = other.getX1() - rect.getX2();
+                    break;
+            }
+
+            // couldn't move at all
+            if (dx == 0 && dy == 0) {
+                return MoveAction.collision();
+            }
+
+            // otherwise partially move the player in their target direction
+            else {
+                rect.translate(dx, dy);
+            }
         }
 
         // should we commit the movement change?
@@ -287,10 +313,11 @@ public class MapArea extends Lockable {
      * @param rect The rectangle to test.
      * @return true if there is a collision, false if not.
      */
-    private Optional<Rectangle> findCollision(Rectangle rect) {
+    private Rectangle findCollision(Rectangle rect) {
         return this.planes.stream()
                 .filter(p -> p != rect && p.overlaps(rect))
-                .findAny();
+                .findAny()
+                .orElse(null);
     }
 
     /**
